@@ -54,9 +54,10 @@ function App() {
         {/* Fila Dinámica de Firebase */}
         {firebaseVideos.length > 0 && (
           <MovieRow 
-            title="Tus Videos de Firebase (Auto)" 
+            title="Tus Videos de Firebase" 
             items={firebaseVideos} 
             onPlay={handlePlayVideo}
+            isPortrait
           />
         )}
 

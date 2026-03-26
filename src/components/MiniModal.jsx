@@ -1,9 +1,9 @@
 import React from 'react';
 import './MiniModal.css';
 
-const MiniModal = ({ movie, onPlay }) => {
+const MiniModal = ({ movie, onPlay, isPortrait }) => {
   return (
-    <div className="mini-modal">
+    <div className={`mini-modal ${isPortrait ? 'mini-modal--portrait' : ''}`}>
       <div className="mini-modal__thumbnail" onClick={() => onPlay && onPlay(movie)}>
         <img className="mini-modal__image" src={movie.image || movie.thumbnail} alt={movie.title} />
         <div className="mini-modal__vignette" />

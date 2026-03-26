@@ -18,6 +18,14 @@
   aspect-ratio: 16 / 9;
 }
 
+.mini-modal--portrait {
+  width: 16vw;
+}
+
+.mini-modal--portrait .mini-modal__thumbnail {
+  aspect-ratio: 2 / 3;
+}
+
 .mini-modal__image {
   width: 100%;
   height: 100%;

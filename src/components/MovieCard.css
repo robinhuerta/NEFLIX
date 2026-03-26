@@ -12,6 +12,14 @@
   aspect-ratio: 16 / 9;
 }
 
+.movie-card--portrait {
+  width: 12vw;
+}
+
+.movie-card--portrait .movie-card__clickable {
+  aspect-ratio: 2 / 3;
+}
+
 .movie-card--top10 {
   width: 20vw;
   display: flex;
