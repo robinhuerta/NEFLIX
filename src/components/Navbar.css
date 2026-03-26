@@ -1,0 +1,95 @@
+.navbar {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  height: 68px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 4%;
+  z-index: 100;
+  background-image: linear-gradient(to bottom, rgba(0,0,0,0.7) 10%, rgba(0,0,0,0));
+  transition: background-color 0.4s ease;
+}
+
+.navbar--scrolled {
+  background-color: var(--netflix-black);
+  background-image: none;
+}
+
+.navbar__left {
+  display: flex;
+  align-items: center;
+}
+
+.navbar__logo {
+  width: 92px;
+  margin-right: 25px;
+  cursor: pointer;
+}
+
+.navbar__links {
+  display: flex;
+  list-style: none;
+}
+
+.navbar__link {
+  margin-left: 20px;
+  font-size: 14px;
+  cursor: pointer;
+  color: #e5e5e5;
+  transition: color 0.3s ease;
+}
+
+.navbar__link:hover {
+  color: #b3b3b3;
+}
+
+.navbar__right {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.navbar__icon {
+  cursor: pointer;
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.navbar__badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background-color: var(--netflix-red);
+  color: white;
+  font-size: 10px;
+  padding: 2px 5px;
+  border-radius: 50%;
+  font-weight: bold;
+}
+
+.navbar__profile {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.navbar__avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 4px;
+}
+
+.navbar__caret {
+  font-size: 10px;
+  margin-left: 10px;
+  transition: transform 0.3s ease;
+}
+
+@media (max-width: 1024px) {
+  .navbar__link:nth-child(n+3) {
+    display: none;
+  }
+}

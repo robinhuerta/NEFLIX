@@ -1,0 +1,10 @@
+.app {
+  background-color: #141414;
+}
+
+.app__rows {
+  margin-top: -80px;
+  position: relative;
+  z-index: 20;
+  padding-bottom: 50px;
+}
