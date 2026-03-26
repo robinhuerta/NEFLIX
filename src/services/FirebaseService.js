@@ -21,7 +21,9 @@ export const fetchAllVideos = async () => {
               ? '/posters/american-sicario-square.png' 
               : item.name.toLowerCase().includes('fuerzas')
                 ? '/posters/fuerzas-especiales-square.png'
-                : '/posters/el-ultimo-guerrero-square.png',
+                : item.name.toLowerCase().includes('francotirador')
+                  ? 'https://i.postimg.cc/jjVrPTdw/francotirador-solitario.jpg'
+                  : '/posters/el-ultimo-guerrero-square.png',
             isFirebase: true
           };
         })
