@@ -66,6 +66,7 @@ function App() {
             title={category.title} 
             items={category.items} 
             isTop10Row={category.isTop10Row}
+            onPlay={handlePlayVideo}
           />
         ))}
       </div>
