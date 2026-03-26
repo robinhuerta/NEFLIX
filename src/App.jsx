@@ -11,6 +11,7 @@ function App() {
   const [showPlayer, setShowPlayer] = useState(false);
   const [selectedVideo, setSelectedVideo] = useState(null);
   const [firebaseVideos, setFirebaseVideos] = useState([]);
+  const [featuredMovie, setFeaturedMovie] = useState(mockMovies[0]);
 
   useEffect(() => {
     const getVideos = async () => {
@@ -21,16 +22,21 @@ function App() {
   }, []);
 
   const handlePlayHero = () => {
-    setSelectedVideo({
-      fileName: 'el ultimo guerrero.mp4',
-      title: 'El Último Guerrero'
-    });
-    setShowPlayer(true);
+    if (featuredMovie && featuredMovie.fileName) {
+      setSelectedVideo(featuredMovie);
+      setShowPlayer(true);
+    }
   };
 
-  const handlePlayVideo = (video) => {
-    setSelectedVideo(video);
-    setShowPlayer(true);
+  const handleSelectMovie = (movie) => {
+    setFeaturedMovie(movie);
+  };
+
+  const handlePlayFromCard = (movie) => {
+    if (movie.fileName) {
+      setSelectedVideo(movie);
+      setShowPlayer(true);
+    }
   };
 
   if (showPlayer && selectedVideo) {
@@ -46,9 +52,11 @@ function App() {
   return (
     <div className="app">
       <Navbar />
-      <div onClick={handlePlayHero}>
-        <Hero />
-      </div>
+      
+      <Hero 
+        movie={featuredMovie} 
+        onPlay={handlePlayHero} 
+      />
       
       <div className="app__rows">
         {/* Fila Dinámica de Firebase */}
@@ -56,7 +64,8 @@ function App() {
           <MovieRow 
             title="Tus Videos de Firebase" 
             items={firebaseVideos} 
-            onPlay={handlePlayVideo}
+            onPlay={handlePlayFromCard}
+            onSelect={handleSelectMovie}
             isPortrait
           />
         )}
@@ -67,7 +76,8 @@ function App() {
             title={category.title} 
             items={category.items} 
             isTop10Row={category.isTop10Row}
-            onPlay={handlePlayVideo}
+            onPlay={handlePlayFromCard}
+            onSelect={handleSelectMovie}
           />
         ))}
       </div>
