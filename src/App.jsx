@@ -4,7 +4,7 @@ import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import MovieRow from './components/MovieRow';
 import VideoPlayer from './components/VideoPlayer';
-import { categories } from './data/mockData';
+import { categories, mockMovies } from './data/mockData';
 import { fetchAllVideos } from './services/FirebaseService';
 
 function App() {
