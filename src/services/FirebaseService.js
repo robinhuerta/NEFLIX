@@ -23,7 +23,9 @@ export const fetchAllVideos = async () => {
                 ? '/posters/fuerzas-especiales-square.png'
                 : item.name.toLowerCase().includes('francotirador')
                   ? 'https://i.postimg.cc/jjVrPTdw/francotirador-solitario.jpg'
-                  : '/posters/el-ultimo-guerrero-square.png',
+                  : item.name.toLowerCase().includes('jabber')
+                    ? 'https://i.postimg.cc/0QVSbcd1/Gemini-Generated-Image-k9bco4k9bco4k9bc.png'
+                    : '/posters/el-ultimo-guerrero-square.png',
             isFirebase: true
           };
         })
