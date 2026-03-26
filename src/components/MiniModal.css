@@ -15,7 +15,7 @@
 .mini-modal__thumbnail {
   position: relative;
   width: 100%;
-  aspect-ratio: 16 / 9;
+  aspect-ratio: 1 / 1;
 }
 
 .mini-modal--portrait {
@@ -23,7 +23,7 @@
 }
 
 .mini-modal--portrait .mini-modal__thumbnail {
-  aspect-ratio: 2 / 3;
+  aspect-ratio: 1 / 1;
 }
 
 .mini-modal__image {

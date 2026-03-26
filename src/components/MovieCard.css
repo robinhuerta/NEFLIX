@@ -9,7 +9,7 @@
 .movie-card__clickable {
   position: relative;
   width: 100%;
-  aspect-ratio: 16 / 9;
+  aspect-ratio: 1 / 1;
 }
 
 .movie-card--portrait {
@@ -29,7 +29,7 @@
 
 .movie-card--top10 .movie-card__clickable {
   width: 100%;
-  aspect-ratio: 2 / 3;
+  aspect-ratio: 1 / 1;
   margin-left: 0;
   z-index: 2;
 }

@@ -5,10 +5,9 @@ const Hero = () => {
   return (
     <div className="hero">
       <div className="hero__background">
-        {/* Placeholder image for the banner */}
         <img 
           className="hero__image" 
-          src="https://images.alphacoders.com/132/1324747.jpeg" 
+          src="/posters/el-ultimo-guerrero-square.png" 
           alt="Banner" 
         />
         <div className="hero__vignette" />
@@ -16,11 +15,11 @@ const Hero = () => {
       </div>
       
       <div className="hero__contents">
-        <h1 className="hero__title">¡OH, MIS CLIENTES FANTASMAS!</h1>
+        <h1 className="hero__title">EL ÚLTIMO GUERRERO</h1>
         <p className="hero__description">
-          Un accidente casi mortal le da a un abogado laboral sin rumbo la 
-          habilidad de ver fantasmas... y el trato de defender sus casos 
-          sobrenaturales para poder sobrevivir.
+          Un estoico guerrero antiguo se enfrenta a su destino en un campo de 
+          batalla al atardecer. Una epopeya de valor, redención y la lucha 
+          por el honor en un mundo devastado por la guerra.
         </p>
         <div className="hero__buttons">
           <button className="hero__button hero__button--play">

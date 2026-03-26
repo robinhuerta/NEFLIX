@@ -2,7 +2,7 @@ export const mockMovies = [
   {
     id: 1,
     title: "El Último Guerrero",
-    image: "/posters/el-ultimo-guerrero.png",
+    image: "/posters/el-ultimo-guerrero-square.png",
     badge: "Tendencia",
     genre: "Acción • Aventura • Épico",
     match: "98% para ti",
@@ -14,7 +14,7 @@ export const mockMovies = [
   {
     id: 2,
     title: "American Sicario",
-    image: "/posters/american-sicario.png",
+    image: "/posters/american-sicario-square.png",
     badge: "Recién agregado",
     genre: "Crimen • Drama • Thriller",
     match: "95% para ti",
@@ -36,7 +36,7 @@ export const mockMovies = [
   {
     id: 5,
     title: "El Último Guerrero (Top 10)",
-    image: "/posters/el-ultimo-guerrero.png",
+    image: "/posters/el-ultimo-guerrero-square.png",
     isTop10: true,
     rank: 1,
     fileName: "el ultimo guerrero.mp4"
@@ -44,7 +44,7 @@ export const mockMovies = [
   {
     id: 6,
     title: "Sicario (Top 10)",
-    image: "/posters/american-sicario.png",
+    image: "/posters/american-sicario-square.png",
     isTop10: true,
     rank: 2,
     fileName: "AMERICAN SICARIO MEJOR PELICULAS DE ACCION Pelicula_ Completa en Espanol Latino HD(720P_HD).mp4"
