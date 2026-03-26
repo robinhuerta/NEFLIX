@@ -67,15 +67,16 @@
 }
 
 .mini-modal__btn {
-  width: 2.2vw;
-  height: 2.2vw;
+  width: 2.3vw;
+  height: 2.3vw;
   border-radius: 50%;
   border: 2px solid rgba(255,255,255,0.5);
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: rgba(42, 42, 42, 0.6);
-  transition: border-color 0.2s ease, background-color 0.2s ease;
+  background-color: rgba(42, 42, 42, 0.4);
+  transition: all 0.2s ease;
+  cursor: pointer;
 }
 
 .mini-modal__btn:hover {
@@ -89,7 +90,12 @@
 }
 
 .mini-modal__btn--play:hover {
-  background-color: rgba(255,255,255,0.7);
+  background-color: #e6e6e6;
+  transform: scale(1.05);
+}
+
+.mini-modal__btn--round {
+   border: 2px solid #808080;
 }
 
 .mini-modal__metadata {

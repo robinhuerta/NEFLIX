@@ -21,15 +21,17 @@
 }
 
 .movie-card--top10 {
-  width: 20vw;
+  width: 14vw;
   display: flex;
-  align-items: flex-end;
+  align-items: center;
+  margin-right: 2vw;
 }
 
 .movie-card--top10 .movie-card__clickable {
-  width: 50%;
-  height: auto;
-  margin-left: -10px;
+  width: 100%;
+  aspect-ratio: 2 / 3;
+  margin-left: 0;
+  z-index: 2;
 }
 
 .movie-card__image {
@@ -53,16 +55,18 @@
 }
 
 .movie-card__rank {
-  font-size: 15vw;
-  font-weight: 800;
-  color: #141414;
-  -webkit-text-stroke: 4px #555;
+  font-size: 14vw;
+  font-weight: 900;
+  color: #000;
+  -webkit-text-stroke: 3px #555;
   line-height: 1;
   position: absolute;
-  left: -2vw;
-  bottom: -2vw;
-  z-index: -1;
+  left: -2.5vw;
+  bottom: 0;
+  z-index: 1;
   user-select: none;
+  font-family: inherit;
+  letter-spacing: -1vw;
 }
 
 @media (max-width: 1024px) {
