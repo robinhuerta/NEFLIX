@@ -3,7 +3,7 @@ import './VideoPlayer.css';
 import { storage } from '../firebaseConfig';
 import { ref, getDownloadURL } from 'firebase/storage';
 
-const VideoPlayer = ({ onBack, movieTitle = "El Último Guerrero", episode = "Película Completa" }) => {
+const VideoPlayer = ({ onBack, fileName = 'el ultimo guerrero.mp4', movieTitle = "Netflix Movie", episode = "Película" }) => {
   const [isPlaying, setIsPlaying] = useState(true);
   const [videoUrl, setVideoUrl] = useState('');
   const [currentTime, setCurrentTime] = useState(0);
@@ -12,8 +12,8 @@ const VideoPlayer = ({ onBack, movieTitle = "El Último Guerrero", episode = "Pe
   const videoRef = useRef(null);
 
   useEffect(() => {
-    // Nombre del archivo que subiste a Firebase
-    const fileName = 'el ultimo guerrero.mp4';
+    if (!fileName) return;
+
     const videoFileRef = ref(storage, fileName);
 
     getDownloadURL(videoFileRef)
@@ -24,7 +24,7 @@ const VideoPlayer = ({ onBack, movieTitle = "El Último Guerrero", episode = "Pe
         console.error("Error al obtener el video de Firebase:", err);
         setError("No se pudo cargar el video. Verifica las reglas de Firebase Storage.");
       });
-  }, []);
+  }, [fileName]);
 
   const togglePlay = () => {
     if (videoRef.current) {

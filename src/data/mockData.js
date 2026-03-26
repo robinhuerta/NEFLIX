@@ -1,36 +1,27 @@
 export const mockMovies = [
   {
     id: 1,
-    title: "One Piece",
-    image: "https://image.tmdb.org/t/p/original/fc97m32vYvS7D6Yis6YvS3C9MWv.jpg",
-    badge: "Nueva temporada",
-    genre: "Animación • Acción • Aventura",
+    title: "El Último Guerrero",
+    image: "/posters/el-ultimo-guerrero.png",
+    badge: "Tendencia",
+    genre: "Acción • Aventura • Épico",
     match: "98% para ti",
-    maturity: "10+",
-    duration: "1 temporada",
-    quality: "HD"
+    maturity: "16+",
+    duration: "2h 15m",
+    quality: "4K",
+    fileName: "el ultimo guerrero.mp4"
   },
   {
     id: 2,
-    title: "Sabuesos",
-    image: "https://image.tmdb.org/t/p/original/9vG9XF6t7Z5K7A0uD0n9Xy8L9.jpg",
+    title: "American Sicario",
+    image: "/posters/american-sicario.png",
     badge: "Recién agregado",
-    genre: "Violento • Acción • Boxeo",
+    genre: "Crimen • Drama • Thriller",
     match: "95% para ti",
-    maturity: "16+",
-    duration: "1 temporada",
-    quality: "HD"
-  },
-  {
-    id: 3,
-    title: "El Mentalista",
-    image: "https://image.tmdb.org/t/p/original/5mS16U7PjZtE2n1Y8Xf8N1D0M.jpg",
-    badge: "Recién agregado",
-    genre: "Crimen • Drama • Misterio",
-    match: "92% para ti",
-    maturity: "13+",
-    duration: "7 temporadas",
-    quality: "HD"
+    maturity: "18+",
+    duration: "1h 45m",
+    quality: "HD",
+    fileName: "AMERICAN SICARIO MEJOR PELICULAS DE ACCION Pelicula_ Completa en Espanol Latino HD(720P_HD).mp4"
   },
   {
     id: 4,
@@ -44,17 +35,19 @@ export const mockMovies = [
   },
   {
     id: 5,
-    title: "One Piece (Top 10)",
-    image: "https://image.tmdb.org/t/p/original/fc97m32vYvS7D6Yis6YvS3C9MWv.jpg",
+    title: "El Último Guerrero (Top 10)",
+    image: "/posters/el-ultimo-guerrero.png",
     isTop10: true,
-    rank: 1
+    rank: 1,
+    fileName: "el ultimo guerrero.mp4"
   },
   {
     id: 6,
-    title: "BTS",
-    image: "https://image.tmdb.org/t/p/original/fc97m32vYvS7D6Yis6YvS3C9MWv.jpg",
+    title: "Sicario (Top 10)",
+    image: "/posters/american-sicario.png",
     isTop10: true,
-    rank: 3
+    rank: 2,
+    fileName: "AMERICAN SICARIO MEJOR PELICULAS DE ACCION Pelicula_ Completa en Espanol Latino HD(720P_HD).mp4"
   }
 ];
 

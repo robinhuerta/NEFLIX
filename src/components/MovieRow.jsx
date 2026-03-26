@@ -23,7 +23,7 @@ const MovieRow = ({ title, items, isTop10Row }) => {
         
         <div className="movie-row__items" ref={rowRef}>
           {items.map((item) => (
-            <MovieCard key={item.id} movie={item} isTop10={isTop10Row} />
+            <MovieCard key={item.id} movie={item} isTop10={isTop10Row} onPlay={onPlay} />
           ))}
         </div>
 

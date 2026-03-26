@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import './MovieCard.css';
 import MiniModal from './MiniModal';
 
-const MovieCard = ({ movie, isTop10 }) => {
+const MovieCard = ({ movie, isTop10, onPlay }) => {
   const [isHovered, setIsHovered] = useState(false);
 
   return (
@@ -11,7 +11,7 @@ const MovieCard = ({ movie, isTop10 }) => {
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <div className="movie-card__clickable">
+      <div className="movie-card__clickable" onClick={() => onPlay && onPlay(movie)}>
         {isTop10 && (
           <div className="movie-card__rank">
             {movie.rank}
@@ -21,7 +21,7 @@ const MovieCard = ({ movie, isTop10 }) => {
         {movie.badge && <span className="movie-card__badge">{movie.badge}</span>}
       </div>
 
-      {isHovered && <MiniModal movie={movie} />}
+      {isHovered && <MiniModal movie={movie} onPlay={onPlay} />}
     </div>
   );
 };

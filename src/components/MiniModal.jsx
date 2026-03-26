@@ -1,11 +1,11 @@
 import React from 'react';
 import './MiniModal.css';
 
-const MiniModal = ({ movie }) => {
+const MiniModal = ({ movie, onPlay }) => {
   return (
     <div className="mini-modal">
-      <div className="mini-modal__thumbnail">
-        <img className="mini-modal__image" src={movie.image} alt={movie.title} />
+      <div className="mini-modal__thumbnail" onClick={() => onPlay && onPlay(movie)}>
+        <img className="mini-modal__image" src={movie.image || movie.thumbnail} alt={movie.title} />
         <div className="mini-modal__vignette" />
         <h3 className="mini-modal__title">{movie.title}</h3>
       </div>
@@ -13,7 +13,7 @@ const MiniModal = ({ movie }) => {
       <div className="mini-modal__info">
         <div className="mini-modal__actions">
           <div className="mini-modal__actions-left">
-            <button className="mini-modal__btn mini-modal__btn--play">
+            <button className="mini-modal__btn mini-modal__btn--play" onClick={() => onPlay && onPlay(movie)}>
               <svg viewBox="0 0 24 24" fill="black" width="20" height="20"><path d="M8 5v14l11-7z"/></svg>
             </button>
             <button className="mini-modal__btn">
