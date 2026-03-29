@@ -25,7 +25,9 @@ export const fetchAllVideos = async () => {
                   ? '/posters/francotirador-solitario-square.png'
                   : item.name.toLowerCase().includes('jabber')
                     ? '/posters/jabberwock-square.png'
-                    : '/posters/el-ultimo-guerrero-square.png',
+                    : item.name.toLowerCase().includes('condenados')
+                      ? 'https://i.postimg.cc/VkDCk3hM/Captura-de-pantalla-2026-03-28-210029.jpg'
+                      : '/posters/el-ultimo-guerrero-square.png',
             isFirebase: true
           };
         })
