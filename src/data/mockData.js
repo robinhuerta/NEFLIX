@@ -51,11 +51,37 @@ export const mockMovies = [
     isTop10: true,
     rank: 2,
     fileName: "AMERICAN SICARIO MEJOR PELICULAS DE ACCION Pelicula_ Completa en Espanol Latino HD(720P_HD).mp4"
+  },
+  {
+    id: 7,
+    title: "Justiciero Vengador",
+    image: "/posters/justiciero-vengador.jpg",
+    badge: "Nuevo",
+    genre: "Acción • Drama",
+    match: "92% para ti",
+    maturity: "18+",
+    duration: "1h 50m",
+    quality: "HD",
+    fileName: "justiciero vengador.mp4",
+    trailerUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ"
+  },
+  {
+    id: 8,
+    title: "Benjamín Argumedo",
+    image: "/posters/benjamin-argumedo.jpg",
+    badge: "Clásico",
+    genre: "Acción • Historia • Mexicano",
+    match: "94% para ti",
+    maturity: "13+",
+    duration: "2h 05m",
+    quality: "HD",
+    fileName: "benjamin argumedo.mp4",
+    trailerUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ"
   }
 ];
 
 export const categories = [
-  { id: 1, title: "Tu próxima historia", items: mockMovies.slice(0, 4) },
-  { id: 2, title: "Atrapantes de principio a fin", items: mockMovies.slice(1, 5) },
+  { id: 1, title: "Tu próxima historia", items: mockMovies.slice(0, 7) },
+  { id: 2, title: "Atrapantes de principio a fin", items: mockMovies.slice(1, 8) },
   { id: 3, title: "Las 10 series más populares en Perú hoy", items: mockMovies.filter(m => m.isTop10), isTop10Row: true }
 ];
