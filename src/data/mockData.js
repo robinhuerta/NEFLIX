@@ -26,7 +26,7 @@ export const mockMovies = [
   {
     id: 4,
     title: "Vigilados",
-    image: "https://image.tmdb.org/t/p/original/qZqO5eT1d1X2N3Y4Z5A6B7C8D.jpg",
+    image: "/posters/vigilados-square.png",
     genre: "Thriller • Suspenso",
     match: "89% para ti",
     maturity: "16+",
