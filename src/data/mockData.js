@@ -9,7 +9,8 @@ export const mockMovies = [
     maturity: "16+",
     duration: "2h 15m",
     quality: "4K",
-    fileName: "el ultimo guerrero.mp4"
+    fileName: "el ultimo guerrero.mp4",
+    trailerUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ"
   },
   {
     id: 2,
@@ -21,7 +22,8 @@ export const mockMovies = [
     maturity: "18+",
     duration: "1h 45m",
     quality: "HD",
-    fileName: "AMERICAN SICARIO MEJOR PELICULAS DE ACCION Pelicula_ Completa en Espanol Latino HD(720P_HD).mp4"
+    fileName: "AMERICAN SICARIO MEJOR PELICULAS DE ACCION Pelicula_ Completa en Espanol Latino HD(720P_HD).mp4",
+    trailerUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ"
   },
   {
     id: 4,
@@ -31,7 +33,8 @@ export const mockMovies = [
     match: "89% para ti",
     maturity: "16+",
     duration: "1 temporada",
-    quality: "HD"
+    quality: "HD",
+    trailerUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ"
   },
   {
     id: 5,

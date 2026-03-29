@@ -3,30 +3,57 @@ import './VideoPlayer.css';
 import { storage } from '../firebaseConfig';
 import { ref, getDownloadURL } from 'firebase/storage';
 
-const VideoPlayer = ({ onBack, fileName = 'el ultimo guerrero.mp4', movieTitle = "Netflix Movie", episode = "Película" }) => {
+const VideoPlayer = ({ onBack, fileName = 'el ultimo guerrero.mp4', movieTitle = "Netflix Movie", episode = "Película", onNext, hasNext = false, initialTime = 0, onProgress }) => {
   const [isPlaying, setIsPlaying] = useState(true);
   const [videoUrl, setVideoUrl] = useState('');
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [error, setError] = useState(null);
+  const [volume, setVolume] = useState(1);
+  const [isMuted, setIsMuted] = useState(false);
+  const [showVolume, setShowVolume] = useState(false);
+  const [playbackRate, setPlaybackRate] = useState(1);
+  const [showSettings, setShowSettings] = useState(false);
+  const [toast, setToast] = useState('');
+  const [isFullScreen, setIsFullScreen] = useState(false);
   const videoRef = useRef(null);
   const playerRef = useRef(null);
-  const [isFullScreen, setIsFullScreen] = useState(false);
+  const volumeRef = useRef(null);
+  const settingsRef = useRef(null);
 
   useEffect(() => {
     if (!fileName) return;
-
     const videoFileRef = ref(storage, fileName);
-
     getDownloadURL(videoFileRef)
-      .then((url) => {
-        setVideoUrl(url);
-      })
+      .then((url) => setVideoUrl(url))
       .catch((err) => {
         console.error("Error al obtener el video de Firebase:", err);
         setError("No se pudo cargar el video. Verifica las reglas de Firebase Storage.");
       });
   }, [fileName]);
+
+  // Seek to saved position when video loads
+  useEffect(() => {
+    if (videoUrl && videoRef.current && initialTime > 0) {
+      videoRef.current.currentTime = initialTime;
+    }
+  }, [videoUrl]);
+
+  // Report progress every 5 seconds
+  useEffect(() => {
+    if (!onProgress) return;
+    const interval = setInterval(() => {
+      if (videoRef.current && videoRef.current.duration > 0) {
+        onProgress(videoRef.current.currentTime, videoRef.current.duration);
+      }
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [onProgress]);
+
+  const showToast = (msg) => {
+    setToast(msg);
+    setTimeout(() => setToast(''), 3000);
+  };
 
   const togglePlay = () => {
     if (videoRef.current) {
@@ -68,67 +95,148 @@ const VideoPlayer = ({ onBack, fileName = 'el ultimo guerrero.mp4', movieTitle =
     }
   };
 
+  const handleVolumeChange = (e) => {
+    const newVolume = parseFloat(e.target.value);
+    setVolume(newVolume);
+    setIsMuted(newVolume === 0);
+    if (videoRef.current) {
+      videoRef.current.volume = newVolume;
+      videoRef.current.muted = newVolume === 0;
+    }
+  };
+
+  const handleSpeedChange = (speed) => {
+    setPlaybackRate(speed);
+    if (videoRef.current) {
+      videoRef.current.playbackRate = speed;
+    }
+    setShowSettings(false);
+    showToast(`Velocidad: ${speed === 1 ? 'Normal' : speed + 'x'}`);
+  };
+
   const toggleFullScreen = () => {
     if (!playerRef.current) return;
-
     if (!document.fullscreenElement) {
-      if (playerRef.current.requestFullscreen) {
-        playerRef.current.requestFullscreen();
-      } else if (playerRef.current.webkitRequestFullscreen) {
-        playerRef.current.webkitRequestFullscreen();
-      } else if (playerRef.current.msRequestFullscreen) {
-        playerRef.current.msRequestFullscreen();
-      }
+      if (playerRef.current.requestFullscreen) playerRef.current.requestFullscreen();
+      else if (playerRef.current.webkitRequestFullscreen) playerRef.current.webkitRequestFullscreen();
+      else if (playerRef.current.msRequestFullscreen) playerRef.current.msRequestFullscreen();
       setIsFullScreen(true);
     } else {
-      if (document.exitFullscreen) {
-        document.exitFullscreen();
-      } else if (document.webkitExitFullscreen) {
-        document.webkitExitFullscreen();
-      } else if (document.msExitFullscreen) {
-        document.msExitFullscreen();
-      }
+      if (document.exitFullscreen) document.exitFullscreen();
+      else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+      else if (document.msExitFullscreen) document.msExitFullscreen();
       setIsFullScreen(false);
     }
   };
 
   useEffect(() => {
-    const handleFsChange = () => {
-      setIsFullScreen(!!document.fullscreenElement);
-    };
+    const handleFsChange = () => setIsFullScreen(!!document.fullscreenElement);
     document.addEventListener('fullscreenchange', handleFsChange);
     return () => document.removeEventListener('fullscreenchange', handleFsChange);
+  }, []);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKey = (e) => {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+      switch (e.key) {
+        case ' ':
+          e.preventDefault();
+          togglePlay();
+          break;
+        case 'ArrowLeft':
+          e.preventDefault();
+          skip(-10);
+          showToast('◀  -10s');
+          break;
+        case 'ArrowRight':
+          e.preventDefault();
+          skip(10);
+          showToast('▶  +10s');
+          break;
+        case 'f':
+        case 'F':
+          toggleFullScreen();
+          break;
+        case 'm':
+        case 'M': {
+          const newMuted = !isMuted;
+          setIsMuted(newMuted);
+          if (videoRef.current) videoRef.current.muted = newMuted;
+          showToast(newMuted ? 'Silenciado' : 'Con sonido');
+          break;
+        }
+        case 'Escape':
+          if (onProgress && videoRef.current && videoRef.current.duration > 0) {
+            onProgress(videoRef.current.currentTime, videoRef.current.duration);
+          }
+          onBack();
+          break;
+        default:
+          break;
+      }
+    };
+    document.addEventListener('keydown', handleKey);
+    return () => document.removeEventListener('keydown', handleKey);
+  }, [isPlaying, isMuted]);
+
+  // Close popups when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (volumeRef.current && !volumeRef.current.contains(e.target)) setShowVolume(false);
+      if (settingsRef.current && !settingsRef.current.contains(e.target)) setShowSettings(false);
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
   const remainingTime = formatTime(duration - currentTime);
   const progress = (currentTime / duration) * 100 || 0;
 
+  const getVolumeIcon = () => {
+    if (isMuted || volume === 0) {
+      return <path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/>;
+    }
+    if (volume < 0.5) {
+      return <path d="M18.5 12c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM5 9v6h4l5 5V4L9 9H5z"/>;
+    }
+    return <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>;
+  };
+
   return (
     <div className="video-player" ref={playerRef}>
+      {/* Toast notification */}
+      {toast && <div className="video-player__toast">{toast}</div>}
+
       <div className="video-player__top">
-        <button className="video-player__back" onClick={onBack}>
+        <button aria-label="Volver" className="video-player__back" onClick={() => {
+          if (videoRef.current && onProgress && videoRef.current.duration > 0) {
+            onProgress(videoRef.current.currentTime, videoRef.current.duration);
+          }
+          onBack();
+        }}>
           <svg viewBox="0 0 24 24" fill="white" width="36" height="36"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
         </button>
-        <button className="video-player__report">
-           <svg viewBox="0 0 24 24" fill="white" width="24" height="24"><path d="M14.4 6L14 4H5v17h2v-7h5.6l.4 2h7V6z"/></svg>
+        <button aria-label="Reportar problema" className="video-player__report" onClick={() => showToast('Reporte enviado. ¡Gracias por tu feedback!')}>
+          <svg viewBox="0 0 24 24" fill="white" width="24" height="24"><path d="M14.4 6L14 4H5v17h2v-7h5.6l.4 2h7V6z"/></svg>
         </button>
       </div>
 
       <div className="video-player__video-container">
-         {error ? (
-           <div className="video-player__error">{error}</div>
-         ) : videoUrl ? (
-           <video 
-              ref={videoRef}
-              className="video-player__video" 
-              autoPlay
-              src={videoUrl}
-              onTimeUpdate={handleTimeUpdate}
-              onLoadedMetadata={handleTimeUpdate}
-           />
-         ) : (
-           <div className="video-player__loading">Cargando película...</div>
-         )}
+        {error ? (
+          <div className="video-player__error">{error}</div>
+        ) : videoUrl ? (
+          <video
+            ref={videoRef}
+            className="video-player__video"
+            autoPlay
+            src={videoUrl}
+            onTimeUpdate={handleTimeUpdate}
+            onLoadedMetadata={handleTimeUpdate}
+          />
+        ) : (
+          <div className="video-player__loading">Cargando película...</div>
+        )}
       </div>
 
       <div className="video-player__bottom">
@@ -141,52 +249,113 @@ const VideoPlayer = ({ onBack, fileName = 'el ultimo guerrero.mp4', movieTitle =
 
         <div className="video-player__controls">
           <div className="video-player__controls-left">
-            <button className="video-player__btn" onClick={togglePlay}>
+            <button aria-label={isPlaying ? 'Pausar' : 'Reproducir'} className="video-player__btn" onClick={togglePlay}>
               {isPlaying ? (
                 <svg viewBox="0 0 24 24" fill="white" width="36" height="36"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
               ) : (
                 <svg viewBox="0 0 24 24" fill="white" width="36" height="36"><path d="M8 5v14l11-7z"/></svg>
               )}
             </button>
-            <button className="video-player__btn" onClick={() => skip(-10)}>
+            <button aria-label="Retroceder 10 segundos" className="video-player__btn" onClick={() => skip(-10)}>
               <svg viewBox="0 0 24 24" fill="white" width="30" height="30"><path d="M11 18V6l-8.5 6 8.5 6zm.5-6l8.5 6V6l-8.5 6z"/></svg>
               <span className="video-player__skip-text">10</span>
             </button>
-            <button className="video-player__btn" onClick={() => skip(10)}>
+            <button aria-label="Adelantar 10 segundos" className="video-player__btn" onClick={() => skip(10)}>
               <svg viewBox="0 0 24 24" fill="white" width="30" height="30"><path d="M13 6v12l8.5-6L13 6zM4 18l8.5-6L4 6v12z"/></svg>
               <span className="video-player__skip-text">10</span>
             </button>
-            <button className="video-player__btn">
-               <svg viewBox="0 0 24 24" fill="white" width="30" height="30"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
-            </button>
+
+            {/* Volume control */}
+            <div className="video-player__volume-wrapper" ref={volumeRef}>
+              <button aria-label="Control de volumen" className="video-player__btn" onClick={() => { setShowVolume(!showVolume); }}>
+                <svg viewBox="0 0 24 24" fill="white" width="30" height="30">{getVolumeIcon()}</svg>
+              </button>
+              {showVolume && (
+                <div className="video-player__volume-popup">
+                  <input
+                    type="range"
+                    min="0"
+                    max="1"
+                    step="0.05"
+                    value={isMuted ? 0 : volume}
+                    onChange={handleVolumeChange}
+                    className="video-player__volume-slider"
+                  />
+                  <span className="video-player__volume-label">
+                    {isMuted ? '0%' : `${Math.round(volume * 100)}%`}
+                  </span>
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="video-player__title-box">
-             <span className="video-player__title">{movieTitle}</span>
-             <span className="video-player__episode">{episode}</span>
+            <span className="video-player__title">{movieTitle}</span>
+            <span className="video-player__episode">{episode}</span>
           </div>
 
           <div className="video-player__controls-right">
-            <button className="video-player__btn">
-               <svg viewBox="0 0 24 24" fill="white" width="24" height="24"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
+            {/* Next episode */}
+            <button
+              aria-label="Siguiente episodio"
+              className="video-player__btn"
+              onClick={() => hasNext && onNext ? onNext() : showToast('No hay más episodios disponibles')}
+            >
+              <svg viewBox="0 0 24 24" fill="white" width="24" height="24"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
             </button>
-            <button className="video-player__btn">
-               <svg viewBox="0 0 24 24" fill="white" width="24" height="24"><path d="M4 14h4v-4H4v4zm0 5h4v-4H4v4zM4 9h4V5H4v4zm5 5h12v-4H9v4zm0 5h12v-4H9v4zM9 5v4h12V5H9z"/></svg>
+
+            {/* Subtitles */}
+            <button
+              aria-label="Subtítulos"
+              className="video-player__btn"
+              onClick={() => showToast('Subtítulos no disponibles para este video')}
+            >
+              <svg viewBox="0 0 24 24" fill="white" width="24" height="24"><path d="M4 14h4v-4H4v4zm0 5h4v-4H4v4zM4 9h4V5H4v4zm5 5h12v-4H9v4zm0 5h12v-4H9v4zM9 5v4h12V5H9z"/></svg>
             </button>
-            <button className="video-player__btn">
-               <svg viewBox="0 0 24 24" fill="white" width="24" height="24"><path d="M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/></svg>
+
+            {/* Chat */}
+            <button
+              aria-label="Chat"
+              className="video-player__btn"
+              onClick={() => showToast('Chat no disponible en este momento')}
+            >
+              <svg viewBox="0 0 24 24" fill="white" width="24" height="24"><path d="M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/></svg>
             </button>
-            <button className="video-player__btn">
-               <svg viewBox="0 0 24 24" fill="white" width="24" height="24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/><path d="M12.5 7H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>
-            </button>
-            <button className="video-player__btn" onClick={toggleFullScreen}>
-               <svg viewBox="0 0 24 24" fill="white" width="24" height="24">
-                 {isFullScreen ? (
-                   <path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"/>
-                 ) : (
-                   <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/>
-                 )}
-               </svg>
+
+            {/* Settings / Playback speed */}
+            <div className="video-player__settings-wrapper" ref={settingsRef}>
+              <button
+                aria-label="Velocidad de reproducción"
+                className="video-player__btn"
+                onClick={() => setShowSettings(!showSettings)}
+              >
+                <svg viewBox="0 0 24 24" fill="white" width="24" height="24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/><path d="M12.5 7H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>
+              </button>
+              {showSettings && (
+                <div className="video-player__settings-popup">
+                  <h4 className="video-player__settings-title">Velocidad de reproducción</h4>
+                  {[0.5, 0.75, 1, 1.25, 1.5, 2].map(speed => (
+                    <div
+                      key={speed}
+                      className={`video-player__speed-option ${playbackRate === speed ? 'video-player__speed-option--active' : ''}`}
+                      onClick={() => handleSpeedChange(speed)}
+                    >
+                      {speed === 1 ? 'Normal' : `${speed}x`}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Fullscreen */}
+            <button aria-label={isFullScreen ? 'Salir de pantalla completa' : 'Pantalla completa'} className="video-player__btn" onClick={toggleFullScreen}>
+              <svg viewBox="0 0 24 24" fill="white" width="24" height="24">
+                {isFullScreen ? (
+                  <path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"/>
+                ) : (
+                  <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/>
+                )}
+              </svg>
             </button>
           </div>
         </div>

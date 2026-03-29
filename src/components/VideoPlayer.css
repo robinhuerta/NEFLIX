@@ -209,6 +209,104 @@
   }
 }
 
+/* Toast */
+.video-player__toast {
+  position: absolute;
+  top: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.85);
+  color: white;
+  padding: 10px 20px;
+  border-radius: 6px;
+  font-size: 14px;
+  z-index: 2020;
+  pointer-events: none;
+  border: 1px solid rgba(255,255,255,0.15);
+  white-space: nowrap;
+}
+
+/* Volume popup */
+.video-player__volume-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.video-player__volume-popup {
+  position: absolute;
+  bottom: 50px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(20, 20, 20, 0.95);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 8px;
+  padding: 12px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  z-index: 2015;
+}
+
+.video-player__volume-slider {
+  writing-mode: vertical-lr;
+  direction: rtl;
+  width: 4px;
+  height: 80px;
+  cursor: pointer;
+  accent-color: var(--netflix-red);
+}
+
+.video-player__volume-label {
+  color: white;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+/* Settings popup */
+.video-player__settings-wrapper {
+  position: relative;
+}
+
+.video-player__settings-popup {
+  position: absolute;
+  bottom: 50px;
+  right: 0;
+  background: rgba(20, 20, 20, 0.95);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 8px;
+  padding: 10px 0;
+  min-width: 160px;
+  z-index: 2015;
+}
+
+.video-player__settings-title {
+  color: #aaa;
+  font-size: 12px;
+  font-weight: normal;
+  padding: 4px 16px 8px;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  margin: 0 0 4px;
+}
+
+.video-player__speed-option {
+  color: white;
+  font-size: 14px;
+  padding: 8px 16px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.video-player__speed-option:hover {
+  background: rgba(255,255,255,0.1);
+}
+
+.video-player__speed-option--active {
+  color: var(--netflix-red);
+  font-weight: bold;
+}
+
 @media (max-width: 480px) {
   .video-player__controls {
     justify-content: center;

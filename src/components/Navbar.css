@@ -88,6 +88,235 @@
   transition: transform 0.3s ease;
 }
 
+/* Search */
+.navbar__search-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.navbar__search-input {
+  background: rgba(0, 0, 0, 0.75);
+  border: 1px solid white;
+  color: white;
+  padding: 5px 10px;
+  font-size: 14px;
+  outline: none;
+  width: 0;
+  opacity: 0;
+  transition: width 0.3s ease, opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.navbar__search-wrapper--open .navbar__search-input {
+  width: 200px;
+  opacity: 1;
+  pointer-events: all;
+}
+
+/* Notifications dropdown */
+.navbar__dropdown {
+  position: absolute;
+  top: 45px;
+  right: 0;
+  background: #141414;
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 4px;
+  min-width: 280px;
+  z-index: 200;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.6);
+}
+
+.navbar__dropdown-title {
+  color: white;
+  font-size: 14px;
+  font-weight: bold;
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  margin: 0;
+}
+
+.navbar__notification-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 16px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.navbar__notification-item:hover {
+  background: rgba(255,255,255,0.08);
+}
+
+.navbar__notification-item--new {
+  background: rgba(229, 9, 20, 0.08);
+}
+
+.navbar__notif-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--netflix-red);
+  flex-shrink: 0;
+  margin-top: 5px;
+}
+
+.navbar__notif-text {
+  color: #e5e5e5;
+  font-size: 13px;
+  margin: 0 0 3px;
+}
+
+.navbar__notif-time {
+  color: #aaa;
+  font-size: 11px;
+}
+
+/* Profile dropdown */
+.navbar__profile-dropdown {
+  min-width: 200px;
+}
+
+.navbar__profile-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+}
+
+.navbar__profile-item-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 4px;
+}
+
+.navbar__profile-item span {
+  color: white;
+  font-size: 14px;
+}
+
+.navbar__divider {
+  border: none;
+  border-top: 1px solid rgba(255,255,255,0.1);
+  margin: 4px 0;
+}
+
+.navbar__profile-option {
+  color: #e5e5e5;
+  font-size: 13px;
+  padding: 10px 16px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.navbar__profile-option:hover {
+  background: rgba(255,255,255,0.08);
+}
+
+/* Mi lista badge */
+.navbar__list-count {
+  display: inline-block;
+  background: var(--netflix-red);
+  color: white;
+  font-size: 10px;
+  padding: 1px 5px;
+  border-radius: 10px;
+  margin-left: 5px;
+  font-weight: bold;
+}
+
+/* Caret open state */
+.navbar__caret--open {
+  transform: rotate(180deg);
+}
+
+/* Hamburger button */
+.navbar__hamburger {
+  display: none;
+  flex-direction: column;
+  gap: 5px;
+  padding: 6px;
+  cursor: pointer;
+  background: none;
+  border: none;
+}
+
+.navbar__hamburger span {
+  display: block;
+  width: 22px;
+  height: 2px;
+  background: white;
+  border-radius: 2px;
+}
+
+/* Mobile drawer overlay */
+.mobile-menu__overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 1000;
+}
+
+.mobile-menu {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 75vw;
+  max-width: 300px;
+  height: 100%;
+  background: #141414;
+  padding: 24px 0;
+  display: flex;
+  flex-direction: column;
+  animation: slide-in 0.25s ease;
+}
+
+@keyframes slide-in {
+  from { transform: translateX(-100%); }
+  to   { transform: translateX(0); }
+}
+
+.mobile-menu__close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  color: #aaa;
+  font-size: 18px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mobile-menu__logo {
+  width: 80px;
+  margin: 8px 24px 24px;
+}
+
+.mobile-menu__links {
+  display: flex;
+  flex-direction: column;
+}
+
+.mobile-menu__link {
+  color: #e5e5e5;
+  font-size: 15px;
+  padding: 14px 24px;
+  cursor: pointer;
+  transition: background 0.15s;
+  border-left: 3px solid transparent;
+}
+
+.mobile-menu__link:hover {
+  background: rgba(255,255,255,0.07);
+  border-left-color: var(--netflix-red);
+}
+
 @media (max-width: 1024px) {
   .navbar { height: 50px; padding: 0 4%; }
   .navbar__logo { width: 70px; margin-right: 15px; }
@@ -101,4 +330,5 @@
   .navbar__right { gap: 10px; }
   .navbar__search, .navbar__notifications { display: none; }
   .navbar__logo { width: 60px; }
+  .navbar__hamburger { display: flex; }
 }

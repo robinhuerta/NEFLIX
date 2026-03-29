@@ -68,6 +68,24 @@
   letter-spacing: -1.5vw;
 }
 
+/* Progress bar (Continuar viendo) */
+.movie-card__progress-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 0 0 4px 4px;
+}
+
+.movie-card__progress-fill {
+  height: 100%;
+  background: var(--netflix-red);
+  border-radius: 0 0 4px 4px;
+  transition: width 0.3s ease;
+}
+
 /* Responsiveness */
 @media (max-width: 1200px) {
   .movie-card { width: 20vw; }

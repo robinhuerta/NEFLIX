@@ -17,7 +17,7 @@ export const fetchAllVideos = async () => {
             id: item.fullPath,
             title: item.name.replace('.mp4', '').replace(/_/g, ' '),
             fileName: item.name,
-            thumbnail: item.name.toLowerCase().includes('sicario') 
+            image: item.name.toLowerCase().includes('sicario') 
               ? '/posters/american-sicario-square.png' 
               : item.name.toLowerCase().includes('fuerzas')
                 ? '/posters/fuerzas-especiales-square.png'

@@ -1,29 +1,22 @@
 .mini-modal {
-  position: absolute;
-  top: -5vw;
-  left: 0;
-  width: 22vw;
+  position: relative; /* el wrapper del portal maneja la posición fixed */
   background-color: #181818;
   border-radius: 6px;
-  box-shadow: 0px 10px 20px rgba(0,0,0,0.5);
-  z-index: 1000;
-  transform: scale(1.1);
-  transition: transform 0.2s ease-in-out;
+  box-shadow: 0px 12px 30px rgba(0, 0, 0, 0.7);
   overflow: hidden;
+  animation: mini-modal-enter 0.15s ease;
+}
+
+@keyframes mini-modal-enter {
+  from { transform: scale(0.92); opacity: 0; }
+  to   { transform: scale(1);    opacity: 1; }
 }
 
 .mini-modal__thumbnail {
   position: relative;
   width: 100%;
   aspect-ratio: 1 / 1;
-}
-
-.mini-modal--portrait {
-  width: 16vw;
-}
-
-.mini-modal--portrait .mini-modal__thumbnail {
-  aspect-ratio: 1 / 1;
+  cursor: pointer;
 }
 
 .mini-modal__image {
@@ -38,27 +31,28 @@
   left: 0;
   width: 100%;
   height: 50%;
-  background: linear-gradient(180deg, transparent, rgba(24, 24, 24, 0.8));
+  background: linear-gradient(180deg, transparent, rgba(24, 24, 24, 0.85));
 }
 
 .mini-modal__title {
   position: absolute;
   bottom: 10%;
   left: 5%;
-  font-size: 1.2vw;
+  font-size: clamp(12px, 1.1vw, 18px);
   font-weight: 800;
-  text-shadow: 2px 2px 4px rgba(0,0,0,0.45);
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.6);
+  color: white;
 }
 
 .mini-modal__info {
-  padding: 1vw;
+  padding: clamp(10px, 1vw, 16px);
 }
 
 .mini-modal__actions {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1rem;
+  margin-bottom: 0.75rem;
 }
 
 .mini-modal__actions-left {
@@ -67,21 +61,23 @@
 }
 
 .mini-modal__btn {
-  width: 2.3vw;
-  height: 2.3vw;
+  width: clamp(32px, 2.3vw, 42px);
+  height: clamp(32px, 2.3vw, 42px);
   border-radius: 50%;
-  border: 2px solid rgba(255,255,255,0.5);
+  border: 2px solid rgba(255, 255, 255, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: rgba(42, 42, 42, 0.4);
-  transition: all 0.2s ease;
+  background-color: rgba(42, 42, 42, 0.6);
+  transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
   cursor: pointer;
+  flex-shrink: 0;
 }
 
 .mini-modal__btn:hover {
-  background-color: rgba(255,255,255,0.1);
+  background-color: rgba(255, 255, 255, 0.15);
   border-color: white;
+  transform: scale(1.08);
 }
 
 .mini-modal__btn--play {
@@ -91,19 +87,24 @@
 
 .mini-modal__btn--play:hover {
   background-color: #e6e6e6;
-  transform: scale(1.05);
 }
 
-.mini-modal__btn--round {
-   border: 2px solid #808080;
+.mini-modal__btn--active {
+  border-color: white;
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.mini-modal__btn--liked {
+  border-color: #ffd700;
 }
 
 .mini-modal__metadata {
   display: flex;
   align-items: center;
-  gap: 0.8rem;
-  font-size: 0.9vw;
-  margin-bottom: 0.5rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  font-size: clamp(11px, 0.85vw, 14px);
+  margin-bottom: 0.4rem;
 }
 
 .mini-modal__match {
@@ -112,22 +113,33 @@
 }
 
 .mini-modal__maturity {
-  border: 1px solid rgba(255,255,255,0.4);
+  border: 1px solid rgba(255, 255, 255, 0.4);
   padding: 0 4px;
+  font-size: clamp(10px, 0.75vw, 13px);
+  color: #ccc;
+}
+
+.mini-modal__duration {
+  color: #ccc;
 }
 
 .mini-modal__quality {
-  border: 1px solid rgba(255,255,255,0.2);
-  padding: 0 2px;
-  font-size: 0.7vw;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  padding: 0 3px;
+  font-size: clamp(9px, 0.7vw, 11px);
   border-radius: 2px;
+  color: #aaa;
 }
 
 .mini-modal__genres {
-  font-size: 0.8vw;
+  font-size: clamp(11px, 0.8vw, 13px);
   color: #e5e5e5;
+  line-height: 1.4;
 }
 
-@media (max-width: 1024px) {
-  .mini-modal { width: 35vw; }
+/* Ocultar en dispositivos táctiles/mobile */
+@media (max-width: 768px) {
+  .mini-modal-portal {
+    display: none !important;
+  }
 }
