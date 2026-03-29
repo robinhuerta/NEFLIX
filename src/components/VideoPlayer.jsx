@@ -10,6 +10,8 @@ const VideoPlayer = ({ onBack, fileName = 'el ultimo guerrero.mp4', movieTitle =
   const [duration, setDuration] = useState(0);
   const [error, setError] = useState(null);
   const videoRef = useRef(null);
+  const playerRef = useRef(null);
+  const [isFullScreen, setIsFullScreen] = useState(false);
 
   useEffect(() => {
     if (!fileName) return;
@@ -66,11 +68,43 @@ const VideoPlayer = ({ onBack, fileName = 'el ultimo guerrero.mp4', movieTitle =
     }
   };
 
+  const toggleFullScreen = () => {
+    if (!playerRef.current) return;
+
+    if (!document.fullscreenElement) {
+      if (playerRef.current.requestFullscreen) {
+        playerRef.current.requestFullscreen();
+      } else if (playerRef.current.webkitRequestFullscreen) {
+        playerRef.current.webkitRequestFullscreen();
+      } else if (playerRef.current.msRequestFullscreen) {
+        playerRef.current.msRequestFullscreen();
+      }
+      setIsFullScreen(true);
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+      } else if (document.webkitExitFullscreen) {
+        document.webkitExitFullscreen();
+      } else if (document.msExitFullscreen) {
+        document.msExitFullscreen();
+      }
+      setIsFullScreen(false);
+    }
+  };
+
+  useEffect(() => {
+    const handleFsChange = () => {
+      setIsFullScreen(!!document.fullscreenElement);
+    };
+    document.addEventListener('fullscreenchange', handleFsChange);
+    return () => document.removeEventListener('fullscreenchange', handleFsChange);
+  }, []);
+
   const remainingTime = formatTime(duration - currentTime);
   const progress = (currentTime / duration) * 100 || 0;
 
   return (
-    <div className="video-player">
+    <div className="video-player" ref={playerRef}>
       <div className="video-player__top">
         <button className="video-player__back" onClick={onBack}>
           <svg viewBox="0 0 24 24" fill="white" width="36" height="36"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
@@ -145,8 +179,14 @@ const VideoPlayer = ({ onBack, fileName = 'el ultimo guerrero.mp4', movieTitle =
             <button className="video-player__btn">
                <svg viewBox="0 0 24 24" fill="white" width="24" height="24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/><path d="M12.5 7H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>
             </button>
-            <button className="video-player__btn">
-               <svg viewBox="0 0 24 24" fill="white" width="24" height="24"><path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/></svg>
+            <button className="video-player__btn" onClick={toggleFullScreen}>
+               <svg viewBox="0 0 24 24" fill="white" width="24" height="24">
+                 {isFullScreen ? (
+                   <path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"/>
+                 ) : (
+                   <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/>
+                 )}
+               </svg>
             </button>
           </div>
         </div>

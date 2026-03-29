@@ -2,7 +2,7 @@ import React, { useRef } from 'react';
 import './MovieRow.css';
 import MovieCard from './MovieCard';
 
-const MovieRow = ({ title, items, isTop10Row, onPlay, isPortrait, onSelect }) => {
+const MovieRow = ({ title, items, isTop10Row, isPortrait, onSelect }) => {
   const rowRef = useRef(null);
 
   const scroll = (direction) => {
@@ -27,7 +27,6 @@ const MovieRow = ({ title, items, isTop10Row, onPlay, isPortrait, onSelect }) =>
               key={item.id} 
               movie={item} 
               isTop10={isTop10Row} 
-              onPlay={onPlay} 
               isPortrait={isPortrait}
               onSelect={onSelect}
             />

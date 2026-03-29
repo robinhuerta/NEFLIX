@@ -64,3 +64,10 @@
 .movie-row__arrow--right {
   right: 0;
 }
+
+@media (max-width: 768px) {
+  .movie-row { padding-left: 20px; margin-bottom: 20px; }
+  .movie-row__title { font-size: 1rem; }
+  .movie-row__arrow { display: none; } /* Hide arrows on touch devices */
+  .movie-row__items { gap: 10px; padding: 5px 0; }
+}

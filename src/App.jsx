@@ -32,13 +32,6 @@ function App() {
     setFeaturedMovie(movie);
   };
 
-  const handlePlayFromCard = (movie) => {
-    if (movie.fileName) {
-      setSelectedVideo(movie);
-      setShowPlayer(true);
-    }
-  };
-
   if (showPlayer && selectedVideo) {
     return (
       <VideoPlayer 
@@ -64,7 +57,6 @@ function App() {
           <MovieRow 
             title="Tus Videos de Firebase" 
             items={firebaseVideos} 
-            onPlay={handlePlayFromCard}
             onSelect={handleSelectMovie}
             isPortrait
           />
@@ -76,7 +68,6 @@ function App() {
             title={category.title} 
             items={category.items} 
             isTop10Row={category.isTop10Row}
-            onPlay={handlePlayFromCard}
             onSelect={handleSelectMovie}
           />
         ))}
