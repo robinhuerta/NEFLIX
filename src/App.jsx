@@ -7,6 +7,7 @@ import MovieCard from './components/MovieCard';
 import VideoPlayer from './components/VideoPlayer';
 import SkeletonCard from './components/SkeletonCard';
 import CosmosIntro from './components/CosmosIntro';
+import { categories, mockMovies } from './data/mockData';
 import { fetchAllVideos } from './services/FirebaseService';
 import AdminDashboard from './components/AdminDashboard';
 import './components/AdminDashboard.css';
