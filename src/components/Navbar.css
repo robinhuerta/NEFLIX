@@ -337,6 +337,7 @@
   .navbar__logo { width: 140px; }
   .navbar__hamburger { display: flex; }
   .navbar { padding: 0 15px; height: 60px; }
+  .navbar__links { display: none; }
 }
 
 @media (max-width: 480px) {
