@@ -147,7 +147,7 @@ const Navbar = ({ onSearch, myListCount = 0, onShowMyList }) => {
         <div className="navbar__profile" ref={profileRef} onClick={() => setShowProfile(!showProfile)}>
           <img
             className="navbar__avatar"
-            src="https://i.postimg.cc/mD8G8hJ9/generic-avatar.png"
+            src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&auto=format&fit=crop&q=60"
             alt="User Avatar"
           />
           <span className={`navbar__caret ${showProfile ? 'navbar__caret--open' : ''}`}>▼</span>
@@ -156,7 +156,7 @@ const Navbar = ({ onSearch, myListCount = 0, onShowMyList }) => {
               <div className="navbar__profile-item">
                 <img
                   className="navbar__profile-item-avatar"
-                  src="https://i.postimg.cc/mD8G8hJ9/generic-avatar.png"
+                  src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&auto=format&fit=crop&q=60"
                   alt="Avatar"
                 />
                 <span>Usuario</span>

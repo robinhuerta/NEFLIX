@@ -7,7 +7,7 @@ import MovieCard from './components/MovieCard';
 import VideoPlayer from './components/VideoPlayer';
 import SkeletonCard from './components/SkeletonCard';
 import CosmosIntro from './components/CosmosIntro';
-import { categories, mockMovies } from './data/mockData';
+import { categories } from './data/mockData';
 import { fetchAllVideos } from './services/FirebaseService';
 import AdminDashboard from './components/AdminDashboard';
 import './components/AdminDashboard.css';
@@ -150,10 +150,37 @@ function App() {
   }, [infoMovie, showMyList]);
 
   // Search filter
-  const allMovies = [...mockMovies, ...firebaseVideos];
+  const allMovies = firebaseVideos;
   const searchResults = searchQuery.trim()
     ? allMovies.filter(m => m.title.toLowerCase().includes(searchQuery.toLowerCase()))
     : null;
+
+  // Dynamic Categories based on Firebase data
+  const dynamicCategories = [
+    { 
+      id: "trending", 
+      title: "Tendencias de COSMOS", 
+      items: firebaseVideos.slice(0, 5) 
+    },
+    { 
+      id: "series", 
+      title: "Series Populares", 
+      items: firebaseVideos.filter(v => v.category?.toLowerCase() === 'serie' || v.type?.toLowerCase() === 'serie') 
+    },
+    { 
+      id: "movies", 
+      title: "Películas Aclamadas", 
+      items: firebaseVideos.filter(v => v.category?.toLowerCase() === 'pelicula' || v.category?.toLowerCase() === 'movie') 
+    }
+  ];
+
+  // If filtered categories are empty, fallback to just chunks of all videos
+  if (dynamicCategories[1].items.length === 0 && firebaseVideos.length > 5) {
+    dynamicCategories[1].items = firebaseVideos.slice(5, 10);
+  }
+  if (dynamicCategories[2].items.length === 0 && firebaseVideos.length > 10) {
+    dynamicCategories[2].items = firebaseVideos.slice(10, 15);
+  }
 
   if (showIntro) {
     return <CosmosIntro onDone={() => setShowIntro(false)} />;
@@ -258,14 +285,14 @@ function App() {
               </div>
             </div>
 
-            {categories.map((category, index) => (
+            {dynamicCategories.map((category, index) => category.items.length > 0 && (
               <MovieRow
                 key={category.id}
                 title={category.title}
                 items={category.items}
                 isTop10Row={category.isTop10Row}
                 onSelect={handleSelectMovie}
-                id={index === 0 ? 'section-series' : index === 1 ? 'section-novedades' : undefined}
+                id={category.id === 'series' ? 'section-series' : category.id === 'movies' ? 'section-peliculas-row' : undefined}
                 onPlay={handlePlayMovie}
                 onAddToList={handleAddToList}
                 onInfo={setInfoMovie}
