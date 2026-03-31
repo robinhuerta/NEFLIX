@@ -52,6 +52,42 @@
   color: white;
 }
 
+.admin-dashboard__login {
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.admin-dashboard__login h3 {
+  color: #7B61FF;
+  margin-bottom: 10px;
+  font-size: 1.4rem;
+}
+
+.admin-dashboard__login p {
+  color: #888;
+  margin-bottom: 25px;
+}
+
+.admin-dashboard__login input {
+  max-width: 300px;
+  text-align: center;
+  font-size: 1.2rem;
+  letter-spacing: 0.5rem;
+}
+
+.admin-dashboard__error-sm {
+  color: #ff4444;
+  font-size: 0.85rem;
+  margin-top: 10px;
+  animation: shake 0.5s;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
 .admin-dashboard__grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
