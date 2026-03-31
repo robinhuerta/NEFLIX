@@ -6,9 +6,16 @@ const CosmosIntro = ({ onDone }) => {
   const fullText = 'COSMOS';
 
   useEffect(() => {
+    // Cinematic Intro Sound (Deep Space Riser / Logo reveal style)
+    const introSound = new Audio('https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3');
+    introSound.volume = 0.5;
+
     let currentIdx = 0;
     // Small initial delay before starting animation
     const initialDelay = setTimeout(() => {
+      // Play sound
+      introSound.play().catch(e => console.log("Autoplay blocked: ", e));
+      
       const typeInterval = setInterval(() => {
         if (currentIdx <= fullText.length) {
           setText(fullText.slice(0, currentIdx));
@@ -19,11 +26,22 @@ const CosmosIntro = ({ onDone }) => {
       }, 180); // Cinematic typing speed
     }, 500);
 
-    const doneTimer = setTimeout(onDone, 3500);
+    const doneTimer = setTimeout(() => {
+      onDone();
+    }, 3500);
 
     return () => {
-      clearInterval(typeInterval);
-      clearTimeout(doneTimer);
+      clearTimeout(initialDelay);
+      clearInterval(doneTimer);
+      // Fade out and stop sound on unmount
+      const fadeOut = setInterval(() => {
+        if (introSound.volume > 0.05) {
+          introSound.volume -= 0.05;
+        } else {
+          introSound.pause();
+          clearInterval(fadeOut);
+        }
+      }, 50);
     };
   }, [onDone]);
 
