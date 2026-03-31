@@ -25,22 +25,22 @@ function App() {
 
   // Persist Mi Lista in localStorage
   const [myList, setMyList] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('neflix_mylist') || '[]'); }
+    try { return JSON.parse(localStorage.getItem('cosmos_mylist') || '[]'); }
     catch { return []; }
   });
 
   useEffect(() => {
-    localStorage.setItem('neflix_mylist', JSON.stringify(myList));
+    localStorage.setItem('cosmos_mylist', JSON.stringify(myList));
   }, [myList]);
 
   // Persist watch history in localStorage
   const [watchHistory, setWatchHistory] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('neflix_history') || '[]'); }
+    try { return JSON.parse(localStorage.getItem('cosmos_history') || '[]'); }
     catch { return []; }
   });
 
   useEffect(() => {
-    localStorage.setItem('neflix_history', JSON.stringify(watchHistory));
+    localStorage.setItem('cosmos_history', JSON.stringify(watchHistory));
   }, [watchHistory]);
 
   useEffect(() => {
@@ -83,12 +83,12 @@ function App() {
 
   // Persist likes in localStorage
   const [likes, setLikes] = useState(() => {
-    try { return JSON.parse(localStorage.getItem('neflix_likes') || '{}'); }
+    try { return JSON.parse(localStorage.getItem('cosmos_likes') || '{}'); }
     catch { return {}; }
   });
 
   useEffect(() => {
-    localStorage.setItem('neflix_likes', JSON.stringify(likes));
+    localStorage.setItem('cosmos_likes', JSON.stringify(likes));
   }, [likes]);
 
   const toggleLike = (movieId) => setLikes(prev => ({ ...prev, [movieId]: !prev[movieId] }));
@@ -256,7 +256,7 @@ function App() {
           </div>
 
           <footer className="footer" style={{ padding: '50px 0', textAlign: 'center', color: '#808080', fontSize: '13px' }}>
-            <p>© 2026 NEFLIX Project - Realizado en Español</p>
+            <p>© 2026 COSMOS Project - Realizado en Español</p>
           </footer>
         </>
       )}
@@ -314,7 +314,7 @@ function App() {
                   {infoMovie.quality && <span className="info-modal__badge">{infoMovie.quality}</span>}
                 </div>
                 <p className="info-modal__desc">
-                  {infoMovie.description || infoMovie.genre || "Una emocionante producción disponible en NEFLIX."}
+                  {infoMovie.description || infoMovie.genre || "Una emocionante producción disponible en COSMOS."}
                 </p>
                 <div className="info-modal__actions">
                   {infoMovie.fileName && (

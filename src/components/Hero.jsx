@@ -15,7 +15,7 @@ const Hero = ({ movie, onPlay, onInfo }) => {
         <div className="hero__left">
           <h1 className="hero__title">{movie.title.toUpperCase()}</h1>
           <p className="hero__description">
-            {movie.description || movie.genre || "Una emocionante aventura ahora disponible en NEFLIX."}
+            {movie.description || movie.genre || "Una emocionante aventura ahora disponible en COSMOS."}
           </p>
           <div className="hero__buttons">
             <button className="hero__button hero__button--play" onClick={onPlay}>
