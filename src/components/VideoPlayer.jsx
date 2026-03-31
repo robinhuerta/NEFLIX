@@ -3,7 +3,7 @@ import './VideoPlayer.css';
 import { storage } from '../firebaseConfig';
 import { ref, getDownloadURL } from 'firebase/storage';
 
-const VideoPlayer = ({ onBack, fileName = 'el ultimo guerrero.mp4', movieTitle = "Netflix Movie", episode = "Película", onNext, hasNext = false, initialTime = 0, onProgress }) => {
+const VideoPlayer = ({ onBack, fileName = 'el ultimo guerrero.mp4', movieTitle = "COSMOS Original", episode = "Película", onNext, hasNext = false, initialTime = 0, onProgress }) => {
   const [isPlaying, setIsPlaying] = useState(true);
   const [videoUrl, setVideoUrl] = useState('');
   const [currentTime, setCurrentTime] = useState(0);

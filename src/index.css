@@ -1,11 +1,11 @@
 :root {
-  --netflix-red: #e50914;
-  --netflix-black: #141414;
-  --netflix-dark-grey: #181818;
-  --netflix-light-grey: #2f2f2f;
-  --netflix-navbar-bg: rgba(0, 0, 0, 0.7);
-  --netflix-transition: all 0.3s ease;
-  --font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --cosmos-accent: #7B61FF;
+  --cosmos-bg: #0B0B0F;
+  --cosmos-dark-grey: #16161D;
+  --cosmos-light-grey: #26262F;
+  --cosmos-navbar-bg: rgba(11, 11, 15, 0.85);
+  --cosmos-transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  --font-family: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
 * {
@@ -15,7 +15,7 @@
 }
 
 body {
-  background-color: var(--netflix-black);
+  background-color: var(--cosmos-bg);
   color: white;
   font-family: var(--font-family);
   overflow-x: hidden;

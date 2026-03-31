@@ -85,8 +85,8 @@ const Navbar = ({ onSearch, myListCount = 0, onShowMyList }) => {
       <div className="navbar__left">
         <img
           className="navbar__logo"
-          src="https://i.postimg.cc/Qdpn5mZW/Gemini-Generated-Image-5mdtub5mdtub5mdt.png"
-          alt="NEFLIX Logo"
+          src="/logo.png"
+          alt="COSMOS Logo"
           onClick={() => { window.scrollTo({ top: 0, behavior: 'smooth' }); setShowSearch(false); }}
         />
         <ul className="navbar__links">
@@ -147,7 +147,7 @@ const Navbar = ({ onSearch, myListCount = 0, onShowMyList }) => {
         <div className="navbar__profile" ref={profileRef} onClick={() => setShowProfile(!showProfile)}>
           <img
             className="navbar__avatar"
-            src="https://upload.wikimedia.org/wikipedia/commons/0/0b/Netflix-avatar.png"
+            src="https://i.postimg.cc/mD8G8hJ9/generic-avatar.png"
             alt="User Avatar"
           />
           <span className={`navbar__caret ${showProfile ? 'navbar__caret--open' : ''}`}>▼</span>
@@ -156,7 +156,7 @@ const Navbar = ({ onSearch, myListCount = 0, onShowMyList }) => {
               <div className="navbar__profile-item">
                 <img
                   className="navbar__profile-item-avatar"
-                  src="https://upload.wikimedia.org/wikipedia/commons/0/0b/Netflix-avatar.png"
+                  src="https://i.postimg.cc/mD8G8hJ9/generic-avatar.png"
                   alt="Avatar"
                 />
                 <span>Usuario</span>
@@ -166,7 +166,7 @@ const Navbar = ({ onSearch, myListCount = 0, onShowMyList }) => {
               <div className="navbar__profile-option">Cuenta</div>
               <div className="navbar__profile-option">Centro de ayuda</div>
               <hr className="navbar__divider" />
-              <div className="navbar__profile-option">Cerrar sesión en NEFLIX</div>
+              <div className="navbar__profile-option">Cerrar sesión en COSMOS</div>
             </div>
           )}
         </div>
@@ -188,8 +188,8 @@ const Navbar = ({ onSearch, myListCount = 0, onShowMyList }) => {
             <button className="mobile-menu__close" onClick={() => setShowMobileMenu(false)}>✕</button>
             <img
               className="mobile-menu__logo"
-              src="https://i.postimg.cc/Qdpn5mZW/Gemini-Generated-Image-5mdtub5mdtub5mdt.png"
-              alt="NEFLIX"
+              src="/logo.png"
+              alt="COSMOS"
             />
             <nav className="mobile-menu__links">
               <div className="mobile-menu__link" onClick={() => { handleNavClick('inicio'); setShowMobileMenu(false); }}>Inicio</div>

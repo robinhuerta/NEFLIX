@@ -45,7 +45,7 @@
   bottom: 0;
   left: 50%;
   transform: translateX(-50%);
-  background-color: var(--netflix-red);
+  background-color: var(--cosmos-accent);
   color: white;
   padding: 2px 8px;
   font-size: 0.7vw;
@@ -81,7 +81,7 @@
 
 .movie-card__progress-fill {
   height: 100%;
-  background: var(--netflix-red);
+  background: var(--cosmos-accent);
   border-radius: 0 0 4px 4px;
   transition: width 0.3s ease;
 }

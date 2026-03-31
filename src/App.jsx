@@ -6,7 +6,7 @@ import MovieRow from './components/MovieRow';
 import MovieCard from './components/MovieCard';
 import VideoPlayer from './components/VideoPlayer';
 import SkeletonCard from './components/SkeletonCard';
-import NetflixIntro from './components/NetflixIntro';
+import CosmosIntro from './components/CosmosIntro';
 import { categories, mockMovies } from './data/mockData';
 import { fetchAllVideos } from './services/FirebaseService';
 
@@ -144,7 +144,7 @@ function App() {
     : null;
 
   if (showIntro) {
-    return <NetflixIntro onDone={() => setShowIntro(false)} />;
+    return <CosmosIntro onDone={() => setShowIntro(false)} />;
   }
 
   if (showPlayer && selectedVideo) {

@@ -13,7 +13,7 @@
 }
 
 .navbar--scrolled {
-  background-color: var(--netflix-black);
+  background-color: var(--cosmos-bg);
   background-image: none;
 }
 
@@ -62,7 +62,7 @@
   position: absolute;
   top: -5px;
   right: -5px;
-  background-color: var(--netflix-red);
+  background-color: var(--cosmos-accent);
   color: white;
   font-size: 10px;
   padding: 2px 5px;
@@ -157,7 +157,7 @@
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: var(--netflix-red);
+  background: var(--cosmos-accent);
   flex-shrink: 0;
   margin-top: 5px;
 }
@@ -217,7 +217,7 @@
 /* Mi lista badge */
 .navbar__list-count {
   display: inline-block;
-  background: var(--netflix-red);
+  background: var(--cosmos-accent);
   color: white;
   font-size: 10px;
   padding: 1px 5px;
@@ -314,7 +314,7 @@
 
 .mobile-menu__link:hover {
   background: rgba(255,255,255,0.07);
-  border-left-color: var(--netflix-red);
+  border-left-color: var(--cosmos-accent);
 }
 
 @media (max-width: 1024px) {

@@ -82,7 +82,7 @@
 
 .video-player__progress {
   height: 100%;
-  background-color: var(--netflix-red);
+  background-color: var(--cosmos-accent);
   position: relative;
   border-radius: 3px;
 }
@@ -93,7 +93,7 @@
   top: -5px;
   width: 16px;
   height: 16px;
-  background-color: var(--netflix-red);
+  background-color: var(--cosmos-accent);
   border-radius: 50%;
   box-shadow: 0 0 10px rgba(0,0,0,0.5);
 }
@@ -255,7 +255,7 @@
   width: 4px;
   height: 80px;
   cursor: pointer;
-  accent-color: var(--netflix-red);
+  accent-color: var(--cosmos-accent);
 }
 
 .video-player__volume-label {
@@ -303,7 +303,7 @@
 }
 
 .video-player__speed-option--active {
-  color: var(--netflix-red);
+  color: var(--cosmos-accent);
   font-weight: bold;
 }
 

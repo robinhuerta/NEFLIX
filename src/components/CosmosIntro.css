@@ -1,4 +1,4 @@
-.netflix-intro {
+.cosmos-intro {
   position: fixed;
   inset: 0;
   background: #000;
@@ -9,16 +9,16 @@
   animation: intro-fade-out 0.6s ease 1.9s forwards;
 }
 
-.netflix-intro__n {
+.cosmos-intro__c {
   font-size: 22vw;
   font-weight: 900;
-  color: #e50914;
-  font-family: Georgia, 'Times New Roman', serif;
+  color: #7B61FF;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
   letter-spacing: -0.05em;
   text-shadow:
-    0 0 40px rgba(229, 9, 20, 0.9),
-    0 0 80px rgba(229, 9, 20, 0.5),
-    0 0 120px rgba(229, 9, 20, 0.2);
+    0 0 40px rgba(123, 97, 255, 0.9),
+    0 0 80px rgba(123, 97, 255, 0.5),
+    0 0 120px rgba(123, 97, 255, 0.2);
   animation: intro-logo 1.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
 
