@@ -1,32 +1,38 @@
 .cosmos-intro {
   position: fixed;
   inset: 0;
-  background: #000;
+  background: var(--cosmos-bg, #080d16);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 99999;
-  animation: intro-fade-out 0.6s ease 1.9s forwards;
+  animation: intro-fade-out 0.6s ease 2.6s forwards;
 }
 
-.cosmos-intro__c {
-  font-size: 22vw;
+.cosmos-intro__text {
+  font-size: 10vw;
   font-weight: 900;
   color: #7B61FF;
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  letter-spacing: -0.05em;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
   text-shadow:
-    0 0 40px rgba(123, 97, 255, 0.9),
-    0 0 80px rgba(123, 97, 255, 0.5),
-    0 0 120px rgba(123, 97, 255, 0.2);
-  animation: intro-logo 1.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    0 0 30px rgba(123, 97, 255, 0.8),
+    0 0 60px rgba(123, 97, 255, 0.4);
+  display: flex;
+  align-items: center;
+  gap: 2px;
 }
 
-@keyframes intro-logo {
-  0%   { transform: scale(0.15) scaleX(0.6); opacity: 0; }
-  50%  { transform: scale(1.06) scaleX(1);   opacity: 1; }
-  70%  { transform: scale(0.97) scaleX(1); }
-  100% { transform: scale(1)    scaleX(1);   opacity: 1; }
+.cosmos-intro__cursor {
+  font-weight: 200;
+  animation: cursor-blink 0.8s infinite;
+  opacity: 0.8;
+}
+
+@keyframes cursor-blink {
+  0%, 100% { opacity: 0; }
+  50% { opacity: 1; }
 }
 
 @keyframes intro-fade-out {
