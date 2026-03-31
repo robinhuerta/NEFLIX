@@ -6,9 +6,9 @@ import MovieRow from './components/MovieRow';
 import MovieCard from './components/MovieCard';
 import VideoPlayer from './components/VideoPlayer';
 import SkeletonCard from './components/SkeletonCard';
-import CosmosIntro from './components/CosmosIntro';
-import { categories, mockMovies } from './data/mockData';
 import { fetchAllVideos } from './services/FirebaseService';
+import AdminDashboard from './components/AdminDashboard';
+import './AdminDashboard.css';
 
 const SKELETON_COUNT = 6;
 
@@ -22,6 +22,7 @@ function App() {
   const [infoMovie, setInfoMovie] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [showMyList, setShowMyList] = useState(false);
+  const [showAdmin, setShowAdmin] = useState(false);
 
   // Persist Mi Lista in localStorage
   const [myList, setMyList] = useState(() => {
@@ -147,6 +148,13 @@ function App() {
     return <CosmosIntro onDone={() => setShowIntro(false)} />;
   }
 
+  const handleAdminRefresh = async () => {
+    setFirebaseLoading(true);
+    const videos = await fetchAllVideos();
+    setFirebaseVideos(videos);
+    setFirebaseLoading(false);
+  };
+
   if (showPlayer && selectedVideo) {
     return (
       <VideoPlayer
@@ -257,6 +265,12 @@ function App() {
 
           <footer className="footer" style={{ padding: '50px 0', textAlign: 'center', color: '#808080', fontSize: '13px' }}>
             <p>© 2026 COSMOS Project - Realizado en Español</p>
+            <button 
+              onClick={() => setShowAdmin(true)}
+              style={{ background: 'none', border: 'none', color: '#334155', cursor: 'pointer', marginTop: '10px', fontSize: '11px' }}
+            >
+              Admin Panel
+            </button>
           </footer>
         </>
       )}
@@ -337,6 +351,13 @@ function App() {
             </div>
           </div>
         </div>
+      )}
+      {/* Admin Dashboard */}
+      {showAdmin && (
+        <AdminDashboard 
+          onClose={() => setShowAdmin(false)} 
+          onRefresh={handleAdminRefresh}
+        />
       )}
     </div>
   );

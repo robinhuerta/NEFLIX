@@ -1,41 +1,108 @@
-import { storage } from '../firebaseConfig';
-import { ref, listAll, getDownloadURL } from 'firebase/storage';
+import { storage, db } from '../firebaseConfig';
+import { ref, listAll, getDownloadURL, uploadBytesResumable } from 'firebase/storage';
+import { collection, getDocs, addDoc, serverTimestamp, query, orderBy } from 'firebase/firestore';
 
 /**
- * Obtiene la lista de videos (.mp4) desde el root de Firebase Storage.
+ * Obtiene la lista completa de videos de COSMOS.
+ * Primero intenta cargar desde Firestore (Metadatos ricos).
+ * Si falla o no hay datos, cae a la lista de Storage con lógica de Auto-Poster.
  */
 export const fetchAllVideos = async () => {
   try {
-    const listRef = ref(storage, ''); // Root directory
+    // 1. Intentar obtener desde Firestore "movies"
+    const moviesCol = collection(db, 'movies');
+    const q = query(moviesCol, orderBy('createdAt', 'desc'));
+    const movieSnapshot = await getDocs(q);
+    
+    if (!movieSnapshot.empty) {
+      return movieSnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+        isFirebase: true
+      }));
+    }
+
+    // 2. Fallback: Listar directamente desde Storage (Lógica Auto-Poster)
+    const listRef = ref(storage, '');
     const res = await listAll(listRef);
     
+    const allFiles = res.items.map(item => item.name);
+    const videos = res.items.filter(item => item.name.toLowerCase().endsWith('.mp4'));
+    
     const videoData = await Promise.all(
-      res.items
-        .filter(item => item.name.toLowerCase().endsWith('.mp4'))
-        .map(async (item) => {
-          return {
-            id: item.fullPath,
-            title: item.name.replace('.mp4', '').replace(/_/g, ' '),
-            fileName: item.name,
-            image: item.name.toLowerCase().includes('sicario') 
-              ? '/posters/american-sicario-square.png' 
-              : item.name.toLowerCase().includes('fuerzas')
-                ? '/posters/fuerzas-especiales-square.png'
-                : item.name.toLowerCase().includes('francotirador')
-                  ? '/posters/francotirador-solitario-square.png'
-                  : item.name.toLowerCase().includes('jabber')
-                    ? '/posters/jabberwock-square.png'
-                    : item.name.toLowerCase().includes('condenados')
-                      ? 'https://i.postimg.cc/VkDCk3hM/Captura-de-pantalla-2026-03-28-210029.jpg'
-                      : '/posters/el-ultimo-guerrero-square.png',
-            isFirebase: true
-          };
-        })
+      videos.map(async (item) => {
+        const baseName = item.name.replace('.mp4', '');
+        
+        // Buscar poster con el mismo nombre (.jpg, .png, .webp)
+        const possibleExtensions = ['.jpg', '.png', '.webp', '.jpeg'];
+        let posterUrl = '/posters/el-ultimo-guerrero-square.png'; // Default
+        
+        for (const ext of possibleExtensions) {
+          if (allFiles.includes(baseName + ext)) {
+            posterUrl = await getDownloadURL(ref(storage, baseName + ext));
+            break;
+          }
+        }
+
+        return {
+          id: item.fullPath,
+          title: baseName.replace(/_/g, ' ').replace(/-/g, ' '),
+          fileName: item.name,
+          image: posterUrl,
+          isFirebase: true
+        };
+      })
     );
     
     return videoData;
   } catch (error) {
-    console.error("Error al listar videos de Firebase:", error);
+    console.error("Error al obtener videos de COSMOS:", error);
     return [];
+  }
+};
+
+/**
+ * Sube un video y su poster a Firebase Storage y guarda los metadatos en Firestore.
+ */
+export const uploadMovie = async (videoFile, posterFile, metadata, onProgress) => {
+  try {
+    // 1. Subir Video
+    const videoRef = ref(storage, videoFile.name);
+    const videoUploadTask = uploadBytesResumable(videoRef, videoFile);
+    
+    // 2. Subir Poster (si existe)
+    let posterUrl = '';
+    if (posterFile) {
+      const posterRef = ref(storage, posterFile.name);
+      await uploadBytesResumable(posterRef, posterFile);
+      posterUrl = await getDownloadURL(posterRef);
+    }
+
+    // Monitorear progreso (simplificado para el video)
+    videoUploadTask.on('state_changed', (snapshot) => {
+      const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+      if (onProgress) onProgress(progress);
+    });
+
+    await videoUploadTask;
+    const videoUrl = await getDownloadURL(videoRef);
+
+    // 3. Guardar en Firestore
+    const docRef = await addDoc(collection(db, 'movies'), {
+      title: metadata.title || videoFile.name.replace('.mp4', ''),
+      description: metadata.description || '',
+      category: metadata.category || 'Novedades',
+      fileName: videoFile.name,
+      videoUrl: videoUrl,
+      image: posterUrl || '/posters/el-ultimo-guerrero-square.png',
+      createdAt: serverTimestamp(),
+      maturity: metadata.maturity || '13+',
+      duration: metadata.duration || '2h 00m'
+    });
+
+    return docRef.id;
+  } catch (error) {
+    console.error("Error en la subida masiva:", error);
+    throw error;
   }
 };

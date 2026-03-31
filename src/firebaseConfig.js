@@ -1,7 +1,8 @@
 import { initializeApp } from "firebase/app";
 import { getStorage } from "firebase/storage";
+import { getFirestore } from "firebase/firestore";
 
-// Configuración de Firebase para tu proyecto NEFLIX
+// Configuración de Firebase para tu proyecto COSMOS
 // Obtén estos valores en: https://console.firebase.google.com/
 const firebaseConfig = {
   apiKey: "AIzaSyDsIJS6XnyxPU1epvS-gkYAhPSW_utsOF8",
@@ -16,3 +17,4 @@ const firebaseConfig = {
 // Inicializar Firebase
 const app = initializeApp(firebaseConfig);
 export const storage = getStorage(app);
+export const db = getFirestore(app);
