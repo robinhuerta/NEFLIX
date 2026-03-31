@@ -1,5 +1,5 @@
 .app {
-  background-color: #141414;
+  background-color: #080d16;
 }
 
 .app__rows {
@@ -106,7 +106,7 @@
 }
 
 .info-modal__content {
-  background: #181818;
+  background: #080d16;
   border-radius: 10px;
   width: 100%;
   max-width: 700px;
@@ -149,7 +149,7 @@
 .info-modal__trailer {
   width: 100%;
   aspect-ratio: 16 / 9;
-  background: #000;
+  background: #080d16;
 }
 
 .info-modal__trailer iframe {
