@@ -2,7 +2,7 @@ import { memo, useRef } from 'react';
 import './MovieRow.css';
 import MovieCard from './MovieCard';
 
-const MovieRow = ({ title, items, isTop10Row, isPortrait, onSelect, id, progressMap, onPlay, onAddToList, onInfo, isInMyList, isLiked, onLike }) => {
+const MovieRow = ({ title, items, isTop10Row, isPortrait, onSelect, id, progressMap, onPlay, onAddToList, onInfo, isInMyList, isLiked, onLike, onHover }) => {
   const rowRef = useRef(null);
 
   const scroll = (direction) => {
@@ -36,6 +36,7 @@ const MovieRow = ({ title, items, isTop10Row, isPortrait, onSelect, id, progress
               isInMyList={isInMyList ? isInMyList(item.id) : false}
               isLiked={isLiked ? isLiked(item.id) : false}
               onLike={onLike}
+              onHover={onHover}
             />
           ))}
         </div>

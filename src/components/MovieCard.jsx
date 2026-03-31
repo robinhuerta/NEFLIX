@@ -3,7 +3,7 @@ import { createPortal } from 'react-dom';
 import './MovieCard.css';
 import MiniModal from './MiniModal';
 
-const MovieCard = ({ movie, isTop10, isPortrait, onSelect, progress, onPlay, onAddToList, onInfo, isInMyList, isLiked, onLike }) => {
+const MovieCard = ({ movie, isTop10, isPortrait, onSelect, progress, onPlay, onAddToList, onInfo, isInMyList, isLiked, onLike, onHover }) => {
   const [showMini, setShowMini] = useState(false);
   const [miniStyle, setMiniStyle] = useState({});
   const cardRef = useRef(null);
@@ -34,6 +34,7 @@ const MovieCard = ({ movie, isTop10, isPortrait, onSelect, progress, onPlay, onA
   const handleCardMouseEnter = () => {
     clearTimeout(closeTimerRef.current);
     openTimerRef.current = setTimeout(openMini, 380);
+    if (onHover) onHover(movie);
   };
 
   const handleCardMouseLeave = () => {

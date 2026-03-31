@@ -20,7 +20,7 @@ function App() {
   const [selectedVideo, setSelectedVideo] = useState(null);
   const [firebaseVideos, setFirebaseVideos] = useState([]);
   const [firebaseLoading, setFirebaseLoading] = useState(true);
-  const [featuredMovie, setFeaturedMovie] = useState(mockMovies[0]);
+  const [featuredMovie, setFeaturedMovie] = useState(null);
   const [infoMovie, setInfoMovie] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [showMyList, setShowMyList] = useState(false);
@@ -51,10 +51,19 @@ function App() {
       setFirebaseLoading(true);
       const videos = await fetchAllVideos();
       setFirebaseVideos(videos);
+      if (videos.length > 0 && !featuredMovie) {
+        setFeaturedMovie(videos[0]);
+      }
       setFirebaseLoading(false);
     };
     getVideos();
   }, []);
+
+  const handleHoverMovie = (movie) => {
+    if (movie && movie.id !== featuredMovie?.id) {
+      setFeaturedMovie(movie);
+    }
+  };
 
   const handlePlayHero = () => {
     if (featuredMovie && featuredMovie.fileName) {
@@ -191,7 +200,7 @@ function App() {
           ) : (
             <div className="search-results__grid">
               {searchResults.map(movie => (
-                <MovieCard key={movie.id} movie={movie} onSelect={handleSelectMovie} />
+                <MovieCard key={movie.id} movie={movie} onSelect={handleSelectMovie} onHover={handleHoverMovie} />
               ))}
             </div>
           )}
@@ -221,6 +230,7 @@ function App() {
                 isInMyList={isInMyList}
                 isLiked={isLiked}
                 onLike={toggleLike}
+                onHover={handleHoverMovie}
               />
             )}
 
@@ -241,6 +251,7 @@ function App() {
                         isInMyList={isInMyList(video.id)}
                         isLiked={isLiked(video.id)}
                         onLike={toggleLike}
+                        onHover={handleHoverMovie}
                       />
                     ))
                 }
@@ -261,6 +272,7 @@ function App() {
                 isInMyList={isInMyList}
                 isLiked={isLiked}
                 onLike={toggleLike}
+                onHover={handleHoverMovie}
               />
             ))}
           </div>
