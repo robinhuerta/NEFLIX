@@ -68,15 +68,17 @@ const MiniModal = ({ movie, onPlay, onAddToList, onInfo, isInMyList, isLiked, on
         </div>
 
         <div className="mini-modal__metadata">
-          <span className="mini-modal__match">{movie.match || "98% para ti"}</span>
-          <span className="mini-modal__maturity">{movie.maturity || "13+"}</span>
-          <span className="mini-modal__duration">{movie.duration || "1 temporada"}</span>
-          <span className="mini-modal__quality">{movie.quality || "HD"}</span>
+          {movie.match && <span className="mini-modal__match">{movie.match}</span>}
+          {movie.maturity && <span className="mini-modal__maturity">{movie.maturity}</span>}
+          {movie.duration && <span className="mini-modal__duration">{movie.duration}</span>}
+          {movie.quality && <span className="mini-modal__quality">{movie.quality}</span>}
         </div>
 
-        <div className="mini-modal__genres">
-          {movie.genre || "Acción • Aventura"}
-        </div>
+        {movie.genre && (
+          <div className="mini-modal__genres">
+            {movie.genre}
+          </div>
+        )}
       </div>
     </div>
   );
