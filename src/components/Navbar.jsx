@@ -9,7 +9,7 @@ const mockNotifications = [
   { id: 5, text: "Nuevas películas agregadas", time: "Hace 3d", isNew: false },
 ];
 
-const Navbar = ({ onSearch, myListCount = 0, onShowMyList }) => {
+const Navbar = ({ onSearch, myListCount = 0, onShowMyList, onLogout, onShowAdmin }) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const [searchValue, setSearchValue] = useState('');
@@ -162,11 +162,12 @@ const Navbar = ({ onSearch, myListCount = 0, onShowMyList }) => {
                 <span>Usuario</span>
               </div>
               <hr className="navbar__divider" />
-              <div className="navbar__profile-option">Gestionar perfiles</div>
-              <div className="navbar__profile-option">Cuenta</div>
-              <div className="navbar__profile-option">Centro de ayuda</div>
+              <div className="navbar__profile-option" onClick={() => { setShowProfile(false); onShowAdmin(); }}>Gestionar contenido (Admin)</div>
+              <div className="navbar__profile-option" onClick={() => alert("Próximamente: Gestión de perfiles")}>Gestionar perfiles</div>
+              <div className="navbar__profile-option" onClick={() => alert("Próximamente: Configuración de la cuenta")}>Cuenta</div>
+              <div className="navbar__profile-option" onClick={() => alert("Próximamente: Centro de ayuda de COSMOS")}>Centro de ayuda</div>
               <hr className="navbar__divider" />
-              <div className="navbar__profile-option">Cerrar sesión en COSMOS</div>
+              <div className="navbar__profile-option" onClick={() => { setShowProfile(false); onLogout(); }}>Cerrar sesión en COSMOS</div>
             </div>
           )}
         </div>

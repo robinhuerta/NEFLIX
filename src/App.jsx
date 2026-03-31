@@ -99,6 +99,15 @@ function App() {
     catch { return {}; }
   });
 
+  const handleLogout = () => {
+    // Simulated logout by clearing transient session states and returning to intro
+    setSearchQuery('');
+    setInfoMovie(null);
+    setShowPlayer(false);
+    setShowAdmin(false);
+    setShowIntro(true);
+  };
+
   useEffect(() => {
     localStorage.setItem('cosmos_likes', JSON.stringify(likes));
   }, [likes]);
@@ -213,6 +222,8 @@ function App() {
         onSearch={setSearchQuery}
         myListCount={myList.length}
         onShowMyList={() => setShowMyList(true)}
+        onLogout={handleLogout}
+        onShowAdmin={() => setShowAdmin(true)}
       />
 
       {/* Search Results */}
@@ -304,25 +315,13 @@ function App() {
             ))}
           </div>
 
-          <footer className="footer" style={{ padding: '50px 0', textAlign: 'center', color: '#808080', fontSize: '13px' }}>
-            <p>© 2026 COSMOS Project - Realizado en Español</p>
-            <button 
-              onClick={() => setShowAdmin(true)}
-              style={{ 
-                background: 'none', 
-                border: '1px solid rgba(123, 97, 255, 0.3)', 
-                color: '#7B61FF', 
-                cursor: 'pointer', 
-                marginTop: '15px', 
-                fontSize: '11px',
-                padding: '4px 12px',
-                borderRadius: '4px',
-                textTransform: 'uppercase',
-                letterSpacing: '1px'
-              }}
-            >
-              Admin Panel
-            </button>
+          <footer className="footer" style={{ padding: '80px 0 50px', textAlign: 'center', color: '#808080', fontSize: '13px', borderTop: '1px solid rgba(255,255,255,0.05)', marginTop: '50px' }}>
+            <p style={{ marginBottom: '10px' }}>&copy; {new Date().getFullYear()} COSMOS. Todos los derechos reservados.</p>
+            <div style={{ display: 'flex', justifyContent: 'center', gap: '20px' }}>
+              <span>Políticas de Privacidad</span>
+              <span>Términos de Uso</span>
+              <span>Preguntas Frecuentes</span>
+            </div>
           </footer>
         </>
       )}
