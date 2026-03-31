@@ -267,7 +267,18 @@ function App() {
             <p>© 2026 COSMOS Project - Realizado en Español</p>
             <button 
               onClick={() => setShowAdmin(true)}
-              style={{ background: 'none', border: 'none', color: '#334155', cursor: 'pointer', marginTop: '10px', fontSize: '11px' }}
+              style={{ 
+                background: 'none', 
+                border: '1px solid rgba(123, 97, 255, 0.3)', 
+                color: '#7B61FF', 
+                cursor: 'pointer', 
+                marginTop: '15px', 
+                fontSize: '11px',
+                padding: '4px 12px',
+                borderRadius: '4px',
+                textTransform: 'uppercase',
+                letterSpacing: '1px'
+              }}
             >
               Admin Panel
             </button>
