@@ -95,9 +95,12 @@
 }
 
 @media (max-width: 768px) {
-  .admin-dashboard__grid {
-    grid-template-columns: 1fr;
-  }
+  .admin-dashboard { padding: 10px; }
+  .admin-dashboard__content { padding: 20px; }
+  .admin-dashboard__grid { grid-template-columns: 1fr; gap: 15px; }
+  .admin-dashboard__header h2 { font-size: 1.2rem; }
+  .admin-dashboard__submit { padding: 12px; font-size: 1rem; }
+  .admin-dashboard__login input { max-width: 100%; font-size: 1rem; }
 }
 
 .admin-dashboard__section h3 {

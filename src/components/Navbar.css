@@ -321,7 +321,7 @@
 
 @media (max-width: 1024px) {
   .navbar { height: 60px; }
-  .navbar__logo { width: 180px; margin-right: 15px; }
+  .navbar__logo { width: 160px; margin-right: 15px; }
   .navbar__link:nth-child(n+3) {
     display: none;
   }
@@ -331,6 +331,12 @@
   .navbar__links { display: none; }
   .navbar__right { gap: 10px; }
   .navbar__search, .navbar__notifications { display: none; }
-  .navbar__logo { width: 140px; }
+  .navbar__logo { width: 120px; }
   .navbar__hamburger { display: flex; }
+  .navbar { padding: 0 15px; }
+}
+
+@media (max-width: 480px) {
+  .navbar__logo { width: 100px; }
+  .navbar { height: 50px; padding: 0 10px; }
 }

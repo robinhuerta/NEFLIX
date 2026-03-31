@@ -192,12 +192,16 @@
 
 @media (max-width: 768px) {
   .hero__title { font-size: 10vw; }
-  .hero__description { font-size: 4vw; max-width: 95%; }
-  .hero__banner-image-container { width: 75vw; }
+  .hero__description { font-size: 4vw; max-width: 95%; margin-bottom: 1.5rem; }
+  .hero__banner-image-container { width: 75vw; margin-top: -20px; }
 }
 
 @media (max-width: 480px) {
-  .hero__title { font-size: 12vw; }
-  .hero__buttons { flex-direction: column; width: 100%; max-width: 280px; margin: 0 auto; }
-  .hero__button { width: 100%; justify-content: center; padding: 0.8rem; font-size: 1rem; }
+  .hero { min-height: 70vh; padding-top: 80px; }
+  .hero__title { font-size: 11vw; margin-bottom: 0.8rem; }
+  .hero__description { font-size: 15px; margin-bottom: 1.5rem; }
+  .hero__buttons { flex-direction: column; width: 100%; max-width: 250px; margin: 0 auto; gap: 0.8rem; }
+  .hero__button { width: 100%; justify-content: center; padding: 0.7rem; font-size: 1rem; }
+  .hero__banner-image-container { width: 85vw; max-width: 280px; border-radius: 8px; }
+  .hero__rating { bottom: 10%; padding: 0.3rem 0.8rem; font-size: 14px; }
 }
