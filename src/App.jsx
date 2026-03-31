@@ -128,7 +128,7 @@ function App() {
   };
 
   // All playable videos for next navigation
-  const allVideos = [...firebaseVideos, ...mockMovies.filter(m => m.fileName)];
+  const allVideos = firebaseVideos.filter(v => v.fileName);
 
   const handleNextVideo = () => {
     if (!selectedVideo) return;
