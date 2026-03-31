@@ -6,9 +6,10 @@ import MovieRow from './components/MovieRow';
 import MovieCard from './components/MovieCard';
 import VideoPlayer from './components/VideoPlayer';
 import SkeletonCard from './components/SkeletonCard';
+import CosmosIntro from './components/CosmosIntro';
 import { fetchAllVideos } from './services/FirebaseService';
 import AdminDashboard from './components/AdminDashboard';
-import './AdminDashboard.css';
+import './components/AdminDashboard.css';
 
 const SKELETON_COUNT = 6;
 
