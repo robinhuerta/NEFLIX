@@ -7,16 +7,19 @@ const CosmosIntro = ({ onDone }) => {
 
   useEffect(() => {
     let currentIdx = 0;
-    const typeInterval = setInterval(() => {
-      if (currentIdx <= fullText.length) {
-        setText(fullText.slice(0, currentIdx));
-        currentIdx++;
-      } else {
-        clearInterval(typeInterval);
-      }
-    }, 150); // Speed of typing
+    // Small initial delay before starting animation
+    const initialDelay = setTimeout(() => {
+      const typeInterval = setInterval(() => {
+        if (currentIdx <= fullText.length) {
+          setText(fullText.slice(0, currentIdx));
+          currentIdx++;
+        } else {
+          clearInterval(typeInterval);
+        }
+      }, 180); // Cinematic typing speed
+    }, 500);
 
-    const doneTimer = setTimeout(onDone, 3000); // Wait bit more before finishing
+    const doneTimer = setTimeout(onDone, 3500);
 
     return () => {
       clearInterval(typeInterval);
