@@ -23,11 +23,17 @@
 }
 
 .navbar__logo {
-  width: 250px;
-  max-height: 75px;
+  width: 220px;
+  max-height: 85px;
   object-fit: contain;
-  margin-right: 25px;
+  margin-right: 35px;
   cursor: pointer;
+  filter: drop-shadow(0 0 10px rgba(123, 97, 255, 0.3));
+  transition: transform 0.3s ease;
+}
+
+.navbar__logo:hover {
+  transform: scale(1.05);
 }
 
 .navbar__links {
@@ -320,23 +326,20 @@
 }
 
 @media (max-width: 1024px) {
-  .navbar { height: 60px; }
-  .navbar__logo { width: 160px; margin-right: 15px; }
+  .navbar { height: 65px; }
+  .navbar__logo { width: 170px; margin-right: 20px; }
   .navbar__link:nth-child(n+3) {
     display: none;
   }
 }
 
 @media (max-width: 768px) {
-  .navbar__links { display: none; }
-  .navbar__right { gap: 10px; }
-  .navbar__search, .navbar__notifications { display: none; }
-  .navbar__logo { width: 120px; }
+  .navbar__logo { width: 140px; }
   .navbar__hamburger { display: flex; }
-  .navbar { padding: 0 15px; }
+  .navbar { padding: 0 15px; height: 60px; }
 }
 
 @media (max-width: 480px) {
-  .navbar__logo { width: 100px; }
-  .navbar { height: 50px; padding: 0 10px; }
+  .navbar__logo { width: 130px; }
+  .navbar { height: 55px; padding: 0 12px; }
 }
