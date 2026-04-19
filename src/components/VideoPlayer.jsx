@@ -20,6 +20,8 @@ const VideoPlayer = ({ onBack, fileName = 'el ultimo guerrero.mp4', movieTitle =
   const playerRef = useRef(null);
   const volumeRef = useRef(null);
   const settingsRef = useRef(null);
+  const controlsTimeoutRef = useRef(null);
+  const [showControls, setShowControls] = useState(true);
 
   useEffect(() => {
     if (!fileName) return;
@@ -132,8 +134,45 @@ const VideoPlayer = ({ onBack, fileName = 'el ultimo guerrero.mp4', movieTitle =
   useEffect(() => {
     const handleFsChange = () => setIsFullScreen(!!document.fullscreenElement);
     document.addEventListener('fullscreenchange', handleFsChange);
-    return () => document.removeEventListener('fullscreenchange', handleFsChange);
+    
+    // Attempt automatic fullscreen on mount
+    const timeout = setTimeout(() => {
+      if (playerRef.current && !document.fullscreenElement) {
+        toggleFullScreen();
+      }
+    }, 1000);
+
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFsChange);
+      clearTimeout(timeout);
+    };
   }, []);
+
+  // Controls visibility logic (auto-hide)
+  const resetControlsTimeout = () => {
+    setShowControls(true);
+    if (controlsTimeoutRef.current) {
+      clearTimeout(controlsTimeoutRef.current);
+    }
+    
+    // Only set timeout if playing
+    if (isPlaying) {
+      controlsTimeoutRef.current = setTimeout(() => {
+        setShowControls(false);
+      }, 3000);
+    }
+  };
+
+  useEffect(() => {
+    resetControlsTimeout();
+    return () => {
+      if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
+    };
+  }, [isPlaying]);
+
+  const handlePointerMove = () => {
+    resetControlsTimeout();
+  };
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -204,7 +243,13 @@ const VideoPlayer = ({ onBack, fileName = 'el ultimo guerrero.mp4', movieTitle =
   };
 
   return (
-    <div className="video-player" ref={playerRef}>
+    <div 
+      className={`video-player ${!showControls ? 'video-player--hide-controls' : ''}`} 
+      ref={playerRef}
+      onMouseMove={handlePointerMove}
+      onClick={handlePointerMove}
+      onTouchStart={handlePointerMove}
+    >
       {/* Toast notification */}
       {toast && <div className="video-player__toast">{toast}</div>}
 

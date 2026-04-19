@@ -99,6 +99,7 @@ const AdminDashboard = ({ onClose, onRefresh }) => {
                     <option value="Series">Series</option>
                     <option value="Películas Latinas">Películas Latinas</option>
                     <option value="Acción y Suspenso">Acción y Suspenso</option>
+                    <option value="Videos Musicales">Videos Musicales</option>
                     <option value="Mi Lista">Mi Lista</option>
                   </select>
                   <input 

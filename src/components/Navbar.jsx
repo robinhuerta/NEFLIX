@@ -75,6 +75,9 @@ const Navbar = ({ onSearch, myListCount = 0, onShowMyList, onLogout, onShowAdmin
       case 'idiomas':
         document.getElementById('section-idiomas')?.scrollIntoView({ behavior: 'smooth' });
         break;
+      case 'musica':
+        document.getElementById('section-musica')?.scrollIntoView({ behavior: 'smooth' });
+        break;
       default:
         break;
     }
@@ -94,6 +97,7 @@ const Navbar = ({ onSearch, myListCount = 0, onShowMyList, onLogout, onShowAdmin
           <li className="navbar__link" onClick={() => handleNavClick('series')}>Series</li>
           <li className="navbar__link" onClick={() => handleNavClick('peliculas')}>Películas</li>
           <li className="navbar__link" onClick={() => handleNavClick('novedades')}>Novedades populares</li>
+          <li className="navbar__link" onClick={() => handleNavClick('musica')}>Música</li>
           <li className="navbar__link navbar__link--mylist" onClick={() => handleNavClick('milista')}>
             Mi lista {myListCount > 0 && <span className="navbar__list-count">{myListCount}</span>}
           </li>
@@ -200,6 +204,7 @@ const Navbar = ({ onSearch, myListCount = 0, onShowMyList, onLogout, onShowAdmin
               <div className="mobile-menu__link" onClick={() => { handleNavClick('milista'); setShowMobileMenu(false); }}>
                 Mi lista {myListCount > 0 && <span className="navbar__list-count">{myListCount}</span>}
               </div>
+              <div className="mobile-menu__link" onClick={() => { handleNavClick('musica'); setShowMobileMenu(false); }}>Música</div>
               <div className="mobile-menu__link" onClick={() => { handleNavClick('idiomas'); setShowMobileMenu(false); }}>Explora por idiomas</div>
             </nav>
           </div>

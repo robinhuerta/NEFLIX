@@ -180,6 +180,11 @@ function App() {
       id: "movies", 
       title: "Películas Aclamadas", 
       items: firebaseVideos.filter(v => v.category?.toLowerCase() === 'pelicula' || v.category?.toLowerCase() === 'movie') 
+    },
+    {
+      id: "musica",
+      title: "Videos Musicales",
+      items: firebaseVideos.filter(v => v.category === 'Videos Musicales' || v.category?.toLowerCase() === 'musica')
     }
   ];
 
@@ -303,7 +308,7 @@ function App() {
                 items={category.items}
                 isTop10Row={category.isTop10Row}
                 onSelect={handleSelectMovie}
-                id={category.id === 'series' ? 'section-series' : category.id === 'movies' ? 'section-peliculas-row' : undefined}
+                id={category.id === 'series' ? 'section-series' : category.id === 'movies' ? 'section-peliculas-row' : category.id === 'musica' ? 'section-musica' : undefined}
                 onPlay={handlePlayMovie}
                 onAddToList={handleAddToList}
                 onInfo={setInfoMovie}
