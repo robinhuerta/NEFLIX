@@ -256,6 +256,12 @@
   border: 1px solid rgba(34, 150, 243, 0.3);
 }
 
+.admin-dashboard__url-badge.error {
+  background: rgba(255, 68, 68, 0.2);
+  color: #ff4444;
+  border: 1px solid rgba(255, 68, 68, 0.3);
+}
+
 .admin-dashboard__file-input {
   background: rgba(123, 97, 255, 0.05);
   border: 2px dashed rgba(123, 97, 255, 0.3);

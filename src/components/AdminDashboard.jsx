@@ -241,7 +241,9 @@ const AdminDashboard = ({ onClose, onRefresh }) => {
                           <div className="admin-dashboard__url-badge">Detección: YouTube 🎬</div>
                         )}
                         {externalUrl && isDrive(externalUrl) && (
-                          <div className="admin-dashboard__url-badge drive">Detección: Google Drive 📁</div>
+                          <div className={externalUrl.includes('/folders/') ? "admin-dashboard__url-badge error" : "admin-dashboard__url-badge drive"}>
+                            {externalUrl.includes('/folders/') ? "⚠️ Error: Es una CARPETA. Usa el link del archivo." : "Detección: Google Drive 📁"}
+                          </div>
                         )}
                       </div>
                     )}

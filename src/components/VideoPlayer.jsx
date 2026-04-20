@@ -35,6 +35,8 @@ const VideoPlayer = ({ onBack, fileName, videoUrl: initialUrl, movieTitle = "COS
 
   const getDriveId = (url) => {
     if (!url) return null;
+    // Evitar que detecte IDs de carpetas como si fueran archivos
+    if (url.includes('/folders/')) return null;
     const regExp = /(?:\/d\/|id=)([\w-]+)/;
     const match = url.match(regExp);
     return match ? match[1] : null;
