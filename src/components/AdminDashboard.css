@@ -250,6 +250,12 @@
   border: 1px solid rgba(255, 0, 0, 0.3);
 }
 
+.admin-dashboard__url-badge.drive {
+  background: rgba(34, 150, 243, 0.2);
+  color: #2196f3;
+  border: 1px solid rgba(34, 150, 243, 0.3);
+}
+
 .admin-dashboard__file-input {
   background: rgba(123, 97, 255, 0.05);
   border: 2px dashed rgba(123, 97, 255, 0.3);

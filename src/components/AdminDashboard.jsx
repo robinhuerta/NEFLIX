@@ -106,6 +106,7 @@ const AdminDashboard = ({ onClose, onRefresh }) => {
   };
 
   const isYouTube = (url) => url.includes('youtube.com') || url.includes('youtu.be');
+  const isDrive = (url) => url.includes('drive.google.com') || url.includes('docs.google.com');
 
   return (
     <div className="admin-dashboard">
@@ -238,6 +239,9 @@ const AdminDashboard = ({ onClose, onRefresh }) => {
                         />
                         {externalUrl && isYouTube(externalUrl) && (
                           <div className="admin-dashboard__url-badge">Detección: YouTube 🎬</div>
+                        )}
+                        {externalUrl && isDrive(externalUrl) && (
+                          <div className="admin-dashboard__url-badge drive">Detección: Google Drive 📁</div>
                         )}
                       </div>
                     )}

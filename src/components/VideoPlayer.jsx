@@ -24,12 +24,20 @@ const VideoPlayer = ({ onBack, fileName, videoUrl: initialUrl, movieTitle = "COS
   const [showControls, setShowControls] = useState(true);
 
   const isYouTube = (url) => url && (url.includes('youtube.com') || url.includes('youtu.be'));
+  const isDrive = (url) => url && (url.includes('drive.google.com') || url.includes('docs.google.com'));
   
   const getYouTubeId = (url) => {
     if (!url) return null;
     const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
     const match = url.match(regExp);
     return (match && match[2].length === 11) ? match[2] : null;
+  };
+
+  const getDriveId = (url) => {
+    if (!url) return null;
+    const regExp = /(?:\/d\/|id=)([\w-]+)/;
+    const match = url.match(regExp);
+    return match ? match[1] : null;
   };
 
   useEffect(() => {
@@ -51,14 +59,14 @@ const VideoPlayer = ({ onBack, fileName, videoUrl: initialUrl, movieTitle = "COS
 
   // Seek to saved position when video loads
   useEffect(() => {
-    if (videoUrl && videoRef.current && initialTime > 0 && !isYouTube(videoUrl)) {
+    if (videoUrl && videoRef.current && initialTime > 0 && !isYouTube(videoUrl) && !isDrive(videoUrl)) {
       videoRef.current.currentTime = initialTime;
     }
   }, [videoUrl]);
 
   // Report progress every 5 seconds
   useEffect(() => {
-    if (!onProgress || isYouTube(videoUrl)) return;
+    if (!onProgress || isYouTube(videoUrl) || isDrive(videoUrl)) return;
     const interval = setInterval(() => {
       if (videoRef.current && videoRef.current.duration > 0) {
         onProgress(videoRef.current.currentTime, videoRef.current.duration);
@@ -73,7 +81,7 @@ const VideoPlayer = ({ onBack, fileName, videoUrl: initialUrl, movieTitle = "COS
   };
 
   const togglePlay = () => {
-    if (isYouTube(videoUrl)) {
+    if (isYouTube(videoUrl) || isDrive(videoUrl)) {
       setIsPlaying(!isPlaying);
       return;
     }
@@ -173,8 +181,8 @@ const VideoPlayer = ({ onBack, fileName, videoUrl: initialUrl, movieTitle = "COS
       if (e.target.tagName === 'INPUT') return;
       switch (e.key) {
         case ' ': e.preventDefault(); togglePlay(); break;
-        case 'ArrowLeft': e.preventDefault(); skip(-10); break;
-        case 'ArrowRight': e.preventDefault(); skip(10); break;
+        case 'ArrowLeft': e.preventDefault(); if (!isYouTube(videoUrl) && !isDrive(videoUrl)) skip(-10); break;
+        case 'ArrowRight': e.preventDefault(); if (!isYouTube(videoUrl) && !isDrive(videoUrl)) skip(10); break;
         case 'f': case 'F': toggleFullScreen(); break;
         case 'Escape': onBack(); break;
         default: break;
@@ -184,8 +192,8 @@ const VideoPlayer = ({ onBack, fileName, videoUrl: initialUrl, movieTitle = "COS
     return () => document.removeEventListener('keydown', handleKey);
   }, [isPlaying, videoUrl]);
 
-  const remainingTime = isYouTube(videoUrl) ? "--:--" : formatTime(duration - currentTime);
-  const progress = isYouTube(videoUrl) ? 0 : (currentTime / duration) * 100 || 0;
+  const remainingTime = (isYouTube(videoUrl) || isDrive(videoUrl)) ? "--:--" : formatTime(duration - currentTime);
+  const progress = (isYouTube(videoUrl) || isDrive(videoUrl)) ? 0 : (currentTime / duration) * 100 || 0;
 
   const getVolumeIcon = () => {
     if (isMuted || volume === 0) return <path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/>;
@@ -218,6 +226,14 @@ const VideoPlayer = ({ onBack, fileName, videoUrl: initialUrl, movieTitle = "COS
             allow="autoplay; encrypted-media"
             allowFullScreen
           />
+        ) : isDrive(videoUrl) ? (
+          <iframe
+            className="video-player__video"
+            src={`https://drive.google.com/file/d/${getDriveId(videoUrl)}/preview`}
+            title={movieTitle}
+            allow="autoplay"
+            allowFullScreen
+          />
         ) : videoUrl ? (
           <video
             ref={videoRef}
@@ -233,7 +249,7 @@ const VideoPlayer = ({ onBack, fileName, videoUrl: initialUrl, movieTitle = "COS
       </div>
 
       <div className="video-player__bottom">
-        {!isYouTube(videoUrl) && (
+        {!isYouTube(videoUrl) && !isDrive(videoUrl) && (
           <div className="video-player__seek-bar" onClick={handleSeek}>
             <div className="video-player__progress" style={{ width: `${progress}%` }}>
               <div className="video-player__handle" />
@@ -251,7 +267,7 @@ const VideoPlayer = ({ onBack, fileName, videoUrl: initialUrl, movieTitle = "COS
                 <svg viewBox="0 0 24 24" fill="white" width="36" height="36"><path d="M8 5v14l11-7z"/></svg>
               )}
             </button>
-            {!isYouTube(videoUrl) && (
+            {!isYouTube(videoUrl) && !isDrive(videoUrl) && (
               <>
                 <button className="video-player__btn" onClick={() => skip(-10)}>
                   <svg viewBox="0 0 24 24" fill="white" width="30" height="30"><path d="M11 18V6l-8.5 6 8.5 6zm.5-6l8.5 6V6l-8.5 6z"/></svg>
