@@ -3,9 +3,9 @@ import './VideoPlayer.css';
 import { storage } from '../firebaseConfig';
 import { ref, getDownloadURL } from 'firebase/storage';
 
-const VideoPlayer = ({ onBack, fileName = 'el ultimo guerrero.mp4', movieTitle = "COSMOS Original", episode = "Película", onNext, hasNext = false, initialTime = 0, onProgress }) => {
+const VideoPlayer = ({ onBack, fileName, videoUrl: initialUrl, movieTitle = "COSMOS Original", episode = "Película", onNext, hasNext = false, initialTime = 0, onProgress }) => {
   const [isPlaying, setIsPlaying] = useState(true);
-  const [videoUrl, setVideoUrl] = useState('');
+  const [videoUrl, setVideoUrl] = useState(initialUrl || '');
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
   const [error, setError] = useState(null);
@@ -23,34 +23,49 @@ const VideoPlayer = ({ onBack, fileName = 'el ultimo guerrero.mp4', movieTitle =
   const controlsTimeoutRef = useRef(null);
   const [showControls, setShowControls] = useState(true);
 
+  const isYouTube = (url) => url && (url.includes('youtube.com') || url.includes('youtu.be'));
+  
+  const getYouTubeId = (url) => {
+    if (!url) return null;
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+    const match = url.match(regExp);
+    return (match && match[2].length === 11) ? match[2] : null;
+  };
+
   useEffect(() => {
-    if (!fileName) return;
-    const videoFileRef = ref(storage, fileName);
-    getDownloadURL(videoFileRef)
-      .then((url) => setVideoUrl(url))
-      .catch((err) => {
-        console.error("Error al obtener el video de Firebase:", err);
-        setError("No se pudo cargar el video. Verifica las reglas de Firebase Storage.");
-      });
-  }, [fileName]);
+    if (initialUrl) {
+      setVideoUrl(initialUrl);
+      return;
+    }
+
+    if (fileName && fileName !== 'External Link') {
+      const videoFileRef = ref(storage, fileName);
+      getDownloadURL(videoFileRef)
+        .then((url) => setVideoUrl(url))
+        .catch((err) => {
+          console.error("Error al obtener el video de Firebase:", err);
+          setError("No se pudo cargar el video de COSMOS. Verifica la conexión.");
+        });
+    }
+  }, [fileName, initialUrl]);
 
   // Seek to saved position when video loads
   useEffect(() => {
-    if (videoUrl && videoRef.current && initialTime > 0) {
+    if (videoUrl && videoRef.current && initialTime > 0 && !isYouTube(videoUrl)) {
       videoRef.current.currentTime = initialTime;
     }
   }, [videoUrl]);
 
   // Report progress every 5 seconds
   useEffect(() => {
-    if (!onProgress) return;
+    if (!onProgress || isYouTube(videoUrl)) return;
     const interval = setInterval(() => {
       if (videoRef.current && videoRef.current.duration > 0) {
         onProgress(videoRef.current.currentTime, videoRef.current.duration);
       }
     }, 5000);
     return () => clearInterval(interval);
-  }, [onProgress]);
+  }, [onProgress, videoUrl]);
 
   const showToast = (msg) => {
     setToast(msg);
@@ -58,6 +73,10 @@ const VideoPlayer = ({ onBack, fileName = 'el ultimo guerrero.mp4', movieTitle =
   };
 
   const togglePlay = () => {
+    if (isYouTube(videoUrl)) {
+      setIsPlaying(!isPlaying);
+      return;
+    }
     if (videoRef.current) {
       if (isPlaying) {
         videoRef.current.pause();
@@ -82,7 +101,7 @@ const VideoPlayer = ({ onBack, fileName = 'el ultimo guerrero.mp4', movieTitle =
   };
 
   const formatTime = (time) => {
-    if (isNaN(time)) return "00:00";
+    if (isNaN(time) || time === 0) return "00:00";
     const minutes = Math.floor(time / 60);
     const seconds = Math.floor(time % 60);
     return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
@@ -121,12 +140,9 @@ const VideoPlayer = ({ onBack, fileName = 'el ultimo guerrero.mp4', movieTitle =
     if (!document.fullscreenElement) {
       if (playerRef.current.requestFullscreen) playerRef.current.requestFullscreen();
       else if (playerRef.current.webkitRequestFullscreen) playerRef.current.webkitRequestFullscreen();
-      else if (playerRef.current.msRequestFullscreen) playerRef.current.msRequestFullscreen();
       setIsFullScreen(true);
     } else {
       if (document.exitFullscreen) document.exitFullscreen();
-      else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
-      else if (document.msExitFullscreen) document.msExitFullscreen();
       setIsFullScreen(false);
     }
   };
@@ -134,111 +150,45 @@ const VideoPlayer = ({ onBack, fileName = 'el ultimo guerrero.mp4', movieTitle =
   useEffect(() => {
     const handleFsChange = () => setIsFullScreen(!!document.fullscreenElement);
     document.addEventListener('fullscreenchange', handleFsChange);
-    
-    // Attempt automatic fullscreen on mount
-    const timeout = setTimeout(() => {
-      if (playerRef.current && !document.fullscreenElement) {
-        toggleFullScreen();
-      }
-    }, 1000);
-
-    return () => {
-      document.removeEventListener('fullscreenchange', handleFsChange);
-      clearTimeout(timeout);
-    };
+    return () => document.removeEventListener('fullscreenchange', handleFsChange);
   }, []);
 
-  // Controls visibility logic (auto-hide)
   const resetControlsTimeout = () => {
     setShowControls(true);
-    if (controlsTimeoutRef.current) {
-      clearTimeout(controlsTimeoutRef.current);
-    }
-    
-    // Only set timeout if playing
+    if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
     if (isPlaying) {
-      controlsTimeoutRef.current = setTimeout(() => {
-        setShowControls(false);
-      }, 3000);
+      controlsTimeoutRef.current = setTimeout(() => setShowControls(false), 3000);
     }
   };
 
   useEffect(() => {
     resetControlsTimeout();
-    return () => {
-      if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
-    };
+    return () => { if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current); };
   }, [isPlaying]);
 
-  const handlePointerMove = () => {
-    resetControlsTimeout();
-  };
+  const handlePointerMove = () => resetControlsTimeout();
 
-  // Keyboard shortcuts
   useEffect(() => {
     const handleKey = (e) => {
-      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+      if (e.target.tagName === 'INPUT') return;
       switch (e.key) {
-        case ' ':
-          e.preventDefault();
-          togglePlay();
-          break;
-        case 'ArrowLeft':
-          e.preventDefault();
-          skip(-10);
-          showToast('◀  -10s');
-          break;
-        case 'ArrowRight':
-          e.preventDefault();
-          skip(10);
-          showToast('▶  +10s');
-          break;
-        case 'f':
-        case 'F':
-          toggleFullScreen();
-          break;
-        case 'm':
-        case 'M': {
-          const newMuted = !isMuted;
-          setIsMuted(newMuted);
-          if (videoRef.current) videoRef.current.muted = newMuted;
-          showToast(newMuted ? 'Silenciado' : 'Con sonido');
-          break;
-        }
-        case 'Escape':
-          if (onProgress && videoRef.current && videoRef.current.duration > 0) {
-            onProgress(videoRef.current.currentTime, videoRef.current.duration);
-          }
-          onBack();
-          break;
-        default:
-          break;
+        case ' ': e.preventDefault(); togglePlay(); break;
+        case 'ArrowLeft': e.preventDefault(); skip(-10); break;
+        case 'ArrowRight': e.preventDefault(); skip(10); break;
+        case 'f': case 'F': toggleFullScreen(); break;
+        case 'Escape': onBack(); break;
+        default: break;
       }
     };
     document.addEventListener('keydown', handleKey);
     return () => document.removeEventListener('keydown', handleKey);
-  }, [isPlaying, isMuted]);
+  }, [isPlaying, videoUrl]);
 
-  // Close popups when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (volumeRef.current && !volumeRef.current.contains(e.target)) setShowVolume(false);
-      if (settingsRef.current && !settingsRef.current.contains(e.target)) setShowSettings(false);
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  const remainingTime = formatTime(duration - currentTime);
-  const progress = (currentTime / duration) * 100 || 0;
+  const remainingTime = isYouTube(videoUrl) ? "--:--" : formatTime(duration - currentTime);
+  const progress = isYouTube(videoUrl) ? 0 : (currentTime / duration) * 100 || 0;
 
   const getVolumeIcon = () => {
-    if (isMuted || volume === 0) {
-      return <path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/>;
-    }
-    if (volume < 0.5) {
-      return <path d="M18.5 12c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM5 9v6h4l5 5V4L9 9H5z"/>;
-    }
+    if (isMuted || volume === 0) return <path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/>;
     return <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>;
   };
 
@@ -248,28 +198,26 @@ const VideoPlayer = ({ onBack, fileName = 'el ultimo guerrero.mp4', movieTitle =
       ref={playerRef}
       onMouseMove={handlePointerMove}
       onClick={handlePointerMove}
-      onTouchStart={handlePointerMove}
     >
-      {/* Toast notification */}
       {toast && <div className="video-player__toast">{toast}</div>}
 
       <div className="video-player__top">
-        <button aria-label="Volver" className="video-player__back" onClick={() => {
-          if (videoRef.current && onProgress && videoRef.current.duration > 0) {
-            onProgress(videoRef.current.currentTime, videoRef.current.duration);
-          }
-          onBack();
-        }}>
+        <button className="video-player__back" onClick={onBack}>
           <svg viewBox="0 0 24 24" fill="white" width="36" height="36"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
-        </button>
-        <button aria-label="Reportar problema" className="video-player__report" onClick={() => showToast('Reporte enviado. ¡Gracias por tu feedback!')}>
-          <svg viewBox="0 0 24 24" fill="white" width="24" height="24"><path d="M14.4 6L14 4H5v17h2v-7h5.6l.4 2h7V6z"/></svg>
         </button>
       </div>
 
       <div className="video-player__video-container">
         {error ? (
           <div className="video-player__error">{error}</div>
+        ) : isYouTube(videoUrl) ? (
+          <iframe
+            className="video-player__video"
+            src={`https://www.youtube.com/embed/${getYouTubeId(videoUrl)}?autoplay=1&controls=1&modestbranding=1`}
+            title={movieTitle}
+            allow="autoplay; encrypted-media"
+            allowFullScreen
+          />
         ) : videoUrl ? (
           <video
             ref={videoRef}
@@ -280,58 +228,39 @@ const VideoPlayer = ({ onBack, fileName = 'el ultimo guerrero.mp4', movieTitle =
             onLoadedMetadata={handleTimeUpdate}
           />
         ) : (
-          <div className="video-player__loading">Cargando película...</div>
+          <div className="video-player__loading">Cargando COSMOS...</div>
         )}
       </div>
 
       <div className="video-player__bottom">
-        <div className="video-player__seek-bar" onClick={handleSeek}>
-          <div className="video-player__progress" style={{ width: `${progress}%` }}>
-            <div className="video-player__handle" />
+        {!isYouTube(videoUrl) && (
+          <div className="video-player__seek-bar" onClick={handleSeek}>
+            <div className="video-player__progress" style={{ width: `${progress}%` }}>
+              <div className="video-player__handle" />
+            </div>
+            <span className="video-player__time">{remainingTime}</span>
           </div>
-          <span className="video-player__time">{remainingTime}</span>
-        </div>
+        )}
 
         <div className="video-player__controls">
           <div className="video-player__controls-left">
-            <button aria-label={isPlaying ? 'Pausar' : 'Reproducir'} className="video-player__btn" onClick={togglePlay}>
+            <button className="video-player__btn" onClick={togglePlay}>
               {isPlaying ? (
                 <svg viewBox="0 0 24 24" fill="white" width="36" height="36"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
               ) : (
                 <svg viewBox="0 0 24 24" fill="white" width="36" height="36"><path d="M8 5v14l11-7z"/></svg>
               )}
             </button>
-            <button aria-label="Retroceder 10 segundos" className="video-player__btn" onClick={() => skip(-10)}>
-              <svg viewBox="0 0 24 24" fill="white" width="30" height="30"><path d="M11 18V6l-8.5 6 8.5 6zm.5-6l8.5 6V6l-8.5 6z"/></svg>
-              <span className="video-player__skip-text">10</span>
-            </button>
-            <button aria-label="Adelantar 10 segundos" className="video-player__btn" onClick={() => skip(10)}>
-              <svg viewBox="0 0 24 24" fill="white" width="30" height="30"><path d="M13 6v12l8.5-6L13 6zM4 18l8.5-6L4 6v12z"/></svg>
-              <span className="video-player__skip-text">10</span>
-            </button>
-
-            {/* Volume control */}
-            <div className="video-player__volume-wrapper" ref={volumeRef}>
-              <button aria-label="Control de volumen" className="video-player__btn" onClick={() => { setShowVolume(!showVolume); }}>
-                <svg viewBox="0 0 24 24" fill="white" width="30" height="30">{getVolumeIcon()}</svg>
-              </button>
-              {showVolume && (
-                <div className="video-player__volume-popup">
-                  <input
-                    type="range"
-                    min="0"
-                    max="1"
-                    step="0.05"
-                    value={isMuted ? 0 : volume}
-                    onChange={handleVolumeChange}
-                    className="video-player__volume-slider"
-                  />
-                  <span className="video-player__volume-label">
-                    {isMuted ? '0%' : `${Math.round(volume * 100)}%`}
-                  </span>
-                </div>
-              )}
-            </div>
+            {!isYouTube(videoUrl) && (
+              <>
+                <button className="video-player__btn" onClick={() => skip(-10)}>
+                  <svg viewBox="0 0 24 24" fill="white" width="30" height="30"><path d="M11 18V6l-8.5 6 8.5 6zm.5-6l8.5 6V6l-8.5 6z"/></svg>
+                </button>
+                <button className="video-player__btn" onClick={() => skip(10)}>
+                  <svg viewBox="0 0 24 24" fill="white" width="30" height="30"><path d="M13 6v12l8.5-6L13 6zM4 18l8.5-6L4 6v12z"/></svg>
+                </button>
+              </>
+            )}
           </div>
 
           <div className="video-player__title-box">
@@ -340,60 +269,21 @@ const VideoPlayer = ({ onBack, fileName = 'el ultimo guerrero.mp4', movieTitle =
           </div>
 
           <div className="video-player__controls-right">
-            {/* Next episode */}
-            <button
-              aria-label="Siguiente episodio"
-              className="video-player__btn"
-              onClick={() => hasNext && onNext ? onNext() : showToast('No hay más episodios disponibles')}
-            >
-              <svg viewBox="0 0 24 24" fill="white" width="24" height="24"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
-            </button>
-
-            {/* Subtitles */}
-            <button
-              aria-label="Subtítulos"
-              className="video-player__btn"
-              onClick={() => showToast('Subtítulos no disponibles para este video')}
-            >
-              <svg viewBox="0 0 24 24" fill="white" width="24" height="24"><path d="M4 14h4v-4H4v4zm0 5h4v-4H4v4zM4 9h4V5H4v4zm5 5h12v-4H9v4zm0 5h12v-4H9v4zM9 5v4h12V5H9z"/></svg>
-            </button>
-
-            {/* Chat */}
-            <button
-              aria-label="Chat"
-              className="video-player__btn"
-              onClick={() => showToast('Chat no disponible en este momento')}
-            >
-              <svg viewBox="0 0 24 24" fill="white" width="24" height="24"><path d="M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h14l4 4V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/></svg>
-            </button>
-
-            {/* Settings / Playback speed */}
-            <div className="video-player__settings-wrapper" ref={settingsRef}>
-              <button
-                aria-label="Velocidad de reproducción"
-                className="video-player__btn"
-                onClick={() => setShowSettings(!showSettings)}
-              >
-                <svg viewBox="0 0 24 24" fill="white" width="24" height="24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/><path d="M12.5 7H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>
-              </button>
-              {showSettings && (
-                <div className="video-player__settings-popup">
-                  <h4 className="video-player__settings-title">Velocidad de reproducción</h4>
-                  {[0.5, 0.75, 1, 1.25, 1.5, 2].map(speed => (
-                    <div
-                      key={speed}
-                      className={`video-player__speed-option ${playbackRate === speed ? 'video-player__speed-option--active' : ''}`}
-                      onClick={() => handleSpeedChange(speed)}
-                    >
-                      {speed === 1 ? 'Normal' : `${speed}x`}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Fullscreen */}
-            <button aria-label={isFullScreen ? 'Salir de pantalla completa' : 'Pantalla completa'} className="video-player__btn" onClick={toggleFullScreen}>
+            {!isYouTube(videoUrl) && (
+              <div className="video-player__settings-wrapper" ref={settingsRef}>
+                <button className="video-player__btn" onClick={() => setShowSettings(!showSettings)}>
+                  <svg viewBox="0 0 24 24" fill="white" width="24" height="24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/><path d="M12.5 7H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>
+                </button>
+                {showSettings && (
+                  <div className="video-player__settings-popup">
+                    {[0.5, 1, 1.5, 2].map(speed => (
+                      <div key={speed} className="video-player__speed-option" onClick={() => handleSpeedChange(speed)}>{speed}x</div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+            <button className="video-player__btn" onClick={toggleFullScreen}>
               <svg viewBox="0 0 24 24" fill="white" width="24" height="24">
                 {isFullScreen ? (
                   <path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"/>

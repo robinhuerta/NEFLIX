@@ -8,6 +8,8 @@ const AdminDashboard = ({ onClose, onRefresh }) => {
   const [isLoadingMovies, setIsLoadingMovies] = useState(false);
   
   // States for Upload
+  const [videoSourceType, setVideoSourceType] = useState('file'); // 'file' or 'url'
+  const [externalUrl, setExternalUrl] = useState('');
   const [videoFile, setVideoFile] = useState(null);
   const [posterFile, setPosterFile] = useState(null);
   const [title, setTitle] = useState('');
@@ -47,7 +49,15 @@ const AdminDashboard = ({ onClose, onRefresh }) => {
 
   const handleUpload = async (e) => {
     e.preventDefault();
-    if (!videoFile) return setError('Selecciona al menos un archivo de video (.mp4)');
+    
+    let movieSource;
+    if (videoSourceType === 'file') {
+      if (!videoFile) return setError('Selecciona al menos un archivo de video (.mp4)');
+      movieSource = videoFile;
+    } else {
+      if (!externalUrl.trim()) return setError('Introduce una URL válida de video o YouTube');
+      movieSource = externalUrl.trim();
+    }
     
     setUploading(true);
     setError(null);
@@ -55,7 +65,7 @@ const AdminDashboard = ({ onClose, onRefresh }) => {
 
     try {
       await uploadMovie(
-        videoFile, 
+        movieSource, 
         posterFile, 
         { title, description: desc, category, maturity, duration },
         (p) => setProgress(Math.round(p))
@@ -63,13 +73,14 @@ const AdminDashboard = ({ onClose, onRefresh }) => {
       
       setSuccess(true);
       setVideoFile(null);
+      setExternalUrl('');
       setPosterFile(null);
       setTitle('');
       setDesc('');
       setProgress(0);
       if (onRefresh) onRefresh();
     } catch (err) {
-      setError('Error al subir los archivos: ' + err.message);
+      setError('Error al procesar el contenido: ' + err.message);
     } finally {
       setUploading(false);
     }
@@ -93,6 +104,8 @@ const AdminDashboard = ({ onClose, onRefresh }) => {
       setDeletingId(null);
     }
   };
+
+  const isYouTube = (url) => url.includes('youtube.com') || url.includes('youtu.be');
 
   return (
     <div className="admin-dashboard">
@@ -186,15 +199,49 @@ const AdminDashboard = ({ onClose, onRefresh }) => {
 
                   <div className="admin-dashboard__section">
                     <h3>Archivos Multimedia</h3>
-                    <div className="admin-dashboard__file-input">
-                      <label>Video (.mp4) *</label>
-                      <input 
-                        type="file" 
-                        accept="video/mp4" 
-                        onChange={e => setVideoFile(e.target.files[0])} 
-                        required
-                      />
+                    <div className="admin-dashboard__source-toggle">
+                      <button 
+                        type="button"
+                        className={videoSourceType === 'file' ? 'active' : ''} 
+                        onClick={() => setVideoSourceType('file')}
+                      >
+                        Archivo Local
+                      </button>
+                      <button 
+                        type="button"
+                        className={videoSourceType === 'url' ? 'active' : ''} 
+                        onClick={() => setVideoSourceType('url')}
+                      >
+                        Enlace / URL
+                      </button>
                     </div>
+
+                    {videoSourceType === 'file' ? (
+                      <div className="admin-dashboard__file-input">
+                        <label>Video (.mp4) *</label>
+                        <input 
+                          type="file" 
+                          accept="video/mp4" 
+                          onChange={e => setVideoFile(e.target.files[0])} 
+                          required
+                        />
+                      </div>
+                    ) : (
+                      <div className="admin-dashboard__url-input">
+                        <label>URL del Video o YouTube *</label>
+                        <input 
+                          type="text" 
+                          placeholder="https://drive.google.com/... o https://youtube.com/..." 
+                          value={externalUrl} 
+                          onChange={e => setExternalUrl(e.target.value)} 
+                          required
+                        />
+                        {externalUrl && isYouTube(externalUrl) && (
+                          <div className="admin-dashboard__url-badge">Detección: YouTube 🎬</div>
+                        )}
+                      </div>
+                    )}
+
                     <div className="admin-dashboard__file-input">
                       <label>Poster / Carátula (Imagen)</label>
                       <input 
@@ -206,7 +253,7 @@ const AdminDashboard = ({ onClose, onRefresh }) => {
                   </div>
                 </div>
 
-                {uploading && (
+                {uploading && videoSourceType === 'file' && (
                   <div className="admin-dashboard__progress-container">
                     <div className="admin-dashboard__progress-bar">
                       <div 
@@ -220,7 +267,7 @@ const AdminDashboard = ({ onClose, onRefresh }) => {
 
                 {error && <div className="admin-dashboard__error">{error}</div>}
                 {success && typeof success === 'string' && <div className="admin-dashboard__success">{success}</div>}
-                {success && typeof success === 'boolean' && <div className="admin-dashboard__success">¡Contenido subido con éxito a COSMOS!</div>}
+                {success && typeof success === 'boolean' && <div className="admin-dashboard__success">¡Contenido lanzado con éxito a COSMOS!</div>}
 
                 <button 
                   type="submit" 

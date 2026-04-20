@@ -66,14 +66,14 @@ function App() {
   };
 
   const handlePlayHero = () => {
-    if (featuredMovie && featuredMovie.fileName) {
+    if (featuredMovie && (featuredMovie.fileName || featuredMovie.videoUrl)) {
       setSelectedVideo(featuredMovie);
       setShowPlayer(true);
     }
   };
 
   const handlePlayMovie = (movie) => {
-    if (movie && movie.fileName) {
+    if (movie && (movie.fileName || movie.videoUrl)) {
       setSelectedVideo(movie);
       setShowPlayer(true);
     }
@@ -212,6 +212,7 @@ function App() {
       <VideoPlayer
         onBack={() => setShowPlayer(false)}
         fileName={selectedVideo.fileName}
+        videoUrl={selectedVideo.videoUrl}
         movieTitle={selectedVideo.title}
         onNext={handleNextVideo}
         hasNext={hasNext}

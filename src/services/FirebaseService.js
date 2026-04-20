@@ -62,14 +62,36 @@ export const fetchAllVideos = async () => {
 };
 
 /**
- * Sube un video y su poster a Firebase Storage y guarda los metadatos en Firestore.
+ * Guarda o sube una película a Firebase.
+ * videoFileOrUrl puede ser un Objeto File (subida a Storage) o un String (URL externa/YouTube).
  */
-export const uploadMovie = async (videoFile, posterFile, metadata, onProgress) => {
+export const uploadMovie = async (videoFileOrUrl, posterFile, metadata, onProgress) => {
   try {
-    // 1. Subir Video
-    const videoRef = ref(storage, videoFile.name);
-    const videoUploadTask = uploadBytesResumable(videoRef, videoFile);
-    
+    let videoUrl = '';
+    let fileName = '';
+    let isExternal = false;
+
+    // 1. Manejar Video (Subida o URL Directa)
+    if (typeof videoFileOrUrl === 'string') {
+      videoUrl = videoFileOrUrl;
+      isExternal = true;
+      fileName = 'External Link'; // Para indicar que no está en Storage
+    } else if (videoFileOrUrl) {
+      // Subir Video a Storage
+      const videoRef = ref(storage, videoFileOrUrl.name);
+      const videoUploadTask = uploadBytesResumable(videoRef, videoFileOrUrl);
+      
+      // Monitorear progreso
+      videoUploadTask.on('state_changed', (snapshot) => {
+        const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+        if (onProgress) onProgress(progress);
+      });
+
+      await videoUploadTask;
+      videoUrl = await getDownloadURL(videoRef);
+      fileName = videoFileOrUrl.name;
+    }
+
     // 2. Subir Poster (si existe)
     let posterUrl = '';
     if (posterFile) {
@@ -78,31 +100,23 @@ export const uploadMovie = async (videoFile, posterFile, metadata, onProgress) =
       posterUrl = await getDownloadURL(posterRef);
     }
 
-    // Monitorear progreso (simplificado para el video)
-    videoUploadTask.on('state_changed', (snapshot) => {
-      const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-      if (onProgress) onProgress(progress);
-    });
-
-    await videoUploadTask;
-    const videoUrl = await getDownloadURL(videoRef);
-
     // 3. Guardar en Firestore
     const docRef = await addDoc(collection(db, 'movies'), {
-      title: metadata.title || videoFile.name.replace('.mp4', ''),
+      title: metadata.title || (isExternal ? 'Nueva Película' : fileName.replace('.mp4', '')),
       description: metadata.description || '',
       category: metadata.category || 'Novedades',
-      fileName: videoFile.name,
+      fileName: fileName,
       videoUrl: videoUrl,
       image: posterUrl || '/posters/el-ultimo-guerrero-square.png',
       createdAt: serverTimestamp(),
       maturity: metadata.maturity || '13+',
-      duration: metadata.duration || '2h 00m'
+      duration: metadata.duration || '2h 00m',
+      isExternal: isExternal
     });
 
     return docRef.id;
   } catch (error) {
-    console.error("Error en la subida masiva:", error);
+    console.error("Error en el proceso de guardado/subida:", error);
     throw error;
   }
 };
