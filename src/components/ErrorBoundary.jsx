@@ -26,7 +26,10 @@ class ErrorBoundary extends Component {
           </svg>
           <h1 style={{ fontSize: '1.8rem', margin: 0 }}>Algo salió mal</h1>
           <p style={{ color: '#aaa', maxWidth: '400px', margin: 0 }}>
-            Ocurrió un error inesperado. Por favor recarga la página para continuar.
+            {this.state.error ? `Error: ${this.state.error.message}` : 'Ocurrió un error inesperado.'}
+          </p>
+          <p style={{ color: '#666', fontSize: '0.8rem', maxWidth: '400px', margin: 0 }}>
+            Por favor recarga la página para continuar.
           </p>
           <button
             onClick={() => window.location.reload()}

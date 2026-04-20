@@ -7,7 +7,7 @@ import MovieCard from './components/MovieCard';
 import VideoPlayer from './components/VideoPlayer';
 import SkeletonCard from './components/SkeletonCard';
 import CosmosIntro from './components/CosmosIntro';
-import { categories } from './data/mockData';
+import { mockMovies } from './data/mockData';
 import { fetchAllVideos } from './services/FirebaseService';
 import AdminDashboard from './components/AdminDashboard';
 import './components/AdminDashboard.css';
@@ -159,9 +159,9 @@ function App() {
   }, [infoMovie, showMyList]);
 
   // Search filter
-  const allMovies = firebaseVideos;
+  const allMovies = firebaseVideos || [];
   const searchResults = searchQuery.trim()
-    ? allMovies.filter(m => m.title.toLowerCase().includes(searchQuery.toLowerCase()))
+    ? allMovies.filter(m => m.title?.toLowerCase().includes(searchQuery.toLowerCase()))
     : null;
 
   // Dynamic Categories based on Firebase data
@@ -307,7 +307,7 @@ function App() {
               </div>
             </div>
 
-            {dynamicCategories.map((category, index) => category.items.length > 0 && (
+            {dynamicCategories.map((category) => category.items.length > 0 && (
               <MovieRow
                 key={category.id}
                 title={category.title}

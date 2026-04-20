@@ -31,11 +31,11 @@ const Navbar = ({ onSearch, myListCount = 0, onShowMyList, onLogout, onShowAdmin
     if (showSearch && searchInputRef.current) {
       searchInputRef.current.focus();
     }
-    if (!showSearch) {
+    if (!showSearch && searchValue !== '') {
       setSearchValue('');
-      onSearch && onSearch('');
+      if (onSearch) onSearch('');
     }
-  }, [showSearch]);
+  }, [showSearch, searchValue, onSearch]);
 
   useEffect(() => {
     const handleClickOutside = (e) => {
