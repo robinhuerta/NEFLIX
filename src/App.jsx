@@ -167,6 +167,11 @@ function App() {
   // Dynamic Categories based on Firebase data
   const dynamicCategories = [
     { 
+      id: "originals", 
+      title: "Originales de COSMOS", 
+      items: (mockMovies || []).concat(firebaseVideos.filter(v => v.category === 'Originales'))
+    },
+    { 
       id: "trending", 
       title: "Tendencias de COSMOS", 
       items: firebaseVideos.slice(0, 5) 
