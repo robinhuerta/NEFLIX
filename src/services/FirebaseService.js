@@ -1,6 +1,6 @@
 import { storage, db } from '../firebaseConfig';
-import { ref, listAll, getDownloadURL, uploadBytesResumable } from 'firebase/storage';
-import { collection, getDocs, addDoc, serverTimestamp, query, orderBy } from 'firebase/firestore';
+import { ref, listAll, getDownloadURL, uploadBytesResumable, deleteObject } from 'firebase/storage';
+import { collection, getDocs, addDoc, serverTimestamp, query, orderBy, deleteDoc, doc } from 'firebase/firestore';
 
 /**
  * Obtiene la lista completa de videos de COSMOS.
@@ -103,6 +103,39 @@ export const uploadMovie = async (videoFile, posterFile, metadata, onProgress) =
     return docRef.id;
   } catch (error) {
     console.error("Error en la subida masiva:", error);
+    throw error;
+  }
+};
+
+/**
+ * Elimina una película de Firestore y sus archivos asociados de Storage.
+ */
+export const deleteMovie = async (movieId, fileName, posterUrl) => {
+  try {
+    // 1. Borrar de Firestore
+    if (movieId) {
+      await deleteDoc(doc(db, 'movies', movieId));
+    }
+
+    // 2. Borrar Video de Storage
+    if (fileName) {
+      const videoRef = ref(storage, fileName);
+      await deleteObject(videoRef).catch(err => console.warn("Video no encontrado en Storage:", err));
+    }
+
+    // 3. Borrar Poster de Storage (si no es el default)
+    if (posterUrl && posterUrl.includes('firebasestorage.googleapis.com')) {
+      try {
+        const posterRef = ref(storage, posterUrl);
+        await deleteObject(posterRef);
+      } catch (err) {
+        console.warn("No se pudo borrar el poster de Storage:", err);
+      }
+    }
+
+    return true;
+  } catch (error) {
+    console.error("Error al eliminar película de COSMOS:", error);
     throw error;
   }
 };

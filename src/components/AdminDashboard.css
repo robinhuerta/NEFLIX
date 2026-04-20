@@ -39,6 +39,23 @@
   letter-spacing: 0.1rem;
 }
 
+.admin-dashboard__header-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.admin-dashboard__status {
+  font-size: 0.75rem;
+  color: #7B61FF;
+  background: rgba(123, 97, 255, 0.1);
+  padding: 2px 8px;
+  border-radius: 4px;
+  width: fit-content;
+  margin-top: 5px;
+  text-transform: uppercase;
+  font-weight: bold;
+}
+
 .admin-dashboard__close {
   color: #aaa;
   font-size: 20px;
@@ -88,6 +105,37 @@
   75% { transform: translateX(5px); }
 }
 
+.admin-dashboard__tabs {
+  display: flex;
+  gap: 5px;
+  margin-bottom: 25px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  padding-bottom: 5px;
+}
+
+.admin-dashboard__tab {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: #888;
+  padding: 12px;
+  cursor: pointer;
+  font-weight: 600;
+  border-radius: 8px 8px 0 0;
+  transition: all 0.3s;
+}
+
+.admin-dashboard__tab.active {
+  color: #7B61FF;
+  background: rgba(123, 97, 255, 0.05);
+  box-shadow: inset 0 -2px 0 #7B61FF;
+}
+
+.admin-dashboard__tab:hover:not(.active) {
+  color: white;
+  background: rgba(255, 255, 255, 0.03);
+}
+
 .admin-dashboard__grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -132,6 +180,15 @@
   border-color: #7B61FF;
 }
 
+.admin-dashboard__form select {
+  color-scheme: dark;
+}
+
+.admin-dashboard__form option {
+  background-color: #080d16;
+  color: white;
+}
+
 .admin-dashboard__row {
   display: flex;
   gap: 10px;
@@ -160,33 +217,103 @@
   margin-top: 10px;
 }
 
-/* Progress bar */
-.admin-dashboard__progress-container {
-  margin: 20px 0;
+/* Management Section */
+.admin-dashboard__manage {
+  min-height: 300px;
+}
+
+.admin-dashboard__loading, 
+.admin-dashboard__empty {
   text-align: center;
+  padding: 60px 20px;
+  color: #666;
+  font-style: italic;
 }
 
-.admin-dashboard__progress-bar {
-  width: 100%;
-  height: 8px;
-  background: rgba(255, 255, 255, 0.1);
+.admin-dashboard__movie-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: 500px;
+  overflow-y: auto;
+  padding-right: 10px;
+  margin-bottom: 20px;
+}
+
+.admin-dashboard__movie-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.admin-dashboard__movie-list::-webkit-scrollbar-thumb {
+  background: rgba(123, 97, 255, 0.3);
+  border-radius: 3px;
+}
+
+.admin-dashboard__movie-item {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+  transition: all 0.3s;
+}
+
+.admin-dashboard__movie-item:hover {
+  background: rgba(123, 97, 255, 0.05);
+  border-color: rgba(123, 97, 255, 0.2);
+}
+
+.admin-dashboard__movie-item img {
+  width: 80px;
+  height: 45px;
+  object-fit: cover;
   border-radius: 4px;
-  margin-bottom: 8px;
-  overflow: hidden;
 }
 
-.admin-dashboard__progress-fill {
-  height: 100%;
-  background: linear-gradient(90deg, #7B61FF, #B861FF);
-  transition: width 0.3s ease;
+.admin-dashboard__movie-info {
+  flex: 1;
 }
 
-.admin-dashboard__progress-container span {
-  color: #7B61FF;
-  font-size: 0.9rem;
-  font-weight: bold;
+.admin-dashboard__movie-info h4 {
+  margin: 0 0 4px 0;
+  color: white;
+  font-size: 1rem;
 }
 
+.admin-dashboard__movie-meta {
+  font-size: 0.8rem;
+  color: #888;
+}
+
+.admin-dashboard__delete-btn {
+  background: rgba(255, 68, 68, 0.1);
+  color: #ff4444;
+  border: 1px solid rgba(255, 68, 68, 0.2);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-size: 1rem;
+}
+
+.admin-dashboard__delete-btn:hover:not(:disabled) {
+  background: #ff4444;
+  color: white;
+  transform: scale(1.1);
+}
+
+.admin-dashboard__delete-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Original common styles */
 .admin-dashboard__error {
   background: rgba(255, 0, 0, 0.1);
   border-left: 4px solid #ff4444;
@@ -230,4 +357,30 @@
   background: #4a4a4a;
   cursor: not-allowed;
   opacity: 0.7;
+}
+
+.admin-dashboard__progress-container {
+  margin: 20px 0;
+  text-align: center;
+}
+
+.admin-dashboard__progress-bar {
+  width: 100%;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  margin-bottom: 8px;
+  overflow: hidden;
+}
+
+.admin-dashboard__progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #7B61FF, #B861FF);
+  transition: width 0.3s ease;
+}
+
+.admin-dashboard__progress-container span {
+  color: #7B61FF;
+  font-size: 0.9rem;
+  font-weight: bold;
 }

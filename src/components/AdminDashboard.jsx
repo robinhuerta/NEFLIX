@@ -1,8 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import './AdminDashboard.css';
-import { uploadMovie, fetchAllVideos } from '../services/FirebaseService';
+import { uploadMovie, fetchAllVideos, deleteMovie } from '../services/FirebaseService';
 
 const AdminDashboard = ({ onClose, onRefresh }) => {
+  const [activeTab, setActiveTab] = useState('upload'); // 'upload' or 'manage'
+  const [existingMovies, setExistingMovies] = useState([]);
+  const [isLoadingMovies, setIsLoadingMovies] = useState(false);
+  
+  // States for Upload
   const [videoFile, setVideoFile] = useState(null);
   const [posterFile, setPosterFile] = useState(null);
   const [title, setTitle] = useState('');
@@ -12,12 +17,33 @@ const AdminDashboard = ({ onClose, onRefresh }) => {
   const [duration, setDuration] = useState('2h 00m');
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState(0);
+  
+  // General states
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [pinInput, setPinInput] = useState('');
+  const [deletingId, setDeletingId] = useState(null);
 
   const ADMIN_PIN = 'COSMOS2026';
+
+  useEffect(() => {
+    if (isAuthorized && activeTab === 'manage') {
+      loadMovies();
+    }
+  }, [isAuthorized, activeTab]);
+
+  const loadMovies = async () => {
+    setIsLoadingMovies(true);
+    try {
+      const data = await fetchAllVideos();
+      setExistingMovies(data);
+    } catch (err) {
+      setError('Error al cargar videos: ' + err.message);
+    } finally {
+      setIsLoadingMovies(false);
+    }
+  };
 
   const handleUpload = async (e) => {
     e.preventDefault();
@@ -49,11 +75,35 @@ const AdminDashboard = ({ onClose, onRefresh }) => {
     }
   };
 
+  const handleDelete = async (movie) => {
+    if (!window.confirm(`¿Estás seguro de que deseas eliminar "${movie.title}" permanentemente de COSMOS?`)) {
+      return;
+    }
+
+    setDeletingId(movie.id);
+    try {
+      await deleteMovie(movie.id, movie.fileName, movie.image);
+      setExistingMovies(prev => prev.filter(m => m.id !== movie.id));
+      if (onRefresh) onRefresh();
+      setSuccess('Película eliminada correctamente');
+      setTimeout(() => setSuccess(false), 3000);
+    } catch (err) {
+      setError('Error al eliminar: ' + err.message);
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
   return (
     <div className="admin-dashboard">
       <div className="admin-dashboard__content" onClick={e => e.stopPropagation()}>
         <div className="admin-dashboard__header">
-          <h2>Panel de Control COSMOS</h2>
+          <div className="admin-dashboard__header-info">
+            <h2>Panel de Control COSMOS</h2>
+            {isAuthorized && (
+              <div className="admin-dashboard__status">Sesión Iniciada</div>
+            )}
+          </div>
           <button className="admin-dashboard__close" onClick={onClose}>✕</button>
         </div>
 
@@ -76,95 +126,141 @@ const AdminDashboard = ({ onClose, onRefresh }) => {
             )}
           </div>
         ) : (
-          <form className="admin-dashboard__form" onSubmit={handleUpload}>
-            <div className="admin-dashboard__grid">
-              <div className="admin-dashboard__section">
-                <h3>Datos de la Obra</h3>
-                <input 
-                  type="text" 
-                  placeholder="Título de la Película" 
-                  value={title} 
-                  onChange={e => setTitle(e.target.value)} 
-                  required
-                />
-                <textarea 
-                  placeholder="Descripción / Sinopsis" 
-                  value={desc} 
-                  onChange={e => setDesc(e.target.value)} 
-                  rows="4"
-                />
-                <div className="admin-dashboard__row">
-                  <select value={category} onChange={e => setCategory(e.target.value)}>
-                    <option value="Novedades">Novedades</option>
-                    <option value="Series">Series</option>
-                    <option value="Películas Latinas">Películas Latinas</option>
-                    <option value="Acción y Suspenso">Acción y Suspenso</option>
-                    <option value="Videos Musicales">Videos Musicales</option>
-                    <option value="Mi Lista">Mi Lista</option>
-                  </select>
-                  <input 
-                    type="text" 
-                    placeholder="Madurez (ej: 16+)" 
-                    value={maturity} 
-                    onChange={e => setMaturity(e.target.value)} 
-                  />
-                  <input 
-                    type="text" 
-                    placeholder="Duración (ej: 1h 45m)" 
-                    value={duration} 
-                    onChange={e => setDuration(e.target.value)} 
-                  />
-                </div>
-              </div>
-
-              <div className="admin-dashboard__section">
-                <h3>Archivos Multimedia</h3>
-                <div className="admin-dashboard__file-input">
-                  <label>Video (.mp4) *</label>
-                  <input 
-                    type="file" 
-                    accept="video/mp4" 
-                    onChange={e => setVideoFile(e.target.files[0])} 
-                    required
-                  />
-                </div>
-                <div className="admin-dashboard__file-input">
-                  <label>Poster / Carátula (Imagen)</label>
-                  <input 
-                    type="file" 
-                    accept="image/*" 
-                    onChange={e => setPosterFile(e.target.files[0])} 
-                  />
-                </div>
-                <p className="admin-dashboard__tip">
-                  Tip: Si el video y la imagen tienen el mismo nombre, COSMOS los asociará automáticamente.
-                </p>
-              </div>
+          <>
+            <div className="admin-dashboard__tabs">
+              <button 
+                className={`admin-dashboard__tab ${activeTab === 'upload' ? 'active' : ''}`}
+                onClick={() => setActiveTab('upload')}
+              >
+                Lanzar Nuevo
+              </button>
+              <button 
+                className={`admin-dashboard__tab ${activeTab === 'manage' ? 'active' : ''}`}
+                onClick={() => setActiveTab('manage')}
+              >
+                Gestionar Contenido ({existingMovies.length})
+              </button>
             </div>
 
-            {uploading && (
-              <div className="admin-dashboard__progress-container">
-                <div className="admin-dashboard__progress-bar">
-                  <div 
-                    className="admin-dashboard__progress-fill" 
-                    style={{ width: `${progress}%` }}
-                  />
+            {activeTab === 'upload' ? (
+              <form className="admin-dashboard__form" onSubmit={handleUpload}>
+                <div className="admin-dashboard__grid">
+                  <div className="admin-dashboard__section">
+                    <h3>Datos de la Obra</h3>
+                    <input 
+                      type="text" 
+                      placeholder="Título de la Película" 
+                      value={title} 
+                      onChange={e => setTitle(e.target.value)} 
+                      required
+                    />
+                    <textarea 
+                      placeholder="Descripción / Sinopsis" 
+                      value={desc} 
+                      onChange={e => setDesc(e.target.value)} 
+                      rows="4"
+                    />
+                    <div className="admin-dashboard__row">
+                      <select value={category} onChange={e => setCategory(e.target.value)}>
+                        <option value="Novedades">Novedades</option>
+                        <option value="Series">Series</option>
+                        <option value="Películas Latinas">Películas Latinas</option>
+                        <option value="Acción y Suspenso">Acción y Suspenso</option>
+                        <option value="Videos Musicales">Videos Musicales</option>
+                        <option value="Mi Lista">Mi Lista</option>
+                      </select>
+                      <input 
+                        type="text" 
+                        placeholder="Madurez (ej: 16+)" 
+                        value={maturity} 
+                        onChange={e => setMaturity(e.target.value)} 
+                      />
+                      <input 
+                        type="text" 
+                        placeholder="Duración (ej: 1h 45m)" 
+                        value={duration} 
+                        onChange={e => setDuration(e.target.value)} 
+                      />
+                    </div>
+                  </div>
+
+                  <div className="admin-dashboard__section">
+                    <h3>Archivos Multimedia</h3>
+                    <div className="admin-dashboard__file-input">
+                      <label>Video (.mp4) *</label>
+                      <input 
+                        type="file" 
+                        accept="video/mp4" 
+                        onChange={e => setVideoFile(e.target.files[0])} 
+                        required
+                      />
+                    </div>
+                    <div className="admin-dashboard__file-input">
+                      <label>Poster / Carátula (Imagen)</label>
+                      <input 
+                        type="file" 
+                        accept="image/*" 
+                        onChange={e => setPosterFile(e.target.files[0])} 
+                      />
+                    </div>
+                  </div>
                 </div>
-                <span>Subiendo: {progress}%</span>
+
+                {uploading && (
+                  <div className="admin-dashboard__progress-container">
+                    <div className="admin-dashboard__progress-bar">
+                      <div 
+                        className="admin-dashboard__progress-fill" 
+                        style={{ width: `${progress}%` }}
+                      />
+                    </div>
+                    <span>Subiendo: {progress}%</span>
+                  </div>
+                )}
+
+                {error && <div className="admin-dashboard__error">{error}</div>}
+                {success && typeof success === 'string' && <div className="admin-dashboard__success">{success}</div>}
+                {success && typeof success === 'boolean' && <div className="admin-dashboard__success">¡Contenido subido con éxito a COSMOS!</div>}
+
+                <button 
+                  type="submit" 
+                  className="admin-dashboard__submit" 
+                  disabled={uploading}
+                >
+                  {uploading ? 'Procesando...' : 'Lanzar Contenido'}
+                </button>
+              </form>
+            ) : (
+              <div className="admin-dashboard__manage">
+                {isLoadingMovies ? (
+                  <div className="admin-dashboard__loading">Cargando biblioteca de COSMOS...</div>
+                ) : existingMovies.length === 0 ? (
+                  <div className="admin-dashboard__empty">No hay videos subidos aún.</div>
+                ) : (
+                  <div className="admin-dashboard__movie-list">
+                    {existingMovies.map(movie => (
+                      <div key={movie.id} className="admin-dashboard__movie-item">
+                        <img src={movie.image} alt={movie.title} />
+                        <div className="admin-dashboard__movie-info">
+                          <h4>{movie.title}</h4>
+                          <span className="admin-dashboard__movie-meta">{movie.category} • {movie.duration}</span>
+                        </div>
+                        <button 
+                          className="admin-dashboard__delete-btn"
+                          onClick={() => handleDelete(movie)}
+                          disabled={deletingId === movie.id}
+                        >
+                          {deletingId === movie.id ? '...' : '🗑️'}
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {error && <div className="admin-dashboard__error">{error}</div>}
+                {success && <div className="admin-dashboard__success">{success}</div>}
               </div>
             )}
-
-            {error && <div className="admin-dashboard__error">{error}</div>}
-            {success && <div className="admin-dashboard__success">¡Contenido subido con éxito a COSMOS!</div>}
-
-            <button 
-              type="submit" 
-              className="admin-dashboard__submit" 
-              disabled={uploading}
-            >
-              {uploading ? 'Procesando...' : 'Lanzar Contenido'}
-            </button>
-          </form>
+          </>
         )}
       </div>
     </div>
