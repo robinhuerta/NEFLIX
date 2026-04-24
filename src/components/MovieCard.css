@@ -87,6 +87,21 @@
 }
 
 /* Responsiveness */
+@media (min-width: 1600px) {
+  .movie-card { width: 12.5vw; max-width: 280px; }
+  .movie-card--portrait { width: 10vw; max-width: 220px; }
+  .movie-card--top10 { width: 11vw; max-width: 250px; }
+  .movie-card__rank { font-size: 10vw; -webkit-text-stroke: 3px #555; }
+  .movie-card__badge { font-size: 12px; }
+}
+
+@media (min-width: 2200px) {
+  .movie-card { width: 10vw; max-width: 320px; }
+  .movie-card--portrait { width: 8vw; max-width: 260px; }
+  .movie-card--top10 { width: 9vw; max-width: 280px; }
+  .movie-card__rank { font-size: 8vw; }
+}
+
 @media (max-width: 1200px) {
   .movie-card {
     width: 20vw;

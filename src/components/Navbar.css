@@ -325,6 +325,12 @@
   border-left-color: var(--cosmos-accent);
 }
 
+@media (min-width: 1400px) {
+  .navbar { height: 70px; padding: 0 4.5%; }
+  .navbar__logo { width: 180px; }
+  .navbar__link { font-size: 14px; margin-left: 25px; }
+}
+
 @media (max-width: 1024px) {
   .navbar { height: 65px; }
   .navbar__logo { width: 170px; margin-right: 20px; }

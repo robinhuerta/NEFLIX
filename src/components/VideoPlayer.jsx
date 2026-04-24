@@ -187,9 +187,11 @@ const VideoPlayer = ({ onBack, fileName, videoUrl: initialUrl, movieTitle = "COS
 
 
 
+  const isExternal = isYouTube(videoUrl) || isDrive(videoUrl);
+
   return (
     <div 
-      className={`video-player ${!showControls ? 'video-player--hide-controls' : ''}`} 
+      className={`video-player ${!showControls ? 'video-player--hide-controls' : ''} ${isExternal ? 'video-player--external' : ''}`} 
       ref={playerRef}
       onMouseMove={handlePointerMove}
       onClick={handlePointerMove}

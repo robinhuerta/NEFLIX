@@ -291,6 +291,18 @@
   }
 }
 
+@media (min-width: 1600px) {
+  .firebase-gallery__title { font-size: 1.8rem; }
+  .firebase-gallery__grid .movie-card { width: calc(12.5% - 14px); } /* 8 per row */
+  .search-results__grid .movie-card { width: calc(12.5% - 14px); }
+}
+
+@media (min-width: 2200px) {
+  .firebase-gallery__title { font-size: 2rem; }
+  .firebase-gallery__grid .movie-card { width: calc(10% - 14px); } /* 10 per row */
+  .search-results__grid .movie-card { width: calc(10% - 14px); }
+}
+
 @media (max-width: 1200px) {
   .firebase-gallery__grid .movie-card { width: calc(20% - 12px); } /* 5 per row */
 }

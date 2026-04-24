@@ -5,11 +5,15 @@
 }
 
 .movie-row__title {
-  font-size: 1.4vw;
+  font-size: clamp(1.1rem, 1.4vw, 1.5rem);
   color: #e5e5e5;
   font-weight: bold;
   margin-bottom: 0.5rem;
   transition: color 0.3s ease;
+}
+
+@media (min-width: 1600px) {
+  .movie-row { margin-bottom: 2rem; }
 }
 
 .movie-row__title:hover {

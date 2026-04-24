@@ -33,6 +33,22 @@
   pointer-events: none;
 }
 
+/* Fix for external videos (YouTube/Drive) where iframes block mouse events */
+.video-player--external.video-player--hide-controls .video-player__top {
+  opacity: 0.5;
+  transform: translateY(0);
+  pointer-events: all;
+}
+
+.video-player--external.video-player--hide-controls .video-player__top:hover {
+  opacity: 1;
+}
+
+.video-player--external .video-player__back {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 50%;
+}
+
 .video-player__back,
 .video-player__report {
   opacity: 0.8;
