@@ -23,7 +23,7 @@
 }
 
 .navbar__logo {
-  width: 220px;
+  width: 160px;
   max-height: 85px;
   object-fit: contain;
   margin-right: 35px;
@@ -43,7 +43,7 @@
 
 .navbar__link {
   margin-left: 20px;
-  font-size: 14px;
+  font-size: 13px;
   cursor: pointer;
   color: #e5e5e5;
   transition: color 0.3s ease;

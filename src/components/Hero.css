@@ -63,7 +63,7 @@
 }
 
 .hero__title {
-  font-size: clamp(2rem, 4.5vw, 4.8rem);
+  font-size: clamp(1.8rem, 4.5vw, 3.2rem);
   font-weight: 900;
   line-height: 1.1;
   margin-bottom: 1.2rem;
@@ -72,7 +72,7 @@
 }
 
 .hero__description {
-  font-size: clamp(1rem, 1.4vw, 1.4rem);
+  font-size: clamp(0.9rem, 1.2vw, 1.1rem);
   line-height: 1.4;
   text-shadow: 1px 1px 8px rgba(0,0,0,0.8);
   margin-bottom: 2rem;
@@ -143,12 +143,17 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
   background: #080d16;
   transition: transform 0.4s ease, opacity 0.4s ease, box-shadow 0.4s ease;
+  margin-bottom: 20px;
 }
 
 .hero__banner-image {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+.hero {
+  padding-bottom: 40px;
 }
 
 /* Responsiveness */
