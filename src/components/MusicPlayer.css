@@ -508,11 +508,29 @@
   height: 180px;
 }
 
-.music-player__yt-iframe {
+/* Crop para ocultar el chrome de YouTube (logo, recomendaciones, barra) */
+.music-player__yt-crop {
+  position: relative;
   width: 100%;
   height: 180px;
+  overflow: hidden;
+}
+
+.music-player__yt-iframe {
+  width: calc(100% + 4px);
+  height: calc(180px + 140px);
+  margin-top: -70px;
+  margin-left: -2px;
   border: none;
   display: block;
+  pointer-events: none;
+}
+
+/* Bloquea clics en elementos de YouTube (logo, sugerencias) */
+.music-player__yt-blocker {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
 }
 
 /* Mobile */

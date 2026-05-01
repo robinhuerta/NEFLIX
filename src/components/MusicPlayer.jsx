@@ -126,14 +126,17 @@ const MusicPlayer = ({
           </div>
           {/* iframe siempre en el DOM con height:0 cuando está colapsado — el audio sigue sonando */}
           <div className="music-player__yt-video-wrap">
-            <iframe
-              ref={iframeRef}
-              className="music-player__yt-iframe"
-              src={`https://www.youtube.com/embed/${youtubeId}?autoplay=1&controls=1&modestbranding=1&rel=0&enablejsapi=1`}
-              title={currentTrack.title}
-              allow="autoplay; encrypted-media"
-              allowFullScreen
-            />
+            <div className="music-player__yt-crop">
+              <iframe
+                ref={iframeRef}
+                className="music-player__yt-iframe"
+                src={`https://www.youtube.com/embed/${youtubeId}?autoplay=1&controls=0&modestbranding=1&rel=0&enablejsapi=1&iv_load_policy=3&disablekb=1&fs=0`}
+                title={currentTrack.title}
+                allow="autoplay; encrypted-media"
+              />
+              {/* Bloquea clics en logo y recomendaciones de YouTube */}
+              <div className="music-player__yt-blocker" />
+            </div>
           </div>
         </div>
       )}
