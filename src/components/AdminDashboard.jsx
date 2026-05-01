@@ -298,8 +298,8 @@ const AdminDashboard = ({ onClose, onRefresh }) => {
                       </div>
                     )}
 
-                    {/* Carátula: siempre visible en modo música, solo en archivo en otros modos */}
-                    {(videoSourceType === 'file' || isMusic) && (
+                    {/* Carátula: en archivo siempre, en URL solo si NO es YouTube (YouTube la obtiene automático) */}
+                    {(videoSourceType === 'file' || (isMusic && videoSourceType === 'url' && !isYouTube(externalUrl))) && (
                       <div className="admin-dashboard__file-input">
                         <label>Carátula 16:9 (Imagen)</label>
                         <input
