@@ -250,6 +250,12 @@
   border: 1px solid rgba(255, 0, 0, 0.3);
 }
 
+.admin-dashboard__url-badge.youtube {
+  background: rgba(74, 222, 128, 0.15);
+  color: #4ade80;
+  border: 1px solid rgba(74, 222, 128, 0.3);
+}
+
 .admin-dashboard__url-badge.drive {
   background: rgba(34, 150, 243, 0.2);
   color: #2196f3;

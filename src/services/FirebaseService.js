@@ -2,26 +2,6 @@ import { storage, db } from '../firebaseConfig';
 import { ref, listAll, getDownloadURL, uploadBytesResumable, deleteObject } from 'firebase/storage';
 import { collection, getDocs, addDoc, serverTimestamp, query, orderBy, deleteDoc, doc } from 'firebase/firestore';
 
-/**
- * Extrae el ID de un video de YouTube desde su URL.
- */
-const getYouTubeId = (url) => {
-  if (!url) return null;
-  const regExp = /^.*(youtu\.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
-  const match = url.match(regExp);
-  return (match && match[2].length === 11) ? match[2] : null;
-};
-
-/**
- * Devuelve la URL del thumbnail de YouTube en la mayor calidad disponible.
- * Intenta maxresdefault, si no existe usa hqdefault.
- */
-const getYouTubeThumbnail = (videoUrl) => {
-  const id = getYouTubeId(videoUrl);
-  if (!id) return null;
-  // maxresdefault puede no existir en todos los videos, hqdefault es más confiable
-  return `https://img.youtube.com/vi/${id}/hqdefault.jpg`;
-};
 
 const DEFAULT_POSTER = '/posters/el-ultimo-guerrero-square.png';
 
@@ -40,24 +20,7 @@ export const fetchAllVideos = async () => {
     if (!movieSnapshot.empty) {
       return movieSnapshot.docs.map(docSnap => {
         const data = docSnap.data();
-        const videoUrl = data.videoUrl || '';
-        const isYouTube = videoUrl.includes('youtube.com') || videoUrl.includes('youtu.be');
-        const isLocalUpload = data.fileName && data.fileName !== 'External Link';
-
-        // Determinar la imagen a mostrar:
-        // 1. Si tiene imagen personalizada subida → usarla
-        // 2. Si es YouTube y no tiene imagen propia → usar thumbnail de YouTube
-        // 3. Fallback al poster por defecto
-        let image = data.image;
-        const isDefaultPoster = !image || image === DEFAULT_POSTER || image === '';
-
-        if (isDefaultPoster) {
-          if (isYouTube) {
-            image = getYouTubeThumbnail(videoUrl) || DEFAULT_POSTER;
-          } else if (!isLocalUpload) {
-            image = DEFAULT_POSTER;
-          }
-        }
+        const image = (data.image && data.image !== '') ? data.image : DEFAULT_POSTER;
 
         return {
           id: docSnap.id,
@@ -73,11 +36,14 @@ export const fetchAllVideos = async () => {
     const res = await listAll(listRef);
     
     const allFiles = res.items.map(item => item.name);
-    const videos = res.items.filter(item => item.name.toLowerCase().endsWith('.mp4'));
+    const videos = res.items.filter(item => {
+      const name = item.name.toLowerCase();
+      return name.endsWith('.mp4') || name.endsWith('.mp3');
+    });
     
     const videoData = await Promise.all(
       videos.map(async (item) => {
-        const baseName = item.name.replace('.mp4', '');
+        const baseName = item.name.replace(/\.(mp4|mp3)$/i, '');
         
         // Buscar poster con el mismo nombre (.jpg, .png, .webp)
         const possibleExtensions = ['.jpg', '.png', '.webp', '.jpeg'];
@@ -148,10 +114,12 @@ export const uploadMovie = async (videoFileOrUrl, posterFile, metadata, onProgre
 
     // 3. Guardar en Firestore
     const docRef = await addDoc(collection(db, 'movies'), {
-      title: metadata.title || (isExternal ? 'Nueva Película' : fileName.replace('.mp4', '')),
+      title: metadata.title || (isExternal ? 'Nueva Película' : fileName.replace(/\.(mp4|mp3)$/i, '')),
       description: metadata.description || '',
       category: metadata.category || 'Novedades',
       genre: metadata.genre || '',
+      artist: metadata.artist || '',
+      isAudio: !isExternal && (typeof videoFileOrUrl !== 'string') && videoFileOrUrl?.type?.startsWith('audio/'),
       fileName: fileName,
       videoUrl: videoUrl,
       image: posterUrl || DEFAULT_POSTER,

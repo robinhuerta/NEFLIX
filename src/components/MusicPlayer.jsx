@@ -21,10 +21,12 @@ const MusicPlayer = ({
   onToggleShuffle,
   repeat,
   onToggleRepeat,
+  youtubeId,        // ID del video de YouTube (si aplica)
 }) => {
   const [showQueue, setShowQueue] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [prevVolume, setPrevVolume] = useState(volume);
+  const [ytExpanded, setYtExpanded] = useState(false); // colapsado por defecto — audio sigue sonando
 
   const formatTime = (sec) => {
     if (!sec || isNaN(sec)) return '0:00';
@@ -100,12 +102,40 @@ const MusicPlayer = ({
         </div>
       )}
 
-      <div className="music-player">
-        <div className="music-player__seek" onClick={handleSeekClick}>
-          <div className="music-player__seek-fill" style={{ width: `${progress || 0}%` }}>
-            <div className="music-player__seek-handle" />
+      {/* ── Mini player de YouTube ────────────────────────── */}
+      {youtubeId && (
+        <div className={`music-player__yt-panel ${ytExpanded ? 'music-player__yt-panel--open' : ''}`}>
+          <div className="music-player__yt-header">
+            <span>🎵 Reproduciendo en YouTube</span>
+            <button
+              className="music-player__yt-toggle"
+              onClick={() => setYtExpanded(v => !v)}
+            >
+              {ytExpanded ? '▼ Ocultar' : '▲ Ver video'}
+            </button>
+          </div>
+          {/* iframe siempre en el DOM con height:0 cuando está colapsado — el audio sigue sonando */}
+          <div className="music-player__yt-video-wrap">
+            <iframe
+              className="music-player__yt-iframe"
+              src={`https://www.youtube.com/embed/${youtubeId}?autoplay=1&controls=1&modestbranding=1&rel=0`}
+              title={currentTrack.title}
+              allow="autoplay; encrypted-media"
+              allowFullScreen
+            />
           </div>
         </div>
+      )}
+
+      <div className="music-player">
+        {/* Seek bar solo para tracks locales */}
+        {!youtubeId && (
+          <div className="music-player__seek" onClick={handleSeekClick}>
+            <div className="music-player__seek-fill" style={{ width: `${progress || 0}%` }}>
+              <div className="music-player__seek-handle" />
+            </div>
+          </div>
+        )}
 
         <div className="music-player__inner">
           <div className="music-player__track-info">

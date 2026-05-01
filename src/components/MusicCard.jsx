@@ -43,10 +43,9 @@ const MusicCard = ({ track, isActive, isPlaying, onPlay, onAddToQueue }) => {
 
       <div className="music-card__info">
         <p className="music-card__title" title={track.title}>{track.title}</p>
-        {track.artist && <p className="music-card__artist">{track.artist}</p>}
-        {track.category && !track.artist && (
-          <p className="music-card__artist">{track.category}</p>
-        )}
+        <p className="music-card__artist">
+          {track.artist || track.genre || track.category || '—'}
+        </p>
         {track.duration && <p className="music-card__duration">{track.duration}</p>}
       </div>
 

@@ -135,15 +135,34 @@ function App() {
     return '';
   }, []);
 
+  // ── YouTube helper ────────────────────────────────────────────────
+  const getYtId = (url) => {
+    if (!url) return null;
+    const m = url.match(/^.*(youtu\.be\/|v\/|embed\/|watch\?v=|&v=)([^#&?]*)/);
+    return (m && m[2].length === 11) ? m[2] : null;
+  };
+
+  const isYouTubeTrack = (track) =>
+    !!(track?.videoUrl?.includes('youtube.com') || track?.videoUrl?.includes('youtu.be'));
+
+  const currentYoutubeId = isYouTubeTrack(currentTrack)
+    ? getYtId(currentTrack.videoUrl)
+    : null;
+
   const playTrack = useCallback(async (track, queue = []) => {
     setCurrentTrack(track);
     setMusicQueue(queue);
     setMusicProgress(0);
     setMusicCurrentTime(0);
     setMusicDuration(0);
-    const url = await getTrackUrl(track);
-    setAudioUrl(url);
     setIsMusicPlaying(true);
+    // Solo obtener URL si NO es YouTube (YouTube usa iframe)
+    if (!isYouTubeTrack(track)) {
+      const url = await getTrackUrl(track);
+      setAudioUrl(url);
+    } else {
+      setAudioUrl(''); // Limpiar audio nativo
+    }
   }, [getTrackUrl]);
 
   const addToQueue = useCallback((track) => {
@@ -153,18 +172,16 @@ function App() {
     });
   }, []);
 
-  // Sync audio element
+  // Sync audio element — solo para tracks locales (NO YouTube)
   useEffect(() => {
-    if (!audioRef.current || !audioUrl) return;
+    if (!audioRef.current || !audioUrl || !currentTrack || isYouTubeTrack(currentTrack)) return;
     audioRef.current.src = audioUrl;
     audioRef.current.volume = musicVolume;
-    if (isMusicPlaying) {
-      audioRef.current.play().catch(() => {});
-    }
+    if (isMusicPlaying) audioRef.current.play().catch(() => {});
   }, [audioUrl]);
 
   useEffect(() => {
-    if (!audioRef.current) return;
+    if (!audioRef.current || isYouTubeTrack(currentTrack)) return;
     if (isMusicPlaying) audioRef.current.play().catch(() => {});
     else audioRef.current.pause();
   }, [isMusicPlaying]);
@@ -530,6 +547,7 @@ function App() {
         onToggleShuffle={() => setMusicShuffle(s => !s)}
         repeat={musicRepeat}
         onToggleRepeat={handleToggleRepeat}
+        youtubeId={currentYoutubeId}
       />
 
       {/* Mi Lista Modal */}

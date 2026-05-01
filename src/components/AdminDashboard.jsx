@@ -16,6 +16,7 @@ const AdminDashboard = ({ onClose, onRefresh }) => {
   const [desc, setDesc] = useState('');
   const [category, setCategory] = useState('Novedades');
   const [genre, setGenre] = useState('');
+  const [artist, setArtist] = useState('');
   const [maturity, setMaturity] = useState('13+');
   const [duration, setDuration] = useState('2h 00m');
   const [uploading, setUploading] = useState(false);
@@ -66,9 +67,9 @@ const AdminDashboard = ({ onClose, onRefresh }) => {
 
     try {
       await uploadMovie(
-        movieSource, 
-        posterFile, 
-        { title, description: desc, category, genre, maturity, duration },
+        movieSource,
+        posterFile,
+        { title, description: desc, category, genre, artist, maturity, duration },
         (p) => setProgress(Math.round(p))
       );
       
@@ -79,6 +80,7 @@ const AdminDashboard = ({ onClose, onRefresh }) => {
       setTitle('');
       setDesc('');
       setGenre('');
+      setArtist('');
       setProgress(0);
       if (onRefresh) onRefresh();
     } catch (err) {
@@ -109,17 +111,9 @@ const AdminDashboard = ({ onClose, onRefresh }) => {
 
   const isYouTube = (url) => url.includes('youtube.com') || url.includes('youtu.be');
   const isDrive = (url) => url.includes('drive.google.com') || url.includes('docs.google.com');
+  const isMusic = category === 'Videos Musicales';
+  const isDirectMedia = (url) => /\.(mp3|mp4|m4a|ogg|wav|webm)(\?|$)/i.test(url);
 
-  const getYouTubeId = (url) => {
-    if (!url) return null;
-    const regExp = /^.*(youtu\.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
-    const match = url.match(regExp);
-    return (match && match[2].length === 11) ? match[2] : null;
-  };
-
-  const youtubeThumb = isYouTube(externalUrl)
-    ? `https://img.youtube.com/vi/${getYouTubeId(externalUrl)}/hqdefault.jpg`
-    : null;
 
   return (
     <div className="admin-dashboard">
@@ -188,46 +182,57 @@ const AdminDashboard = ({ onClose, onRefresh }) => {
                       rows="4"
                     />
                     <div className="admin-dashboard__row">
-                      <select value={category} onChange={e => { setCategory(e.target.value); setGenre(''); }}>
+                      <select value={category} onChange={e => { setCategory(e.target.value); setGenre(''); setArtist(''); }}>
                         <option value="Novedades">Novedades</option>
                         <option value="Series">Series</option>
                         <option value="Películas Latinas">Películas Latinas</option>
                         <option value="Acción y Suspenso">Acción y Suspenso</option>
                         <option value="Videos Musicales">Videos Musicales 🎵</option>
                       </select>
-                      <input 
-                        type="text" 
-                        placeholder="Madurez (ej: 16+)" 
-                        value={maturity} 
-                        onChange={e => setMaturity(e.target.value)} 
+                      <input
+                        type="text"
+                        placeholder="Madurez (ej: 16+)"
+                        value={maturity}
+                        onChange={e => setMaturity(e.target.value)}
                       />
-                      <input 
-                        type="text" 
-                        placeholder="Duración (ej: 1h 45m)" 
-                        value={duration} 
-                        onChange={e => setDuration(e.target.value)} 
+                      <input
+                        type="text"
+                        placeholder="Duración (ej: 1h 45m)"
+                        value={duration}
+                        onChange={e => setDuration(e.target.value)}
                       />
                     </div>
 
-                    {/* Género Musical — solo visible para Videos Musicales */}
                     {category === 'Videos Musicales' && (
-                      <div className="admin-dashboard__genre-wrap">
-                        <label className="admin-dashboard__genre-label">🎶 Género Musical</label>
-                        <div className="admin-dashboard__genre-grid">
-                          {['Cumbia','Salsa','Huayno','Reggaeton','Vallenato','Tropical','Chicha','Balada','Pop','Rock','Electrónica','Merengue','Bachata','Marinera','Festejo','Otros'].map(g => (
-                            <button
-                              key={g}
-                              type="button"
-                              className={`admin-dashboard__genre-btn ${genre === g ? 'active' : ''}`}
-                              onClick={() => setGenre(genre === g ? '' : g)}
-                            >
-                              {g}
-                            </button>
-                          ))}
-                        </div>
-                        {genre && <p className="admin-dashboard__genre-selected">Género seleccionado: <strong>{genre}</strong></p>}
-                      </div>
+                      <input
+                        type="text"
+                        placeholder="Artista o Banda"
+                        value={artist}
+                        onChange={e => setArtist(e.target.value)}
+                      />
                     )}
+
+                    <div className="admin-dashboard__genre-wrap">
+                      <label className="admin-dashboard__genre-label">
+                        {category === 'Videos Musicales' ? '🎶 Género Musical' : '🎬 Género'}
+                      </label>
+                      <div className="admin-dashboard__genre-grid">
+                        {(category === 'Videos Musicales'
+                          ? ['Cumbia','Salsa','Huayno','Reggaeton','Vallenato','Tropical','Chicha','Balada','Pop','Rock','Electrónica','Merengue','Bachata','Marinera','Festejo','Otros']
+                          : ['Acción','Drama','Comedia','Terror','Suspenso','Romance','Aventura','Animación','Documental','Otros']
+                        ).map(g => (
+                          <button
+                            key={g}
+                            type="button"
+                            className={`admin-dashboard__genre-btn ${genre === g ? 'active' : ''}`}
+                            onClick={() => setGenre(genre === g ? '' : g)}
+                          >
+                            {g}
+                          </button>
+                        ))}
+                      </div>
+                      {genre && <p className="admin-dashboard__genre-selected">Seleccionado: <strong>{genre}</strong></p>}
+                    </div>
                   </div>
 
                   <div className="admin-dashboard__section">
@@ -251,49 +256,52 @@ const AdminDashboard = ({ onClose, onRefresh }) => {
 
                     {videoSourceType === 'file' ? (
                       <div className="admin-dashboard__file-input">
-                        <label>Video (.mp4) *</label>
-                        <input 
-                          type="file" 
-                          accept="video/mp4" 
-                          onChange={e => setVideoFile(e.target.files[0])} 
+                        <label>{isMusic ? 'Audio (.mp3) o Video (.mp4) *' : 'Video (.mp4) *'}</label>
+                        <input
+                          type="file"
+                          accept={isMusic ? 'audio/mpeg,audio/mp3,video/mp4' : 'video/mp4'}
+                          onChange={e => setVideoFile(e.target.files[0])}
                           required
                         />
+                        {videoFile && (
+                          <p style={{ color: '#a78bfa', fontSize: '12px', marginTop: '8px' }}>
+                            ✓ {videoFile.name}
+                          </p>
+                        )}
                       </div>
                     ) : (
                       <div className="admin-dashboard__url-input">
                         <label>URL del Video o YouTube *</label>
-                        <input 
-                          type="text" 
-                          placeholder="https://drive.google.com/... o https://youtube.com/..." 
-                          value={externalUrl} 
-                          onChange={e => setExternalUrl(e.target.value)} 
+                        <input
+                          type="text"
+                          placeholder="https://youtube.com/... o URL directa de archivo"
+                          value={externalUrl}
+                          onChange={e => setExternalUrl(e.target.value)}
                           required
                         />
                         {externalUrl && isYouTube(externalUrl) && (
-                          <div className="admin-dashboard__yt-preview">
-                            <div className="admin-dashboard__yt-badge">✅ YouTube detectado — carátula automática:</div>
-                            {youtubeThumb && (
-                              <img
-                                src={youtubeThumb}
-                                alt="Carátula de YouTube"
-                                className="admin-dashboard__yt-thumb"
-                                onError={e => { e.currentTarget.style.display = 'none'; }}
-                              />
-                            )}
-                          </div>
+                          <div className="admin-dashboard__url-badge youtube">✅ YouTube detectado</div>
                         )}
                         {externalUrl && isDrive(externalUrl) && (
-                          <div className={externalUrl.includes('/folders/') ? "admin-dashboard__url-badge error" : "admin-dashboard__url-badge drive"}>
-                            {externalUrl.includes('/folders/') ? "⚠️ Es una CARPETA. Usa el link del archivo." : "Detección: Google Drive 📁"}
+                          <div className={externalUrl.includes('/folders/') ? 'admin-dashboard__url-badge error' : 'admin-dashboard__url-badge drive'}>
+                            {externalUrl.includes('/folders/') ? '⚠️ Es una CARPETA. Usa el link del archivo.' : 'Detección: Google Drive 📁'}
                           </div>
+                        )}
+                        {externalUrl && isMusic && !isYouTube(externalUrl) && !isDrive(externalUrl) && !isDirectMedia(externalUrl) && externalUrl.trim() && (
+                          <div className="admin-dashboard__url-badge error">
+                            ⚠️ Para música se recomienda YouTube o subir un archivo .mp3/.mp4
+                          </div>
+                        )}
+                        {externalUrl && isMusic && isDirectMedia(externalUrl) && !isYouTube(externalUrl) && (
+                          <div className="admin-dashboard__url-badge youtube">✅ URL de audio/video directa</div>
                         )}
                       </div>
                     )}
 
-                    {/* Poster solo si NO es YouTube (en YouTube se usa la carátula automática) */}
-                    {!(videoSourceType === 'url' && isYouTube(externalUrl)) && (
+                    {/* Carátula: siempre visible en modo música, solo en archivo en otros modos */}
+                    {(videoSourceType === 'file' || isMusic) && (
                       <div className="admin-dashboard__file-input">
-                        <label>Poster / Carátula (Imagen)</label>
+                        <label>Carátula 16:9 (Imagen)</label>
                         <input
                           type="file"
                           accept="image/*"

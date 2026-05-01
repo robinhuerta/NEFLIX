@@ -261,7 +261,7 @@
 /* Grid */
 .music-view__grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
   gap: 18px;
 }
 
@@ -298,12 +298,12 @@
   .music-view { padding-top: 60px; }
   .music-view__controls { padding: 16px 16px 0; }
   .music-view__content { padding: 16px; }
-  .music-view__grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; }
+  .music-view__grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
   .music-view__hero { height: 220px; }
   .music-view__group-header { flex-wrap: wrap; gap: 8px; }
 }
 
 @media (max-width: 480px) {
-  .music-view__grid { grid-template-columns: repeat(2, 1fr); }
+  .music-view__grid { grid-template-columns: repeat(1, 1fr); }
   .music-view__hero-title { font-size: 28px; }
 }

@@ -9,27 +9,28 @@ const MusicView = ({ tracks = [], currentTrack, isPlaying, onPlay, onAddToQueue 
   const [activeGenre, setActiveGenre] = useState('Todos');
 
   const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
     return tracks.filter(t => {
-      const matchSearch = !search.trim() ||
-        t.title?.toLowerCase().includes(search.toLowerCase()) ||
-        t.artist?.toLowerCase().includes(search.toLowerCase()) ||
-        t.genre?.toLowerCase().includes(search.toLowerCase());
+      const matchSearch = !q ||
+        t.title?.toLowerCase().includes(q) ||
+        t.artist?.toLowerCase().includes(q) ||
+        t.genre?.toLowerCase().includes(q);
       const matchGenre = activeGenre === 'Todos' ||
-        t.genre?.toLowerCase() === activeGenre.toLowerCase() ||
-        t.category?.toLowerCase() === activeGenre.toLowerCase();
+        t.genre?.trim().toLowerCase() === activeGenre.toLowerCase() ||
+        t.category?.trim().toLowerCase() === activeGenre.toLowerCase();
       return matchSearch && matchGenre;
     });
   }, [tracks, search, activeGenre]);
 
-  // Group by artist if available
+  // Group by artist if available, fall back to genre
   const groupedByArtist = useMemo(() => {
-    const artists = {};
+    const groups = {};
     filtered.forEach(t => {
-      const key = t.artist || t.category || 'Sin artista';
-      if (!artists[key]) artists[key] = [];
-      artists[key].push(t);
+      const key = t.artist || t.genre || 'Sin artista';
+      if (!groups[key]) groups[key] = [];
+      groups[key].push(t);
     });
-    return Object.entries(artists);
+    return Object.entries(groups);
   }, [filtered]);
 
   const showGrouped = activeGenre === 'Todos' && !search.trim() && groupedByArtist.length > 1;
@@ -87,7 +88,7 @@ const MusicView = ({ tracks = [], currentTrack, isPlaying, onPlay, onAddToQueue 
             <button
               key={g}
               className={`music-view__genre-btn ${activeGenre === g ? 'music-view__genre-btn--active' : ''}`}
-              onClick={() => setActiveGenre(g)}
+              onClick={() => { setActiveGenre(g); setSearch(''); }}
             >
               {g}
             </button>
