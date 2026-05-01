@@ -438,3 +438,98 @@
   font-size: 0.9rem;
   font-weight: bold;
 }
+
+/* ===== GÉNERO MUSICAL ===== */
+.admin-dashboard__genre-wrap {
+  margin-top: 4px;
+  margin-bottom: 15px;
+  background: rgba(108, 99, 255, 0.06);
+  border: 1px solid rgba(108, 99, 255, 0.2);
+  border-radius: 10px;
+  padding: 16px;
+  animation: fade-in 0.25s ease;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.admin-dashboard__genre-label {
+  display: block;
+  color: #a78bfa;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 12px;
+}
+
+.admin-dashboard__genre-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.admin-dashboard__genre-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #bbb;
+  padding: 6px 14px;
+  border-radius: 50px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.admin-dashboard__genre-btn:hover {
+  background: rgba(108, 99, 255, 0.15);
+  border-color: rgba(108, 99, 255, 0.4);
+  color: #fff;
+}
+
+.admin-dashboard__genre-btn.active {
+  background: #6c63ff;
+  border-color: #6c63ff;
+  color: #fff;
+  box-shadow: 0 0 12px rgba(108, 99, 255, 0.45);
+}
+
+.admin-dashboard__genre-selected {
+  margin: 10px 0 0;
+  font-size: 0.8rem;
+  color: #888;
+}
+
+.admin-dashboard__genre-selected strong {
+  color: #a78bfa;
+}
+
+/* ===== YOUTUBE PREVIEW ===== */
+.admin-dashboard__yt-preview {
+  margin-top: 10px;
+  animation: fade-in 0.3s ease;
+}
+
+.admin-dashboard__yt-badge {
+  font-size: 0.8rem;
+  color: #4ade80;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+
+.admin-dashboard__yt-thumb {
+  width: 100%;
+  max-width: 320px;
+  border-radius: 8px;
+  border: 2px solid rgba(108, 99, 255, 0.3);
+  display: block;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+  transition: transform 0.2s ease;
+}
+
+.admin-dashboard__yt-thumb:hover {
+  transform: scale(1.02);
+}

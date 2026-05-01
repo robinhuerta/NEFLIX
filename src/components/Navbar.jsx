@@ -9,7 +9,7 @@ const mockNotifications = [
   { id: 5, text: "Nuevas películas agregadas", time: "Hace 3d", isNew: false },
 ];
 
-const Navbar = ({ onSearch, myListCount = 0, onShowMyList, onLogout, onShowAdmin }) => {
+const Navbar = ({ onSearch, myListCount = 0, onShowMyList, onLogout, onShowAdmin, onShowMusic, onGoHome, activeSection = '' }) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const [searchValue, setSearchValue] = useState('');
@@ -58,6 +58,7 @@ const Navbar = ({ onSearch, myListCount = 0, onShowMyList, onLogout, onShowAdmin
   const handleNavClick = (section) => {
     switch (section) {
       case 'inicio':
+        if (onGoHome) onGoHome();
         window.scrollTo({ top: 0, behavior: 'smooth' });
         break;
       case 'series':
@@ -66,17 +67,8 @@ const Navbar = ({ onSearch, myListCount = 0, onShowMyList, onLogout, onShowAdmin
       case 'peliculas':
         document.getElementById('section-peliculas')?.scrollIntoView({ behavior: 'smooth' });
         break;
-      case 'novedades':
-        document.getElementById('section-novedades')?.scrollIntoView({ behavior: 'smooth' });
-        break;
-      case 'milista':
-        onShowMyList && onShowMyList();
-        break;
-      case 'idiomas':
-        document.getElementById('section-idiomas')?.scrollIntoView({ behavior: 'smooth' });
-        break;
       case 'musica':
-        document.getElementById('section-musica')?.scrollIntoView({ behavior: 'smooth' });
+        if (onShowMusic) onShowMusic();
         break;
       default:
         break;
@@ -96,12 +88,10 @@ const Navbar = ({ onSearch, myListCount = 0, onShowMyList, onLogout, onShowAdmin
           <li className="navbar__link" onClick={() => handleNavClick('inicio')}>Inicio</li>
           <li className="navbar__link" onClick={() => handleNavClick('series')}>Series</li>
           <li className="navbar__link" onClick={() => handleNavClick('peliculas')}>Películas</li>
-          <li className="navbar__link" onClick={() => handleNavClick('novedades')}>Novedades populares</li>
-          <li className="navbar__link" onClick={() => handleNavClick('musica')}>Música</li>
-          <li className="navbar__link navbar__link--mylist" onClick={() => handleNavClick('milista')}>
+          <li className={`navbar__link ${activeSection === 'musica' ? 'navbar__link--active' : ''}`} onClick={() => handleNavClick('musica')}>Música</li>
+          <li className="navbar__link navbar__link--mylist" onClick={() => onShowMyList && onShowMyList()}>
             Mi lista {myListCount > 0 && <span className="navbar__list-count">{myListCount}</span>}
           </li>
-          <li className="navbar__link" onClick={() => handleNavClick('idiomas')}>Explora por idiomas</li>
         </ul>
       </div>
 
@@ -200,12 +190,10 @@ const Navbar = ({ onSearch, myListCount = 0, onShowMyList, onLogout, onShowAdmin
               <div className="mobile-menu__link" onClick={() => { handleNavClick('inicio'); setShowMobileMenu(false); }}>Inicio</div>
               <div className="mobile-menu__link" onClick={() => { handleNavClick('series'); setShowMobileMenu(false); }}>Series</div>
               <div className="mobile-menu__link" onClick={() => { handleNavClick('peliculas'); setShowMobileMenu(false); }}>Películas</div>
-              <div className="mobile-menu__link" onClick={() => { handleNavClick('novedades'); setShowMobileMenu(false); }}>Novedades populares</div>
-              <div className="mobile-menu__link" onClick={() => { handleNavClick('milista'); setShowMobileMenu(false); }}>
+              <div className="mobile-menu__link" onClick={() => { handleNavClick('musica'); setShowMobileMenu(false); }}>Música</div>
+              <div className="mobile-menu__link" onClick={() => { onShowMyList && onShowMyList(); setShowMobileMenu(false); }}>
                 Mi lista {myListCount > 0 && <span className="navbar__list-count">{myListCount}</span>}
               </div>
-              <div className="mobile-menu__link" onClick={() => { handleNavClick('musica'); setShowMobileMenu(false); }}>Música</div>
-              <div className="mobile-menu__link" onClick={() => { handleNavClick('idiomas'); setShowMobileMenu(false); }}>Explora por idiomas</div>
             </nav>
           </div>
         </div>

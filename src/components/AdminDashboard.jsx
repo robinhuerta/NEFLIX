@@ -15,6 +15,7 @@ const AdminDashboard = ({ onClose, onRefresh }) => {
   const [title, setTitle] = useState('');
   const [desc, setDesc] = useState('');
   const [category, setCategory] = useState('Novedades');
+  const [genre, setGenre] = useState('');
   const [maturity, setMaturity] = useState('13+');
   const [duration, setDuration] = useState('2h 00m');
   const [uploading, setUploading] = useState(false);
@@ -67,7 +68,7 @@ const AdminDashboard = ({ onClose, onRefresh }) => {
       await uploadMovie(
         movieSource, 
         posterFile, 
-        { title, description: desc, category, maturity, duration },
+        { title, description: desc, category, genre, maturity, duration },
         (p) => setProgress(Math.round(p))
       );
       
@@ -77,6 +78,7 @@ const AdminDashboard = ({ onClose, onRefresh }) => {
       setPosterFile(null);
       setTitle('');
       setDesc('');
+      setGenre('');
       setProgress(0);
       if (onRefresh) onRefresh();
     } catch (err) {
@@ -107,6 +109,17 @@ const AdminDashboard = ({ onClose, onRefresh }) => {
 
   const isYouTube = (url) => url.includes('youtube.com') || url.includes('youtu.be');
   const isDrive = (url) => url.includes('drive.google.com') || url.includes('docs.google.com');
+
+  const getYouTubeId = (url) => {
+    if (!url) return null;
+    const regExp = /^.*(youtu\.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+    const match = url.match(regExp);
+    return (match && match[2].length === 11) ? match[2] : null;
+  };
+
+  const youtubeThumb = isYouTube(externalUrl)
+    ? `https://img.youtube.com/vi/${getYouTubeId(externalUrl)}/hqdefault.jpg`
+    : null;
 
   return (
     <div className="admin-dashboard">
@@ -175,13 +188,12 @@ const AdminDashboard = ({ onClose, onRefresh }) => {
                       rows="4"
                     />
                     <div className="admin-dashboard__row">
-                      <select value={category} onChange={e => setCategory(e.target.value)}>
+                      <select value={category} onChange={e => { setCategory(e.target.value); setGenre(''); }}>
                         <option value="Novedades">Novedades</option>
                         <option value="Series">Series</option>
                         <option value="Películas Latinas">Películas Latinas</option>
                         <option value="Acción y Suspenso">Acción y Suspenso</option>
-                        <option value="Videos Musicales">Videos Musicales</option>
-                        <option value="Mi Lista">Mi Lista</option>
+                        <option value="Videos Musicales">Videos Musicales 🎵</option>
                       </select>
                       <input 
                         type="text" 
@@ -196,6 +208,26 @@ const AdminDashboard = ({ onClose, onRefresh }) => {
                         onChange={e => setDuration(e.target.value)} 
                       />
                     </div>
+
+                    {/* Género Musical — solo visible para Videos Musicales */}
+                    {category === 'Videos Musicales' && (
+                      <div className="admin-dashboard__genre-wrap">
+                        <label className="admin-dashboard__genre-label">🎶 Género Musical</label>
+                        <div className="admin-dashboard__genre-grid">
+                          {['Cumbia','Salsa','Huayno','Reggaeton','Vallenato','Tropical','Chicha','Balada','Pop','Rock','Electrónica','Merengue','Bachata','Marinera','Festejo','Otros'].map(g => (
+                            <button
+                              key={g}
+                              type="button"
+                              className={`admin-dashboard__genre-btn ${genre === g ? 'active' : ''}`}
+                              onClick={() => setGenre(genre === g ? '' : g)}
+                            >
+                              {g}
+                            </button>
+                          ))}
+                        </div>
+                        {genre && <p className="admin-dashboard__genre-selected">Género seleccionado: <strong>{genre}</strong></p>}
+                      </div>
+                    )}
                   </div>
 
                   <div className="admin-dashboard__section">
@@ -238,24 +270,42 @@ const AdminDashboard = ({ onClose, onRefresh }) => {
                           required
                         />
                         {externalUrl && isYouTube(externalUrl) && (
-                          <div className="admin-dashboard__url-badge">Detección: YouTube 🎬</div>
+                          <div className="admin-dashboard__yt-preview">
+                            <div className="admin-dashboard__yt-badge">✅ YouTube detectado — carátula automática:</div>
+                            {youtubeThumb && (
+                              <img
+                                src={youtubeThumb}
+                                alt="Carátula de YouTube"
+                                className="admin-dashboard__yt-thumb"
+                                onError={e => { e.currentTarget.style.display = 'none'; }}
+                              />
+                            )}
+                          </div>
                         )}
                         {externalUrl && isDrive(externalUrl) && (
                           <div className={externalUrl.includes('/folders/') ? "admin-dashboard__url-badge error" : "admin-dashboard__url-badge drive"}>
-                            {externalUrl.includes('/folders/') ? "⚠️ Error: Es una CARPETA. Usa el link del archivo." : "Detección: Google Drive 📁"}
+                            {externalUrl.includes('/folders/') ? "⚠️ Es una CARPETA. Usa el link del archivo." : "Detección: Google Drive 📁"}
                           </div>
                         )}
                       </div>
                     )}
 
-                    <div className="admin-dashboard__file-input">
-                      <label>Poster / Carátula (Imagen)</label>
-                      <input 
-                        type="file" 
-                        accept="image/*" 
-                        onChange={e => setPosterFile(e.target.files[0])} 
-                      />
-                    </div>
+                    {/* Poster solo si NO es YouTube (en YouTube se usa la carátula automática) */}
+                    {!(videoSourceType === 'url' && isYouTube(externalUrl)) && (
+                      <div className="admin-dashboard__file-input">
+                        <label>Poster / Carátula (Imagen)</label>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={e => setPosterFile(e.target.files[0])}
+                        />
+                        {posterFile && (
+                          <p style={{ color: '#a78bfa', fontSize: '12px', marginTop: '8px' }}>
+                            ✓ {posterFile.name}
+                          </p>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
 

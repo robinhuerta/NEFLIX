@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import './App.css';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
@@ -11,6 +11,8 @@ import { mockMovies } from './data/mockData';
 import { fetchAllVideos } from './services/FirebaseService';
 import AdminDashboard from './components/AdminDashboard';
 import './components/AdminDashboard.css';
+import MusicView from './components/MusicView';
+import MusicPlayer from './components/MusicPlayer';
 
 const SKELETON_COUNT = 6;
 
@@ -25,6 +27,20 @@ function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [showMyList, setShowMyList] = useState(false);
   const [showAdmin, setShowAdmin] = useState(false);
+  const [showMusic, setShowMusic] = useState(false);
+
+  // ── Music Player State ──────────────────────────────────────────
+  const [currentTrack, setCurrentTrack] = useState(null);
+  const [musicQueue, setMusicQueue] = useState([]);
+  const [isMusicPlaying, setIsMusicPlaying] = useState(false);
+  const [musicVolume, setMusicVolume] = useState(0.8);
+  const [musicProgress, setMusicProgress] = useState(0);
+  const [musicCurrentTime, setMusicCurrentTime] = useState(0);
+  const [musicDuration, setMusicDuration] = useState(0);
+  const [musicShuffle, setMusicShuffle] = useState(false);
+  const [musicRepeat, setMusicRepeat] = useState('none'); // 'none' | 'all' | 'one'
+  const audioRef = useRef(null);
+  const [audioUrl, setAudioUrl] = useState('');
 
   // Persist Mi Lista in localStorage
   const [myList, setMyList] = useState(() => {
@@ -100,12 +116,136 @@ function App() {
   });
 
   const handleLogout = () => {
-    // Simulated logout by clearing transient session states and returning to intro
     setSearchQuery('');
     setInfoMovie(null);
     setShowPlayer(false);
     setShowAdmin(false);
+    setShowMusic(false);
     setShowIntro(true);
+  };
+
+  // ── Music Player Logic ──────────────────────────────────────────
+  const getTrackUrl = useCallback(async (track) => {
+    if (track.videoUrl) return track.videoUrl;
+    if (track.fileName && track.fileName !== 'External Link') {
+      const { ref, getDownloadURL } = await import('firebase/storage');
+      const { storage } = await import('./firebaseConfig');
+      return await getDownloadURL(ref(storage, track.fileName));
+    }
+    return '';
+  }, []);
+
+  const playTrack = useCallback(async (track, queue = []) => {
+    setCurrentTrack(track);
+    setMusicQueue(queue);
+    setMusicProgress(0);
+    setMusicCurrentTime(0);
+    setMusicDuration(0);
+    const url = await getTrackUrl(track);
+    setAudioUrl(url);
+    setIsMusicPlaying(true);
+  }, [getTrackUrl]);
+
+  const addToQueue = useCallback((track) => {
+    setMusicQueue(prev => {
+      if (prev.find(t => t.id === track.id)) return prev;
+      return [...prev, track];
+    });
+  }, []);
+
+  // Sync audio element
+  useEffect(() => {
+    if (!audioRef.current || !audioUrl) return;
+    audioRef.current.src = audioUrl;
+    audioRef.current.volume = musicVolume;
+    if (isMusicPlaying) {
+      audioRef.current.play().catch(() => {});
+    }
+  }, [audioUrl]);
+
+  useEffect(() => {
+    if (!audioRef.current) return;
+    if (isMusicPlaying) audioRef.current.play().catch(() => {});
+    else audioRef.current.pause();
+  }, [isMusicPlaying]);
+
+  useEffect(() => {
+    if (audioRef.current) audioRef.current.volume = musicVolume;
+  }, [musicVolume]);
+
+  const handleMusicTimeUpdate = () => {
+    if (!audioRef.current) return;
+    const ct = audioRef.current.currentTime;
+    const dur = audioRef.current.duration;
+    setMusicCurrentTime(ct);
+    setMusicDuration(dur);
+    setMusicProgress(dur > 0 ? (ct / dur) * 100 : 0);
+  };
+
+  const handleMusicEnded = () => {
+    if (musicRepeat === 'one') {
+      audioRef.current.currentTime = 0;
+      audioRef.current.play();
+      return;
+    }
+    if (musicShuffle && musicQueue.length > 0) {
+      const idx = Math.floor(Math.random() * musicQueue.length);
+      const next = musicQueue[idx];
+      const rest = musicQueue.filter((_, i) => i !== idx);
+      playTrack(next, rest);
+      return;
+    }
+    if (musicQueue.length > 0) {
+      const [next, ...rest] = musicQueue;
+      playTrack(next, musicRepeat === 'all' ? [...rest, currentTrack] : rest);
+    } else if (musicRepeat === 'all' && currentTrack) {
+      audioRef.current.currentTime = 0;
+      audioRef.current.play();
+    } else {
+      setIsMusicPlaying(false);
+    }
+  };
+
+  const handleMusicNext = () => {
+    if (musicShuffle && musicQueue.length > 0) {
+      const idx = Math.floor(Math.random() * musicQueue.length);
+      const next = musicQueue[idx];
+      const rest = musicQueue.filter((_, i) => i !== idx);
+      playTrack(next, rest);
+      return;
+    }
+    if (musicQueue.length > 0) {
+      const [next, ...rest] = musicQueue;
+      playTrack(next, rest);
+    }
+  };
+
+  const handleMusicPrev = () => {
+    if (audioRef.current && audioRef.current.currentTime > 3) {
+      audioRef.current.currentTime = 0;
+      return;
+    }
+    setIsMusicPlaying(false);
+  };
+
+  const handleMusicSeek = (ratio) => {
+    if (audioRef.current && musicDuration > 0) {
+      audioRef.current.currentTime = ratio * musicDuration;
+    }
+  };
+
+  const handleSelectFromQueue = (idx) => {
+    const track = musicQueue[idx];
+    const rest = musicQueue.filter((_, i) => i !== idx);
+    playTrack(track, rest);
+  };
+
+  const handleRemoveFromQueue = (idx) => {
+    setMusicQueue(prev => prev.filter((_, i) => i !== idx));
+  };
+
+  const handleToggleRepeat = () => {
+    setMusicRepeat(r => r === 'none' ? 'all' : r === 'all' ? 'one' : 'none');
   };
 
   useEffect(() => {
@@ -164,6 +304,15 @@ function App() {
     ? allMovies.filter(m => m.title?.toLowerCase().includes(searchQuery.toLowerCase()))
     : null;
 
+  // Music videos for the dedicated music page
+  const musicVideos = firebaseVideos.filter(v =>
+    v.category === 'Videos Musicales' ||
+    v.category?.toLowerCase() === 'musica' ||
+    v.category?.toLowerCase() === 'música' ||
+    v.type?.toLowerCase() === 'musica' ||
+    v.type?.toLowerCase() === 'música'
+  );
+
   // Dynamic Categories based on Firebase data
   const dynamicCategories = [
     { 
@@ -189,7 +338,7 @@ function App() {
     {
       id: "musica",
       title: "Videos Musicales",
-      items: firebaseVideos.filter(v => v.category === 'Videos Musicales' || v.category?.toLowerCase() === 'musica')
+      items: musicVideos
     }
   ];
 
@@ -229,12 +378,24 @@ function App() {
 
   return (
     <div className="app">
+      {/* Hidden audio element for music */}
+      <audio
+        ref={audioRef}
+        onTimeUpdate={handleMusicTimeUpdate}
+        onEnded={handleMusicEnded}
+        onLoadedMetadata={handleMusicTimeUpdate}
+        style={{ display: 'none' }}
+      />
+
       <Navbar
         onSearch={setSearchQuery}
         myListCount={myList.length}
         onShowMyList={() => setShowMyList(true)}
         onLogout={handleLogout}
         onShowAdmin={() => setShowAdmin(true)}
+        onShowMusic={() => { setShowMusic(true); setSearchQuery(''); }}
+        onGoHome={() => { setShowMusic(false); setSearchQuery(''); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+        activeSection={showMusic ? 'musica' : ''}
       />
 
       {/* Search Results */}
@@ -256,7 +417,18 @@ function App() {
         </div>
       )}
 
-      {!searchResults && (
+      {/* Music Page */}
+      {showMusic && !searchResults && (
+        <MusicView
+          tracks={musicVideos}
+          currentTrack={currentTrack}
+          isPlaying={isMusicPlaying}
+          onPlay={(track, queue) => playTrack(track, queue || [])}
+          onAddToQueue={addToQueue}
+        />
+      )}
+
+      {!showMusic && !searchResults && (
         <>
           <Hero
             movie={featuredMovie}
@@ -336,6 +508,29 @@ function App() {
           </footer>
         </>
       )}
+
+      {/* Music Player (persistente) */}
+      <MusicPlayer
+        currentTrack={currentTrack}
+        queue={musicQueue}
+        isPlaying={isMusicPlaying}
+        onPlayPause={() => setIsMusicPlaying(p => !p)}
+        onNext={handleMusicNext}
+        onPrev={handleMusicPrev}
+        onSelectFromQueue={handleSelectFromQueue}
+        onRemoveFromQueue={handleRemoveFromQueue}
+        onClearQueue={() => setMusicQueue([])}
+        volume={musicVolume}
+        onVolumeChange={setMusicVolume}
+        progress={musicProgress}
+        currentTime={musicCurrentTime}
+        duration={musicDuration}
+        onSeek={handleMusicSeek}
+        shuffle={musicShuffle}
+        onToggleShuffle={() => setMusicShuffle(s => !s)}
+        repeat={musicRepeat}
+        onToggleRepeat={handleToggleRepeat}
+      />
 
       {/* Mi Lista Modal */}
       {showMyList && (

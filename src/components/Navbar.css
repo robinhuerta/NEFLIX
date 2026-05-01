@@ -53,6 +53,12 @@
   color: #b3b3b3;
 }
 
+.navbar__link--active {
+  color: #a78bfa !important;
+  font-weight: 700;
+  text-shadow: 0 0 12px rgba(167, 139, 250, 0.5);
+}
+
 .navbar__right {
   display: flex;
   align-items: center;

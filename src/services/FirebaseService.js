@@ -3,6 +3,29 @@ import { ref, listAll, getDownloadURL, uploadBytesResumable, deleteObject } from
 import { collection, getDocs, addDoc, serverTimestamp, query, orderBy, deleteDoc, doc } from 'firebase/firestore';
 
 /**
+ * Extrae el ID de un video de YouTube desde su URL.
+ */
+const getYouTubeId = (url) => {
+  if (!url) return null;
+  const regExp = /^.*(youtu\.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+  const match = url.match(regExp);
+  return (match && match[2].length === 11) ? match[2] : null;
+};
+
+/**
+ * Devuelve la URL del thumbnail de YouTube en la mayor calidad disponible.
+ * Intenta maxresdefault, si no existe usa hqdefault.
+ */
+const getYouTubeThumbnail = (videoUrl) => {
+  const id = getYouTubeId(videoUrl);
+  if (!id) return null;
+  // maxresdefault puede no existir en todos los videos, hqdefault es más confiable
+  return `https://img.youtube.com/vi/${id}/hqdefault.jpg`;
+};
+
+const DEFAULT_POSTER = '/posters/el-ultimo-guerrero-square.png';
+
+/**
  * Obtiene la lista completa de videos de COSMOS.
  * Primero intenta cargar desde Firestore (Metadatos ricos).
  * Si falla o no hay datos, cae a la lista de Storage con lógica de Auto-Poster.
@@ -15,11 +38,34 @@ export const fetchAllVideos = async () => {
     const movieSnapshot = await getDocs(q);
     
     if (!movieSnapshot.empty) {
-      return movieSnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-        isFirebase: true
-      }));
+      return movieSnapshot.docs.map(docSnap => {
+        const data = docSnap.data();
+        const videoUrl = data.videoUrl || '';
+        const isYouTube = videoUrl.includes('youtube.com') || videoUrl.includes('youtu.be');
+        const isLocalUpload = data.fileName && data.fileName !== 'External Link';
+
+        // Determinar la imagen a mostrar:
+        // 1. Si tiene imagen personalizada subida → usarla
+        // 2. Si es YouTube y no tiene imagen propia → usar thumbnail de YouTube
+        // 3. Fallback al poster por defecto
+        let image = data.image;
+        const isDefaultPoster = !image || image === DEFAULT_POSTER || image === '';
+
+        if (isDefaultPoster) {
+          if (isYouTube) {
+            image = getYouTubeThumbnail(videoUrl) || DEFAULT_POSTER;
+          } else if (!isLocalUpload) {
+            image = DEFAULT_POSTER;
+          }
+        }
+
+        return {
+          id: docSnap.id,
+          ...data,
+          image,
+          isFirebase: true
+        };
+      });
     }
 
     // 2. Fallback: Listar directamente desde Storage (Lógica Auto-Poster)
@@ -35,7 +81,7 @@ export const fetchAllVideos = async () => {
         
         // Buscar poster con el mismo nombre (.jpg, .png, .webp)
         const possibleExtensions = ['.jpg', '.png', '.webp', '.jpeg'];
-        let posterUrl = '/posters/el-ultimo-guerrero-square.png'; // Default
+        let posterUrl = DEFAULT_POSTER;
         
         for (const ext of possibleExtensions) {
           if (allFiles.includes(baseName + ext)) {
@@ -105,9 +151,10 @@ export const uploadMovie = async (videoFileOrUrl, posterFile, metadata, onProgre
       title: metadata.title || (isExternal ? 'Nueva Película' : fileName.replace('.mp4', '')),
       description: metadata.description || '',
       category: metadata.category || 'Novedades',
+      genre: metadata.genre || '',
       fileName: fileName,
       videoUrl: videoUrl,
-      image: posterUrl || '/posters/el-ultimo-guerrero-square.png',
+      image: posterUrl || DEFAULT_POSTER,
       createdAt: serverTimestamp(),
       maturity: metadata.maturity || '13+',
       duration: metadata.duration || '2h 00m',
