@@ -49,6 +49,11 @@
   border-radius: 50%;
 }
 
+/* Bajar el botón de atrás en YouTube para no solapar con info del canal */
+.video-player--external .video-player__top {
+  padding-top: 70px;
+}
+
 .video-player__back,
 .video-player__report {
   opacity: 0.8;
