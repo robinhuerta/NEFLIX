@@ -132,10 +132,18 @@ const MusicPlayer = ({
                 className="music-player__yt-iframe"
                 src={`https://www.youtube.com/embed/${youtubeId}?autoplay=1&controls=0&modestbranding=1&rel=0&enablejsapi=1&iv_load_policy=3&disablekb=1&fs=0`}
                 title={currentTrack.title}
-                allow="autoplay; encrypted-media"
+                allow="autoplay; encrypted-media; fullscreen"
               />
-              {/* Bloquea clics en logo y recomendaciones de YouTube */}
               <div className="music-player__yt-blocker" />
+              <button
+                className="music-player__yt-fullscreen"
+                onClick={() => iframeRef.current?.requestFullscreen?.()}
+                title="Pantalla completa"
+              >
+                <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
+                  <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/>
+                </svg>
+              </button>
             </div>
           </div>
         </div>
