@@ -78,12 +78,12 @@ const Navbar = ({ onSearch, myListCount = 0, onShowMyList, onLogout, onShowAdmin
   return (
     <nav className={`navbar ${isScrolled ? 'navbar--scrolled' : ''}`}>
       <div className="navbar__left">
-        <img
+        <span
           className="navbar__logo"
-          src="/logo.png"
-          alt="COSMOS Logo"
           onClick={() => { window.scrollTo({ top: 0, behavior: 'smooth' }); setShowSearch(false); }}
-        />
+        >
+          COSMOS
+        </span>
         <ul className="navbar__links">
           <li className="navbar__link" onClick={() => handleNavClick('inicio')}>Inicio</li>
           <li className="navbar__link" onClick={() => handleNavClick('series')}>Series</li>
@@ -181,11 +181,7 @@ const Navbar = ({ onSearch, myListCount = 0, onShowMyList, onLogout, onShowAdmin
         <div className="mobile-menu__overlay" onClick={() => setShowMobileMenu(false)}>
           <div className="mobile-menu" onClick={e => e.stopPropagation()}>
             <button className="mobile-menu__close" onClick={() => setShowMobileMenu(false)}>✕</button>
-            <img
-              className="mobile-menu__logo"
-              src="/logo.png"
-              alt="COSMOS"
-            />
+            <span className="mobile-menu__logo">COSMOS</span>
             <nav className="mobile-menu__links">
               <div className="mobile-menu__link" onClick={() => { handleNavClick('inicio'); setShowMobileMenu(false); }}>Inicio</div>
               <div className="mobile-menu__link" onClick={() => { handleNavClick('series'); setShowMobileMenu(false); }}>Series</div>
