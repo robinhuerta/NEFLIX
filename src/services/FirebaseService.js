@@ -13,7 +13,10 @@ const getYouTubeId = (url) => {
 
 const getYouTubeThumbnail = (url) => {
   const id = getYouTubeId(url);
-  return id ? `https://img.youtube.com/vi/${id}/maxresdefault.jpg` : null;
+  if (!id) return null;
+  // mqdefault (320x180, 16:9) existe en TODOS los videos de YouTube
+  // maxresdefault solo existe en videos HD y causa 404 en los demás
+  return `https://img.youtube.com/vi/${id}/mqdefault.jpg`;
 };
 
 /**
