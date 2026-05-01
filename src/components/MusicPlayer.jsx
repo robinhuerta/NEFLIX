@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import './MusicPlayer.css';
 
 const MusicPlayer = ({
@@ -26,7 +26,17 @@ const MusicPlayer = ({
   const [showQueue, setShowQueue] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [prevVolume, setPrevVolume] = useState(volume);
-  const [ytExpanded, setYtExpanded] = useState(false); // colapsado por defecto — audio sigue sonando
+  const [ytExpanded, setYtExpanded] = useState(false);
+  const iframeRef = useRef(null);
+
+  // Sincronizar volumen con el iframe de YouTube via postMessage
+  useEffect(() => {
+    if (!youtubeId || !iframeRef.current) return;
+    const vol = isMuted ? 0 : Math.round(volume * 100);
+    iframeRef.current.contentWindow?.postMessage(
+      JSON.stringify({ event: 'command', func: 'setVolume', args: [vol] }), '*'
+    );
+  }, [volume, isMuted, youtubeId]);
 
   const formatTime = (sec) => {
     if (!sec || isNaN(sec)) return '0:00';
@@ -117,8 +127,9 @@ const MusicPlayer = ({
           {/* iframe siempre en el DOM con height:0 cuando está colapsado — el audio sigue sonando */}
           <div className="music-player__yt-video-wrap">
             <iframe
+              ref={iframeRef}
               className="music-player__yt-iframe"
-              src={`https://www.youtube.com/embed/${youtubeId}?autoplay=1&controls=1&modestbranding=1&rel=0`}
+              src={`https://www.youtube.com/embed/${youtubeId}?autoplay=1&controls=1&modestbranding=1&rel=0&enablejsapi=1`}
               title={currentTrack.title}
               allow="autoplay; encrypted-media"
               allowFullScreen
@@ -211,6 +222,9 @@ const MusicPlayer = ({
                 type="range" className="music-player__volume-slider"
                 min="0" max="1" step="0.02"
                 value={isMuted ? 0 : volume}
+                style={{
+                  background: `linear-gradient(to right, #6c63ff ${(isMuted ? 0 : volume) * 100}%, rgba(255,255,255,0.15) ${(isMuted ? 0 : volume) * 100}%)`
+                }}
                 onChange={e => {
                   onVolumeChange(parseFloat(e.target.value));
                   if (parseFloat(e.target.value) > 0) setIsMuted(false);
