@@ -3,7 +3,7 @@ import { ref, listAll, getDownloadURL, uploadBytesResumable, deleteObject } from
 import { collection, getDocs, addDoc, serverTimestamp, query, orderBy, deleteDoc, doc } from 'firebase/firestore';
 
 
-const DEFAULT_POSTER = '/posters/el-ultimo-guerrero-square.png';
+const DEFAULT_POSTER = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect width='320' height='180' fill='%23111'/%3E%3Crect x='1' y='1' width='318' height='178' fill='none' stroke='%23333' stroke-width='1'/%3E%3Ctext x='50%25' y='44%25' fill='%23444' font-size='36' text-anchor='middle' dominant-baseline='middle' font-family='sans-serif'%3E▶%3C/text%3E%3Ctext x='50%25' y='68%25' fill='%23333' font-size='13' text-anchor='middle' dominant-baseline='middle' font-family='sans-serif'%3ECOSMOS%3C/text%3E%3C/svg%3E";
 
 /**
  * Obtiene la lista completa de videos de COSMOS.
