@@ -385,6 +385,13 @@ function App() {
         fileName={selectedVideo.fileName}
         videoUrl={selectedVideo.videoUrl}
         movieTitle={selectedVideo.title}
+        episode={
+          selectedVideo.category === 'Videos Musicales' ? 'Música' :
+          selectedVideo.category === 'Series' ? 'Serie' :
+          selectedVideo.category === 'Acción y Suspenso' ? 'Acción' :
+          selectedVideo.category === 'Películas Latinas' ? 'Película' :
+          selectedVideo.category || 'Película'
+        }
         onNext={handleNextVideo}
         hasNext={hasNext}
         initialTime={watchHistory.find(h => h.id === selectedVideo.id)?.currentTime || 0}
