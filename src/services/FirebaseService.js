@@ -36,7 +36,9 @@ export const fetchAllVideos = async () => {
         const data = docSnap.data();
         const videoUrl = data.videoUrl || '';
         const isYouTube = videoUrl.includes('youtube.com') || videoUrl.includes('youtu.be');
-        let image = (data.image && data.image !== '') ? data.image : null;
+        // Ignorar placeholders guardados (SVG inline o ruta antigua) — no son carátulas reales
+        const hasRealImage = data.image && data.image !== '' && !data.image.startsWith('data:') && !data.image.includes('el-ultimo-guerrero');
+        let image = hasRealImage ? data.image : null;
         if (!image) {
           image = isYouTube ? (getYouTubeThumbnail(videoUrl) || DEFAULT_POSTER) : DEFAULT_POSTER;
         }
@@ -141,7 +143,7 @@ export const uploadMovie = async (videoFileOrUrl, posterFile, metadata, onProgre
       isAudio: !isExternal && (typeof videoFileOrUrl !== 'string') && videoFileOrUrl?.type?.startsWith('audio/'),
       fileName: fileName,
       videoUrl: videoUrl,
-      image: posterUrl || DEFAULT_POSTER,
+      image: posterUrl || '',
       createdAt: serverTimestamp(),
       maturity: metadata.maturity || '13+',
       duration: metadata.duration || '2h 00m',
