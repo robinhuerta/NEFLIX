@@ -5,6 +5,17 @@ import { collection, getDocs, addDoc, serverTimestamp, query, orderBy, deleteDoc
 
 const DEFAULT_POSTER = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect width='320' height='180' fill='%23111'/%3E%3Crect x='1' y='1' width='318' height='178' fill='none' stroke='%23333' stroke-width='1'/%3E%3Ctext x='50%25' y='44%25' fill='%23444' font-size='36' text-anchor='middle' dominant-baseline='middle' font-family='sans-serif'%3E▶%3C/text%3E%3Ctext x='50%25' y='68%25' fill='%23333' font-size='13' text-anchor='middle' dominant-baseline='middle' font-family='sans-serif'%3ECOSMOS%3C/text%3E%3C/svg%3E";
 
+const getYouTubeId = (url) => {
+  if (!url) return null;
+  const match = url.match(/^.*(youtu\.be\/|v\/|embed\/|watch\?v=|&v=)([^#&?]*).*/);
+  return (match && match[2].length === 11) ? match[2] : null;
+};
+
+const getYouTubeThumbnail = (url) => {
+  const id = getYouTubeId(url);
+  return id ? `https://img.youtube.com/vi/${id}/maxresdefault.jpg` : null;
+};
+
 /**
  * Obtiene la lista completa de videos de COSMOS.
  * Primero intenta cargar desde Firestore (Metadatos ricos).
@@ -20,7 +31,12 @@ export const fetchAllVideos = async () => {
     if (!movieSnapshot.empty) {
       return movieSnapshot.docs.map(docSnap => {
         const data = docSnap.data();
-        const image = (data.image && data.image !== '') ? data.image : DEFAULT_POSTER;
+        const videoUrl = data.videoUrl || '';
+        const isYouTube = videoUrl.includes('youtube.com') || videoUrl.includes('youtu.be');
+        let image = (data.image && data.image !== '') ? data.image : null;
+        if (!image) {
+          image = isYouTube ? (getYouTubeThumbnail(videoUrl) || DEFAULT_POSTER) : DEFAULT_POSTER;
+        }
 
         return {
           id: docSnap.id,
