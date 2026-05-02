@@ -13,6 +13,7 @@ import AdminDashboard from './components/AdminDashboard';
 import './components/AdminDashboard.css';
 import MusicView from './components/MusicView';
 import MusicPlayer from './components/MusicPlayer';
+import SeriesDetail from './components/SeriesDetail';
 
 const SKELETON_COUNT = 6;
 
@@ -30,6 +31,8 @@ function App() {
   const [showMusic, setShowMusic] = useState(false);
   const [showPeliculas, setShowPeliculas] = useState(false);
   const [showSeries, setShowSeries] = useState(false);
+  const [selectedSeries, setSelectedSeries] = useState(null);
+  const [seriesPlayQueue, setSeriesPlayQueue] = useState([]);
 
   // ── Music Player State ──────────────────────────────────────────
   const [currentTrack, setCurrentTrack] = useState(null);
@@ -90,16 +93,27 @@ function App() {
     }
   };
 
+  const handleSelectMovie = (movie) => {
+    if (movie?.isSeries) { setSelectedSeries(movie); return; }
+    setFeaturedMovie(movie);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   const handlePlayMovie = (movie) => {
+    if (movie?.isSeries) { setSelectedSeries(movie); return; }
     if (movie && (movie.fileName || movie.videoUrl)) {
       setSelectedVideo(movie);
+      setSeriesPlayQueue([]);
       setShowPlayer(true);
     }
   };
 
-  const handleSelectMovie = (movie) => {
-    setFeaturedMovie(movie);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+  const handlePlayFromSeries = (episode, series) => {
+    const sorted = series.episodes;
+    const idx = sorted.findIndex(e => e.id === episode.id);
+    setSeriesPlayQueue(sorted.slice(idx + 1));
+    setSelectedVideo(episode);
+    setShowPlayer(true);
   };
 
   const handleAddToList = (movie) => {
@@ -125,6 +139,7 @@ function App() {
     setShowMusic(false);
     setShowPeliculas(false);
     setShowSeries(false);
+    setSelectedSeries(null);
     setShowIntro(true);
   };
 
@@ -292,6 +307,12 @@ function App() {
   const allVideos = firebaseVideos.filter(v => v.fileName);
 
   const handleNextVideo = () => {
+    if (seriesPlayQueue.length > 0) {
+      const [next, ...rest] = seriesPlayQueue;
+      setSelectedVideo(next);
+      setSeriesPlayQueue(rest);
+      return;
+    }
     if (!selectedVideo) return;
     const idx = allVideos.findIndex(v => v.id === selectedVideo.id);
     if (idx >= 0 && idx < allVideos.length - 1) {
@@ -299,9 +320,9 @@ function App() {
     }
   };
 
-  const hasNext = selectedVideo
+  const hasNext = seriesPlayQueue.length > 0 || (selectedVideo
     ? allVideos.findIndex(v => v.id === selectedVideo.id) < allVideos.length - 1
-    : false;
+    : false);
 
   // "Continuar viendo" — items with progress between 2% and 95%
   const continueWatching = watchHistory.filter(h => h.progress > 0.02 && h.progress < 0.95);
@@ -346,6 +367,32 @@ function App() {
     const cat = v.category?.toLowerCase() || '';
     return cat === 'series' || cat === 'serie';
   });
+
+  // Agrupar episodios en una entrada por serie
+  const seriesList = Object.values(
+    seriesVideos.reduce((acc, video) => {
+      const key = video.seriesTitle || video.title;
+      if (!acc[key]) {
+        acc[key] = {
+          id: 'series_' + key.replace(/\s+/g, '_'),
+          title: key,
+          image: video.image,
+          description: video.description || '',
+          category: 'Series',
+          isSeries: true,
+          episodes: [],
+        };
+      }
+      acc[key].episodes.push(video);
+      return acc;
+    }, {})
+  ).map(s => ({
+    ...s,
+    episodes: s.episodes.sort((a, b) => {
+      const sd = (a.season || 1) - (b.season || 1);
+      return sd !== 0 ? sd : (a.episodeNumber || 0) - (b.episodeNumber || 0);
+    }),
+  }));
 
   // Dynamic Categories based on Firebase data
   const dynamicCategories = [
@@ -440,8 +487,8 @@ function App() {
         onShowAdmin={() => setShowAdmin(true)}
         onShowMusic={() => { setShowMusic(true); setShowPeliculas(false); setShowSeries(false); setSearchQuery(''); }}
         onShowPeliculas={() => { setShowPeliculas(true); setShowMusic(false); setShowSeries(false); setSearchQuery(''); }}
-        onShowSeries={() => { setShowSeries(true); setShowMusic(false); setShowPeliculas(false); setSearchQuery(''); }}
-        onGoHome={() => { setShowMusic(false); setShowPeliculas(false); setShowSeries(false); setSearchQuery(''); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+        onShowSeries={() => { setShowSeries(true); setShowMusic(false); setShowPeliculas(false); setSelectedSeries(null); setSearchQuery(''); }}
+        onGoHome={() => { setShowMusic(false); setShowPeliculas(false); setShowSeries(false); setSelectedSeries(null); setSearchQuery(''); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
         activeSection={showMusic ? 'musica' : showPeliculas ? 'peliculas' : showSeries ? 'series' : ''}
       />
 
@@ -476,36 +523,40 @@ function App() {
       )}
 
       {/* Series Page */}
-      {showSeries && !searchResults && (
+      {showSeries && !searchResults && !selectedSeries && (
         <div className="firebase-gallery" style={{ paddingTop: '90px', minHeight: '100vh' }}>
           <h2 className="firebase-gallery__title">Series</h2>
           {firebaseLoading ? (
             <div className="firebase-gallery__grid">
               {Array.from({ length: SKELETON_COUNT }).map((_, i) => <SkeletonCard key={i} />)}
             </div>
-          ) : seriesVideos.length === 0 ? (
+          ) : seriesList.length === 0 ? (
             <p style={{ color: '#aaa', textAlign: 'center', marginTop: '60px', fontSize: '1.1rem' }}>
               No hay series disponibles todavía.
             </p>
           ) : (
             <div className="firebase-gallery__grid">
-              {seriesVideos.map(video => (
+              {seriesList.map(series => (
                 <MovieCard
-                  key={video.id}
-                  movie={video}
+                  key={series.id}
+                  movie={series}
                   onSelect={handleSelectMovie}
                   onPlay={handlePlayMovie}
-                  onAddToList={handleAddToList}
-                  onInfo={setInfoMovie}
-                  isInMyList={isInMyList(video.id)}
-                  isLiked={isLiked(video.id)}
-                  onLike={toggleLike}
-                  onHover={handleHoverMovie}
+                  onHover={() => {}}
                 />
               ))}
             </div>
           )}
         </div>
+      )}
+
+      {/* Series Detail Page */}
+      {showSeries && selectedSeries && !searchResults && (
+        <SeriesDetail
+          series={selectedSeries}
+          onPlay={handlePlayFromSeries}
+          onBack={() => setSelectedSeries(null)}
+        />
       )}
 
       {/* Películas Page */}

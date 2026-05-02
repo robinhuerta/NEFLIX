@@ -3,7 +3,7 @@ import './VideoPlayer.css';
 import { storage } from '../firebaseConfig';
 import { ref, getDownloadURL } from 'firebase/storage';
 
-const VideoPlayer = ({ onBack, fileName, videoUrl: initialUrl, movieTitle = "COSMOS Original", episode = "Película", initialTime = 0, onProgress }) => {
+const VideoPlayer = ({ onBack, fileName, videoUrl: initialUrl, movieTitle = "COSMOS Original", episode = "Película", initialTime = 0, onProgress, onNext, hasNext }) => {
   const [isPlaying, setIsPlaying] = useState(true);
   const [videoUrl, setVideoUrl] = useState(initialUrl || '');
   const [currentTime, setCurrentTime] = useState(0);
@@ -234,6 +234,7 @@ const VideoPlayer = ({ onBack, fileName, videoUrl: initialUrl, movieTitle = "COS
             src={videoUrl}
             onTimeUpdate={handleTimeUpdate}
             onLoadedMetadata={handleTimeUpdate}
+            onEnded={() => { if (hasNext && onNext) onNext(); }}
           />
         ) : (
           <div className="video-player__loading">Cargando COSMOS...</div>
