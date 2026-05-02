@@ -29,6 +29,7 @@ function App() {
   const [showAdmin, setShowAdmin] = useState(false);
   const [showMusic, setShowMusic] = useState(false);
   const [showPeliculas, setShowPeliculas] = useState(false);
+  const [showSeries, setShowSeries] = useState(false);
 
   // ── Music Player State ──────────────────────────────────────────
   const [currentTrack, setCurrentTrack] = useState(null);
@@ -123,6 +124,7 @@ function App() {
     setShowAdmin(false);
     setShowMusic(false);
     setShowPeliculas(false);
+    setShowSeries(false);
     setShowIntro(true);
   };
 
@@ -339,6 +341,12 @@ function App() {
            cat !== 'series' && cat !== 'serie';
   });
 
+  // Solo series
+  const seriesVideos = firebaseVideos.filter(v => {
+    const cat = v.category?.toLowerCase() || '';
+    return cat === 'series' || cat === 'serie';
+  });
+
   // Dynamic Categories based on Firebase data
   const dynamicCategories = [
     { 
@@ -430,10 +438,11 @@ function App() {
         onShowMyList={() => setShowMyList(true)}
         onLogout={handleLogout}
         onShowAdmin={() => setShowAdmin(true)}
-        onShowMusic={() => { setShowMusic(true); setShowPeliculas(false); setSearchQuery(''); }}
-        onShowPeliculas={() => { setShowPeliculas(true); setShowMusic(false); setSearchQuery(''); }}
-        onGoHome={() => { setShowMusic(false); setShowPeliculas(false); setSearchQuery(''); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-        activeSection={showMusic ? 'musica' : showPeliculas ? 'peliculas' : ''}
+        onShowMusic={() => { setShowMusic(true); setShowPeliculas(false); setShowSeries(false); setSearchQuery(''); }}
+        onShowPeliculas={() => { setShowPeliculas(true); setShowMusic(false); setShowSeries(false); setSearchQuery(''); }}
+        onShowSeries={() => { setShowSeries(true); setShowMusic(false); setShowPeliculas(false); setSearchQuery(''); }}
+        onGoHome={() => { setShowMusic(false); setShowPeliculas(false); setShowSeries(false); setSearchQuery(''); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+        activeSection={showMusic ? 'musica' : showPeliculas ? 'peliculas' : showSeries ? 'series' : ''}
       />
 
       {/* Search Results */}
@@ -464,6 +473,39 @@ function App() {
           onPlay={(track, queue) => playTrack(track, queue || [])}
           onAddToQueue={addToQueue}
         />
+      )}
+
+      {/* Series Page */}
+      {showSeries && !searchResults && (
+        <div className="firebase-gallery" style={{ paddingTop: '90px', minHeight: '100vh' }}>
+          <h2 className="firebase-gallery__title">Series</h2>
+          {firebaseLoading ? (
+            <div className="firebase-gallery__grid">
+              {Array.from({ length: SKELETON_COUNT }).map((_, i) => <SkeletonCard key={i} />)}
+            </div>
+          ) : seriesVideos.length === 0 ? (
+            <p style={{ color: '#aaa', textAlign: 'center', marginTop: '60px', fontSize: '1.1rem' }}>
+              No hay series disponibles todavía.
+            </p>
+          ) : (
+            <div className="firebase-gallery__grid">
+              {seriesVideos.map(video => (
+                <MovieCard
+                  key={video.id}
+                  movie={video}
+                  onSelect={handleSelectMovie}
+                  onPlay={handlePlayMovie}
+                  onAddToList={handleAddToList}
+                  onInfo={setInfoMovie}
+                  isInMyList={isInMyList(video.id)}
+                  isLiked={isLiked(video.id)}
+                  onLike={toggleLike}
+                  onHover={handleHoverMovie}
+                />
+              ))}
+            </div>
+          )}
+        </div>
       )}
 
       {/* Películas Page */}
@@ -499,7 +541,7 @@ function App() {
         </div>
       )}
 
-      {!showMusic && !showPeliculas && !searchResults && (
+      {!showMusic && !showPeliculas && !showSeries && !searchResults && (
         <>
           <Hero
             movie={featuredMovie}
