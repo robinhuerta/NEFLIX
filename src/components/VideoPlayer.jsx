@@ -208,13 +208,16 @@ const VideoPlayer = ({ onBack, fileName, videoUrl: initialUrl, movieTitle = "COS
         {error ? (
           <div className="video-player__error">{error}</div>
         ) : isYouTube(videoUrl) ? (
-          <iframe
-            className="video-player__video"
-            src={`https://www.youtube.com/embed/${getYouTubeId(videoUrl)}?autoplay=1&controls=1&modestbranding=1`}
-            title={movieTitle}
-            allow="autoplay; encrypted-media"
-            allowFullScreen
-          />
+          <div className="video-player__yt-wrap">
+            <iframe
+              className="video-player__video"
+              src={`https://www.youtube.com/embed/${getYouTubeId(videoUrl)}?autoplay=1&controls=1&modestbranding=1&rel=0&iv_load_policy=3`}
+              title={movieTitle}
+              allow="autoplay; encrypted-media; fullscreen"
+              allowFullScreen
+            />
+            <div className="video-player__yt-blocker" />
+          </div>
         ) : isDrive(videoUrl) ? (
           <iframe
             className="video-player__video"

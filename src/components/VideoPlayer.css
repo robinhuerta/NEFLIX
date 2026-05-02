@@ -72,6 +72,21 @@
   justify-content: center;
 }
 
+/* Bloquea recomendaciones y botones de YouTube en pantalla completa */
+.video-player__yt-wrap {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.video-player__yt-blocker {
+  position: absolute;
+  inset: 0;
+  pointer-events: all;
+  background: transparent;
+  z-index: 1;
+}
+
 .video-player__video {
   width: 100%;
   height: 100%;
