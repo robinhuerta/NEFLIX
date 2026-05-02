@@ -28,6 +28,7 @@ function App() {
   const [showMyList, setShowMyList] = useState(false);
   const [showAdmin, setShowAdmin] = useState(false);
   const [showMusic, setShowMusic] = useState(false);
+  const [showPeliculas, setShowPeliculas] = useState(false);
 
   // ── Music Player State ──────────────────────────────────────────
   const [currentTrack, setCurrentTrack] = useState(null);
@@ -121,6 +122,7 @@ function App() {
     setShowPlayer(false);
     setShowAdmin(false);
     setShowMusic(false);
+    setShowPeliculas(false);
     setShowIntro(true);
   };
 
@@ -330,6 +332,13 @@ function App() {
     v.type?.toLowerCase() === 'música'
   );
 
+  // Solo películas (excluye música y series)
+  const peliculasVideos = firebaseVideos.filter(v => {
+    const cat = v.category?.toLowerCase() || '';
+    return cat !== 'videos musicales' && cat !== 'musica' && cat !== 'música' &&
+           cat !== 'series' && cat !== 'serie';
+  });
+
   // Dynamic Categories based on Firebase data
   const dynamicCategories = [
     { 
@@ -417,9 +426,10 @@ function App() {
         onShowMyList={() => setShowMyList(true)}
         onLogout={handleLogout}
         onShowAdmin={() => setShowAdmin(true)}
-        onShowMusic={() => { setShowMusic(true); setSearchQuery(''); }}
-        onGoHome={() => { setShowMusic(false); setSearchQuery(''); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-        activeSection={showMusic ? 'musica' : ''}
+        onShowMusic={() => { setShowMusic(true); setShowPeliculas(false); setSearchQuery(''); }}
+        onShowPeliculas={() => { setShowPeliculas(true); setShowMusic(false); setSearchQuery(''); }}
+        onGoHome={() => { setShowMusic(false); setShowPeliculas(false); setSearchQuery(''); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+        activeSection={showMusic ? 'musica' : showPeliculas ? 'peliculas' : ''}
       />
 
       {/* Search Results */}
@@ -452,7 +462,40 @@ function App() {
         />
       )}
 
-      {!showMusic && !searchResults && (
+      {/* Películas Page */}
+      {showPeliculas && !searchResults && (
+        <div className="firebase-gallery" style={{ paddingTop: '90px', minHeight: '100vh' }}>
+          <h2 className="firebase-gallery__title">Películas</h2>
+          {firebaseLoading ? (
+            <div className="firebase-gallery__grid">
+              {Array.from({ length: SKELETON_COUNT }).map((_, i) => <SkeletonCard key={i} />)}
+            </div>
+          ) : peliculasVideos.length === 0 ? (
+            <p style={{ color: '#aaa', textAlign: 'center', marginTop: '60px', fontSize: '1.1rem' }}>
+              No hay películas disponibles todavía.
+            </p>
+          ) : (
+            <div className="firebase-gallery__grid">
+              {peliculasVideos.map(video => (
+                <MovieCard
+                  key={video.id}
+                  movie={video}
+                  onSelect={handleSelectMovie}
+                  onPlay={handlePlayMovie}
+                  onAddToList={handleAddToList}
+                  onInfo={setInfoMovie}
+                  isInMyList={isInMyList(video.id)}
+                  isLiked={isLiked(video.id)}
+                  onLike={toggleLike}
+                  onHover={handleHoverMovie}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {!showMusic && !showPeliculas && !searchResults && (
         <>
           <Hero
             movie={featuredMovie}
