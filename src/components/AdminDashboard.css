@@ -513,6 +513,133 @@
   color: #a78bfa;
 }
 
+/* ===== UPLOAD MODE TOGGLE ===== */
+.admin-dashboard__mode-toggle {
+  display: flex;
+  background: rgba(255, 255, 255, 0.04);
+  padding: 4px;
+  border-radius: 8px;
+  margin-bottom: 24px;
+  gap: 4px;
+}
+
+.admin-dashboard__mode-toggle button {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: #888;
+  padding: 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.88rem;
+  font-weight: 600;
+  transition: all 0.25s;
+}
+
+.admin-dashboard__mode-toggle button.active {
+  background: #7B61FF;
+  color: white;
+  box-shadow: 0 2px 10px rgba(123, 97, 255, 0.35);
+}
+
+/* ===== EPISODE ROWS ===== */
+.admin-dashboard__episodes {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 320px;
+  overflow-y: auto;
+  padding-right: 4px;
+  margin-bottom: 12px;
+}
+
+.admin-dashboard__episodes::-webkit-scrollbar {
+  width: 4px;
+}
+
+.admin-dashboard__episodes::-webkit-scrollbar-thumb {
+  background: rgba(123, 97, 255, 0.3);
+  border-radius: 2px;
+}
+
+.admin-dashboard__episode-row {
+  display: grid;
+  grid-template-columns: 42px 1fr 1fr auto;
+  gap: 8px;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+
+.admin-dashboard__episode-row input {
+  margin-bottom: 0;
+  padding: 8px 10px;
+  font-size: 0.85rem;
+}
+
+.admin-dashboard__ep-num {
+  color: #7B61FF;
+  font-weight: 700;
+  font-size: 0.82rem;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.admin-dashboard__ep-remove {
+  background: rgba(255, 68, 68, 0.1);
+  border: 1px solid rgba(255, 68, 68, 0.2);
+  color: #ff4444;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 1.1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.admin-dashboard__ep-remove:hover {
+  background: #ff4444;
+  color: white;
+}
+
+.admin-dashboard__add-episode {
+  width: 100%;
+  background: rgba(123, 97, 255, 0.08);
+  border: 1px dashed rgba(123, 97, 255, 0.35);
+  color: #7B61FF;
+  padding: 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.admin-dashboard__add-episode:hover {
+  background: rgba(123, 97, 255, 0.15);
+  border-color: #7B61FF;
+}
+
+@media (max-width: 600px) {
+  .admin-dashboard__episode-row {
+    grid-template-columns: 38px 1fr auto;
+    grid-template-rows: auto auto;
+  }
+  .admin-dashboard__episode-row input:first-of-type {
+    grid-column: 2;
+  }
+  .admin-dashboard__episode-row input:last-of-type {
+    grid-column: 1 / -1;
+  }
+}
+
 /* ===== YOUTUBE PREVIEW ===== */
 .admin-dashboard__yt-preview {
   margin-top: 10px;

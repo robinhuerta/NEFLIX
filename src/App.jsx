@@ -396,7 +396,11 @@ function App() {
         movieTitle={selectedVideo.title}
         episode={
           selectedVideo.category === 'Videos Musicales' ? 'Música' :
-          selectedVideo.category === 'Series' ? 'Serie' :
+          selectedVideo.category === 'Series' ? (
+            selectedVideo.season && selectedVideo.episodeNumber
+              ? `T${selectedVideo.season} · E${selectedVideo.episodeNumber}${selectedVideo.episodeTitle ? ' — ' + selectedVideo.episodeTitle : ''}`
+              : 'Serie'
+          ) :
           selectedVideo.category === 'Acción y Suspenso' ? 'Acción' :
           selectedVideo.category === 'Películas Latinas' ? 'Película' :
           selectedVideo.category || 'Película'

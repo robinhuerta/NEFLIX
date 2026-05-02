@@ -28,6 +28,11 @@ const AdminDashboard = ({ onClose, onRefresh }) => {
   const [isAuthorized, setIsAuthorized] = useState(false);
   const [pinInput, setPinInput] = useState('');
   const [deletingId, setDeletingId] = useState(null);
+  const [uploadMode, setUploadMode] = useState('single'); // 'single' | 'batch'
+  const [season, setSeason] = useState('1');
+  const [episodeNumber, setEpisodeNumber] = useState('');
+  const [episodes, setEpisodes] = useState([{ id: 1, num: 1, title: '', url: '' }]);
+  const [batchProgress, setBatchProgress] = useState({ current: 0, total: 0 });
 
   const ADMIN_PIN = 'COSMOS2026';
 
@@ -69,10 +74,15 @@ const AdminDashboard = ({ onClose, onRefresh }) => {
       await uploadMovie(
         movieSource,
         posterFile,
-        { title, description: desc, category, genre, artist, maturity, duration },
+        {
+          title, description: desc, category, genre, artist, maturity, duration,
+          season: category === 'Series' ? (parseInt(season) || null) : null,
+          episodeNumber: category === 'Series' ? (parseInt(episodeNumber) || null) : null,
+          seriesTitle: category === 'Series' ? title : '',
+        },
         (p) => setProgress(Math.round(p))
       );
-      
+
       setSuccess(true);
       setVideoFile(null);
       setExternalUrl('');
@@ -81,6 +91,7 @@ const AdminDashboard = ({ onClose, onRefresh }) => {
       setDesc('');
       setGenre('');
       setArtist('');
+      setEpisodeNumber('');
       setProgress(0);
       if (onRefresh) onRefresh();
     } catch (err) {
@@ -108,6 +119,56 @@ const AdminDashboard = ({ onClose, onRefresh }) => {
       setDeletingId(null);
     }
   };
+
+  const handleBatchUpload = async (e) => {
+    e.preventDefault();
+    const valid = episodes.filter(ep => ep.url.trim());
+    if (!title.trim()) return setError('Escribe el título de la serie');
+    if (valid.length === 0) return setError('Agrega al menos un episodio con URL de YouTube');
+
+    setUploading(true);
+    setError(null);
+    setSuccess(false);
+    setBatchProgress({ current: 0, total: valid.length });
+
+    try {
+      for (let i = 0; i < valid.length; i++) {
+        const ep = valid[i];
+        setBatchProgress({ current: i + 1, total: valid.length });
+        await uploadMovie(ep.url.trim(), null, {
+          title,
+          description: desc,
+          category: 'Series',
+          genre,
+          maturity,
+          duration: '',
+          season: parseInt(season) || 1,
+          episodeNumber: ep.num,
+          episodeTitle: ep.title,
+          seriesTitle: title,
+        });
+      }
+      const count = valid.length;
+      setSuccess(`${count} episodio${count > 1 ? 's' : ''} lanzado${count > 1 ? 's' : ''} a COSMOS`);
+      setEpisodes([{ id: Date.now(), num: 1, title: '', url: '' }]);
+      setTitle('');
+      setDesc('');
+      setGenre('');
+      setBatchProgress({ current: 0, total: 0 });
+      if (onRefresh) onRefresh();
+    } catch (err) {
+      setError('Error al subir episodios: ' + err.message);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const addEpisode = () => setEpisodes(prev => [...prev, { id: Date.now(), num: prev.length + 1, title: '', url: '' }]);
+  const removeEpisode = (id) => setEpisodes(prev => {
+    const f = prev.filter(ep => ep.id !== id);
+    return f.map((ep, i) => ({ ...ep, num: i + 1 }));
+  });
+  const updateEpisode = (id, field, value) => setEpisodes(prev => prev.map(ep => ep.id === id ? { ...ep, [field]: value } : ep));
 
   const isYouTube = (url) => url.includes('youtube.com') || url.includes('youtu.be');
   const isDrive = (url) => url.includes('drive.google.com') || url.includes('docs.google.com');
@@ -164,6 +225,68 @@ const AdminDashboard = ({ onClose, onRefresh }) => {
             </div>
 
             {activeTab === 'upload' ? (
+              <>
+              <div className="admin-dashboard__mode-toggle">
+                <button type="button" className={uploadMode === 'single' ? 'active' : ''} onClick={() => { setUploadMode('single'); setError(null); setSuccess(false); }}>
+                  📺 Video único
+                </button>
+                <button type="button" className={uploadMode === 'batch' ? 'active' : ''} onClick={() => { setUploadMode('batch'); setCategory('Series'); setError(null); setSuccess(false); }}>
+                  📋 Serie / Temporada completa
+                </button>
+              </div>
+
+              {uploadMode === 'batch' ? (
+              <form className="admin-dashboard__form" onSubmit={handleBatchUpload}>
+                <div className="admin-dashboard__grid">
+                  <div className="admin-dashboard__section">
+                    <h3>Datos de la Serie</h3>
+                    <input type="text" placeholder="Nombre de la Serie *" value={title} onChange={e => setTitle(e.target.value)} required />
+                    <textarea placeholder="Sinopsis" value={desc} onChange={e => setDesc(e.target.value)} rows="3" />
+                    <div className="admin-dashboard__row">
+                      <input type="number" placeholder="Temporada" min="1" value={season} onChange={e => setSeason(e.target.value)} />
+                      <input type="text" placeholder="Madurez (ej: 16+)" value={maturity} onChange={e => setMaturity(e.target.value)} />
+                    </div>
+                    <div className="admin-dashboard__genre-wrap">
+                      <label className="admin-dashboard__genre-label">🎬 Género</label>
+                      <div className="admin-dashboard__genre-grid">
+                        {['Acción','Drama','Comedia','Terror','Suspenso','Romance','Aventura','Animación','Documental','Otros'].map(g => (
+                          <button key={g} type="button" className={`admin-dashboard__genre-btn ${genre === g ? 'active' : ''}`} onClick={() => setGenre(genre === g ? '' : g)}>{g}</button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="admin-dashboard__section">
+                    <h3>Episodios ({episodes.filter(ep => ep.url.trim()).length} con URL)</h3>
+                    <div className="admin-dashboard__episodes">
+                      {episodes.map(ep => (
+                        <div key={ep.id} className="admin-dashboard__episode-row">
+                          <span className="admin-dashboard__ep-num">Ep {ep.num}</span>
+                          <input type="text" placeholder="Título del episodio" value={ep.title} onChange={e => updateEpisode(ep.id, 'title', e.target.value)} />
+                          <input type="text" placeholder="URL de YouTube *" value={ep.url} onChange={e => updateEpisode(ep.id, 'url', e.target.value)} />
+                          {episodes.length > 1 && (
+                            <button type="button" className="admin-dashboard__ep-remove" onClick={() => removeEpisode(ep.id)}>×</button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                    <button type="button" className="admin-dashboard__add-episode" onClick={addEpisode}>+ Agregar episodio</button>
+                  </div>
+                </div>
+                {uploading && batchProgress.total > 0 && (
+                  <div className="admin-dashboard__progress-container">
+                    <div className="admin-dashboard__progress-bar">
+                      <div className="admin-dashboard__progress-fill" style={{ width: `${(batchProgress.current / batchProgress.total) * 100}%` }} />
+                    </div>
+                    <span>Subiendo episodio {batchProgress.current} de {batchProgress.total}...</span>
+                  </div>
+                )}
+                {error && <div className="admin-dashboard__error">{error}</div>}
+                {success && <div className="admin-dashboard__success">{success}</div>}
+                <button type="submit" className="admin-dashboard__submit" disabled={uploading}>
+                  {uploading ? `Procesando ${batchProgress.current}/${batchProgress.total}...` : `Subir ${episodes.filter(ep => ep.url.trim()).length || 0} episodio(s)`}
+                </button>
+              </form>
+              ) : (
               <form className="admin-dashboard__form" onSubmit={handleUpload}>
                 <div className="admin-dashboard__grid">
                   <div className="admin-dashboard__section">
@@ -202,6 +325,13 @@ const AdminDashboard = ({ onClose, onRefresh }) => {
                         onChange={e => setDuration(e.target.value)}
                       />
                     </div>
+
+                    {category === 'Series' && (
+                      <div className="admin-dashboard__row">
+                        <input type="number" placeholder="Temporada N°" min="1" value={season} onChange={e => setSeason(e.target.value)} />
+                        <input type="number" placeholder="Episodio N°" min="1" value={episodeNumber} onChange={e => setEpisodeNumber(e.target.value)} />
+                      </div>
+                    )}
 
                     {category === 'Videos Musicales' && (
                       <input
@@ -341,6 +471,8 @@ const AdminDashboard = ({ onClose, onRefresh }) => {
                   {uploading ? 'Procesando...' : 'Lanzar Contenido'}
                 </button>
               </form>
+              )}
+              </>
             ) : (
               <div className="admin-dashboard__manage">
                 {isLoadingMovies ? (

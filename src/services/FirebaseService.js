@@ -147,7 +147,11 @@ export const uploadMovie = async (videoFileOrUrl, posterFile, metadata, onProgre
       createdAt: serverTimestamp(),
       maturity: metadata.maturity || '13+',
       duration: metadata.duration || '2h 00m',
-      isExternal: isExternal
+      isExternal: isExternal,
+      seriesTitle: metadata.seriesTitle || '',
+      season: metadata.season || null,
+      episodeNumber: metadata.episodeNumber || null,
+      episodeTitle: metadata.episodeTitle || '',
     });
 
     return docRef.id;
