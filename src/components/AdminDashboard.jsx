@@ -33,6 +33,8 @@ const AdminDashboard = ({ onClose, onRefresh }) => {
   const [episodeNumber, setEpisodeNumber] = useState('');
   const [episodes, setEpisodes] = useState([{ id: 1, num: 1, title: '', url: '' }]);
   const [batchProgress, setBatchProgress] = useState({ current: 0, total: 0 });
+  const [ytEmbedStatus, setYtEmbedStatus] = useState(null); // null|'checking'|'ok'|'blocked'|'invalid'
+  const [batchUrlStatuses, setBatchUrlStatuses] = useState({});
 
   const ADMIN_PIN = 'COSMOS2026';
 
@@ -63,9 +65,13 @@ const AdminDashboard = ({ onClose, onRefresh }) => {
       movieSource = videoFile;
     } else {
       if (!externalUrl.trim()) return setError('Introduce una URL válida de video o YouTube');
+      if (ytEmbedStatus === 'blocked') {
+        const ok = window.confirm('🚫 Este video tiene embedding bloqueado y NO se reproducirá en COSMOS.\n\n¿Deseas guardarlo de todas formas?');
+        if (!ok) return;
+      }
       movieSource = externalUrl.trim();
     }
-    
+
     setUploading(true);
     setError(null);
     setSuccess(false);
@@ -92,6 +98,7 @@ const AdminDashboard = ({ onClose, onRefresh }) => {
       setGenre('');
       setArtist('');
       setEpisodeNumber('');
+      setYtEmbedStatus(null);
       setProgress(0);
       if (onRefresh) onRefresh();
     } catch (err) {
@@ -120,11 +127,56 @@ const AdminDashboard = ({ onClose, onRefresh }) => {
     }
   };
 
+  const getYouTubeId = (url) => {
+    const m = url.match(/^.*(youtu\.be\/|v\/|embed\/|watch\?v=|&v=)([^#&?]*)/);
+    return (m && m[2].length === 11) ? m[2] : null;
+  };
+
+  const checkYouTubeEmbed = async (url, callback) => {
+    const id = getYouTubeId(url);
+    if (!id) { callback('invalid'); return; }
+    try {
+      const res = await fetch(
+        `https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v=${id}&format=json`
+      );
+      callback(res.ok ? 'ok' : res.status === 401 ? 'blocked' : 'invalid');
+    } catch {
+      callback('error');
+    }
+  };
+
+  // Auto-verificar URL en modo individual
+  useEffect(() => {
+    if (!externalUrl || !isYouTube(externalUrl)) { setYtEmbedStatus(null); return; }
+    setYtEmbedStatus('checking');
+    const timer = setTimeout(() => {
+      checkYouTubeEmbed(externalUrl, setYtEmbedStatus);
+    }, 800);
+    return () => clearTimeout(timer);
+  }, [externalUrl]);
+
+  // Verificar URL por episodio al salir del campo (onBlur)
+  const handleEpisodeUrlBlur = (id, url) => {
+    if (!url.trim() || !isYouTube(url)) {
+      setBatchUrlStatuses(prev => ({ ...prev, [id]: url.trim() ? 'invalid' : null }));
+      return;
+    }
+    setBatchUrlStatuses(prev => ({ ...prev, [id]: 'checking' }));
+    checkYouTubeEmbed(url, status => setBatchUrlStatuses(prev => ({ ...prev, [id]: status })));
+  };
+
   const handleBatchUpload = async (e) => {
     e.preventDefault();
     const valid = episodes.filter(ep => ep.url.trim());
     if (!title.trim()) return setError('Escribe el título de la serie');
     if (valid.length === 0) return setError('Agrega al menos un episodio con URL de YouTube');
+    const blocked = valid.filter(ep => batchUrlStatuses[ep.id] === 'blocked');
+    if (blocked.length > 0) {
+      const ok = window.confirm(
+        `⚠️ ${blocked.length} episodio(s) tienen embedding bloqueado y NO se reproducirán en COSMOS:\n\n${blocked.map(ep => `· Ep ${ep.num}: ${ep.url}`).join('\n')}\n\n¿Deseas subirlos de todas formas?`
+      );
+      if (!ok) return;
+    }
 
     setUploading(true);
     setError(null);
@@ -262,7 +314,19 @@ const AdminDashboard = ({ onClose, onRefresh }) => {
                         <div key={ep.id} className="admin-dashboard__episode-row">
                           <span className="admin-dashboard__ep-num">Ep {ep.num}</span>
                           <input type="text" placeholder="Título del episodio" value={ep.title} onChange={e => updateEpisode(ep.id, 'title', e.target.value)} />
-                          <input type="text" placeholder="URL de YouTube *" value={ep.url} onChange={e => updateEpisode(ep.id, 'url', e.target.value)} />
+                          <div className="admin-dashboard__ep-url-wrap">
+                            <input
+                              type="text"
+                              placeholder="URL de YouTube *"
+                              value={ep.url}
+                              onChange={e => { updateEpisode(ep.id, 'url', e.target.value); setBatchUrlStatuses(prev => ({ ...prev, [ep.id]: null })); }}
+                              onBlur={e => handleEpisodeUrlBlur(ep.id, e.target.value)}
+                            />
+                            {batchUrlStatuses[ep.id] === 'checking' && <span className="admin-dashboard__ep-status checking">⏳</span>}
+                            {batchUrlStatuses[ep.id] === 'ok' && <span className="admin-dashboard__ep-status ok" title="Se puede reproducir en COSMOS">✅</span>}
+                            {batchUrlStatuses[ep.id] === 'blocked' && <span className="admin-dashboard__ep-status blocked" title="Embedding bloqueado — no funcionará en COSMOS">🚫</span>}
+                            {batchUrlStatuses[ep.id] === 'invalid' && <span className="admin-dashboard__ep-status invalid" title="URL inválida o video no encontrado">⚠️</span>}
+                          </div>
                           {episodes.length > 1 && (
                             <button type="button" className="admin-dashboard__ep-remove" onClick={() => removeEpisode(ep.id)}>×</button>
                           )}
@@ -410,7 +474,16 @@ const AdminDashboard = ({ onClose, onRefresh }) => {
                           required
                         />
                         {externalUrl && isYouTube(externalUrl) && (
-                          <div className="admin-dashboard__url-badge youtube">✅ YouTube detectado</div>
+                          <div className={`admin-dashboard__url-badge ${
+                            ytEmbedStatus === 'ok' ? 'youtube' :
+                            ytEmbedStatus === 'blocked' ? 'error' : ''
+                          }`}>
+                            {ytEmbedStatus === 'checking' ? '⏳ Verificando si se puede reproducir en COSMOS...' :
+                             ytEmbedStatus === 'ok' ? '✅ YouTube · Se puede reproducir en COSMOS' :
+                             ytEmbedStatus === 'blocked' ? '🚫 Embedding bloqueado — este video NO se reproducirá en COSMOS (el canal lo impide)' :
+                             ytEmbedStatus === 'invalid' ? '⚠️ Video no encontrado o URL inválida' :
+                             '⏳ Verificando...'}
+                          </div>
                         )}
                         {externalUrl && isDrive(externalUrl) && (
                           <div className={externalUrl.includes('/folders/') ? 'admin-dashboard__url-badge error' : 'admin-dashboard__url-badge drive'}>

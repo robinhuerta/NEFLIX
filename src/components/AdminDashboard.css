@@ -564,7 +564,7 @@
 
 .admin-dashboard__episode-row {
   display: grid;
-  grid-template-columns: 42px 1fr 1fr auto;
+  grid-template-columns: 42px 1fr 1.4fr auto;
   gap: 8px;
   align-items: center;
   background: rgba(255, 255, 255, 0.03);
@@ -607,6 +607,24 @@
 .admin-dashboard__ep-remove:hover {
   background: #ff4444;
   color: white;
+}
+
+.admin-dashboard__ep-url-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.admin-dashboard__ep-url-wrap input {
+  flex: 1;
+  margin-bottom: 0;
+}
+
+.admin-dashboard__ep-status {
+  font-size: 14px;
+  flex-shrink: 0;
+  cursor: default;
 }
 
 .admin-dashboard__add-episode {
