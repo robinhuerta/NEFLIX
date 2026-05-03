@@ -116,7 +116,7 @@ const MusicPlayer = ({
       {youtubeId && (
         <div className={`music-player__yt-panel ${ytExpanded ? 'music-player__yt-panel--open' : ''}`}>
           <div className="music-player__yt-header">
-            <span>🎵 Reproduciendo en YouTube</span>
+            <span>🎵 Reproduciendo en COSMOS</span>
           </div>
           {/* iframe siempre en el DOM con height:0 cuando está colapsado — el audio sigue sonando */}
           <div className="music-player__yt-video-wrap">
