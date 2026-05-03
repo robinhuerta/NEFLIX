@@ -3,7 +3,8 @@
   background: #0a0814;
   color: #fff;
   font-family: 'Inter', sans-serif;
-  padding-top: 68px; /* Fixed navbar height */
+  padding-top: 68px;
+  padding-bottom: 160px; /* espacio para MusicPlayer + marquesina */
 }
 
 /* ===== HERO ===== */
