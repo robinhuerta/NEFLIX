@@ -1,7 +1,7 @@
 import React, { memo } from 'react';
 import './MusicCard.css';
 
-const MusicCard = ({ track, isActive, isPlaying, onPlay, onAddToQueue }) => {
+const MusicCard = ({ track, isActive, isPlaying, onPlay, onAddToQueue, onWatch }) => {
   return (
     <div
       className={`music-card ${isActive ? 'music-card--active' : ''}`}
@@ -32,6 +32,17 @@ const MusicCard = ({ track, isActive, isPlaying, onPlay, onAddToQueue }) => {
             </div>
           )}
         </div>
+
+        {/* Botón Ver Video */}
+        {onWatch && (track.videoUrl || track.fileName) && (
+          <button
+            className="music-card__watch-btn"
+            onClick={e => { e.stopPropagation(); onWatch(track); }}
+            title="Ver video en pantalla completa"
+          >
+            ▶ Ver Video
+          </button>
+        )}
 
         {/* Badge "Reproduciendo" */}
         {isActive && (

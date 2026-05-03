@@ -527,6 +527,7 @@ function App() {
           isPlaying={isMusicPlaying}
           onPlay={(track, queue) => playTrack(track, queue || [])}
           onAddToQueue={addToQueue}
+          onWatch={(track) => { setSelectedVideo(track); setShowPlayer(true); }}
         />
       )}
 

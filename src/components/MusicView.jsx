@@ -4,7 +4,7 @@ import './MusicView.css';
 
 const GENRES = ['Todos', 'Cumbia', 'Salsa', 'Huayno', 'Reggaeton', 'Vallenato', 'Tropical', 'Chicha', 'Balada', 'Pop', 'Rock', 'Electrónica', 'Merengue', 'Bachata', 'Marinera', 'Festejo', 'Otros'];
 
-const MusicView = ({ tracks = [], currentTrack, isPlaying, onPlay, onAddToQueue }) => {
+const MusicView = ({ tracks = [], currentTrack, isPlaying, onPlay, onAddToQueue, onWatch }) => {
   const [search, setSearch] = useState('');
   const [activeGenre, setActiveGenre] = useState('Todos');
 
@@ -130,6 +130,7 @@ const MusicView = ({ tracks = [], currentTrack, isPlaying, onPlay, onAddToQueue 
                     isPlaying={currentTrack?.id === track.id && isPlaying}
                     onPlay={(t) => onPlay(t, artistTracks.filter(x => x.id !== t.id))}
                     onAddToQueue={onAddToQueue}
+                    onWatch={onWatch}
                   />
                 ))}
               </div>
@@ -147,6 +148,7 @@ const MusicView = ({ tracks = [], currentTrack, isPlaying, onPlay, onAddToQueue 
                   isPlaying={currentTrack?.id === track.id && isPlaying}
                   onPlay={(t) => onPlay(t, filtered.filter(x => x.id !== t.id))}
                   onAddToQueue={onAddToQueue}
+                  onWatch={onWatch}
                 />
               ))}
             </div>
