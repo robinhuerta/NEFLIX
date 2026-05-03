@@ -135,9 +135,11 @@ const AdminDashboard = ({ onClose, onRefresh }) => {
       movieSource = videoFile;
     } else {
       if (!externalUrl.trim()) return setError('Introduce una URL válida de video o YouTube');
-      if (ytEmbedStatus === 'blocked') {
-        const ok = window.confirm('🚫 Este video tiene embedding bloqueado y NO se reproducirá en COSMOS.\n\n¿Deseas guardarlo de todas formas?');
-        if (!ok) return;
+      if (isYouTube(externalUrl)) {
+        if (ytEmbedStatus === 'checking') return setError('⏳ Espera, verificando si el video se puede reproducir en COSMOS...');
+        if (ytEmbedStatus === 'blocked') return setError('🚫 Este video tiene embedding bloqueado — no se puede reproducir en COSMOS. Busca otro video del mismo tema.');
+        if (ytEmbedStatus === 'invalid') return setError('⚠️ URL de YouTube inválida o video no encontrado.');
+        if (ytEmbedStatus === null) return setError('⏳ Pega la URL y espera la verificación antes de guardar.');
       }
       movieSource = externalUrl.trim();
     }
@@ -240,12 +242,13 @@ const AdminDashboard = ({ onClose, onRefresh }) => {
     const valid = episodes.filter(ep => ep.url.trim());
     if (!title.trim()) return setError('Escribe el título de la serie');
     if (valid.length === 0) return setError('Agrega al menos un episodio con URL de YouTube');
-    const blocked = valid.filter(ep => batchUrlStatuses[ep.id] === 'blocked');
+    const blocked = valid.filter(ep => batchUrlStatuses[ep.id] === 'blocked' || batchUrlStatuses[ep.id] === 'invalid');
     if (blocked.length > 0) {
-      const ok = window.confirm(
-        `⚠️ ${blocked.length} episodio(s) tienen embedding bloqueado y NO se reproducirán en COSMOS:\n\n${blocked.map(ep => `· Ep ${ep.num}: ${ep.url}`).join('\n')}\n\n¿Deseas subirlos de todas formas?`
-      );
-      if (!ok) return;
+      return setError(`🚫 ${blocked.length} episodio(s) no se pueden reproducir en COSMOS (embedding bloqueado o URL inválida). Corrígelos antes de continuar:\n${blocked.map(ep => `· Ep ${ep.num}`).join(', ')}`);
+    }
+    const unchecked = valid.filter(ep => !batchUrlStatuses[ep.id]);
+    if (unchecked.length > 0) {
+      return setError(`⏳ ${unchecked.length} episodio(s) aún no han sido verificados. Haz clic fuera de cada campo URL para verificarlos.`);
     }
 
     setUploading(true);
