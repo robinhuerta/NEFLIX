@@ -14,7 +14,15 @@ const AuthScreen = ({ onAuth }) => {
       const result = await signInWithPopup(auth, googleProvider);
       onAuth(result.user);
     } catch (err) {
-      setError('No se pudo iniciar sesión. Intenta de nuevo.');
+      if (err.code === 'auth/popup-closed-by-user') {
+        setError('Cerraste la ventana de Google. Intenta de nuevo.');
+      } else if (err.code === 'auth/operation-not-allowed') {
+        setError('Google Sign-In no está activado en Firebase Console para este proyecto.');
+      } else if (err.code === 'auth/popup-blocked') {
+        setError('El navegador bloqueó la ventana emergente. Permite popups para este sitio.');
+      } else {
+        setError(`Error: ${err.message}`);
+      }
       setLoading(false);
     }
   };
