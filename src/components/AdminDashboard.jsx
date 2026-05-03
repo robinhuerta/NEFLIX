@@ -46,7 +46,7 @@ const AdminDashboard = ({ onClose, onRefresh }) => {
   const [saludoSuccess, setSaludoSuccess] = useState('');
   const [saludoError, setSaludoError] = useState('');
 
-  const ADMIN_PIN = 'COSMOS2026';
+  const ADMIN_PIN = 'cosmos2026';
 
   useEffect(() => {
     if (isAuthorized && activeTab === 'manage') loadMovies();
