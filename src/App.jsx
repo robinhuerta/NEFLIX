@@ -545,7 +545,18 @@ function App() {
           ) : (
             <div className="search-results__grid">
               {searchResults.map(movie => (
-                <MovieCard key={movie.id} movie={movie} onSelect={handleSelectMovie} onHover={handleHoverMovie} />
+                <MovieCard
+                  key={movie.id}
+                  movie={movie}
+                  onSelect={handleSelectMovie}
+                  onPlay={handlePlayMovie}
+                  onAddToList={handleAddToList}
+                  onInfo={setInfoMovie}
+                  isInMyList={isInMyList(movie.id)}
+                  isLiked={isLiked(movie.id)}
+                  onLike={toggleLike}
+                  onHover={handleHoverMovie}
+                />
               ))}
             </div>
           )}
