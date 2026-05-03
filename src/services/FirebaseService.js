@@ -1,6 +1,6 @@
 import { storage, db } from '../firebaseConfig';
 import { ref, listAll, getDownloadURL, uploadBytesResumable, deleteObject } from 'firebase/storage';
-import { collection, getDocs, addDoc, serverTimestamp, query, orderBy, deleteDoc, doc } from 'firebase/firestore';
+import { collection, getDocs, addDoc, serverTimestamp, query, orderBy, deleteDoc, doc, updateDoc } from 'firebase/firestore';
 
 
 const DEFAULT_POSTER = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='180'%3E%3Crect width='320' height='180' fill='%23111'/%3E%3Crect x='1' y='1' width='318' height='178' fill='none' stroke='%23333' stroke-width='1'/%3E%3Ctext x='50%25' y='44%25' fill='%23444' font-size='36' text-anchor='middle' dominant-baseline='middle' font-family='sans-serif'%3E▶%3C/text%3E%3Ctext x='50%25' y='68%25' fill='%23333' font-size='13' text-anchor='middle' dominant-baseline='middle' font-family='sans-serif'%3ECOSMOS%3C/text%3E%3C/svg%3E";
@@ -159,6 +159,34 @@ export const uploadMovie = async (videoFileOrUrl, posterFile, metadata, onProgre
     console.error("Error en el proceso de guardado/subida:", error);
     throw error;
   }
+};
+
+// ── Saludos / Marquesina ─────────────────────────────────────────────────────
+
+export const fetchSaludos = async () => {
+  try {
+    const q = query(collection(db, 'saludos'), orderBy('createdAt', 'desc'));
+    const snapshot = await getDocs(q);
+    return snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+  } catch {
+    return [];
+  }
+};
+
+export const addSaludo = async (saludo) => {
+  const docRef = await addDoc(collection(db, 'saludos'), {
+    ...saludo,
+    createdAt: serverTimestamp(),
+  });
+  return docRef.id;
+};
+
+export const updateSaludo = async (id, data) => {
+  await updateDoc(doc(db, 'saludos', id), data);
+};
+
+export const deleteSaludo = async (id) => {
+  await deleteDoc(doc(db, 'saludos', id));
 };
 
 /**

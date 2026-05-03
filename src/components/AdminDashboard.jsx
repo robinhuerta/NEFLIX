@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './AdminDashboard.css';
-import { uploadMovie, fetchAllVideos, deleteMovie } from '../services/FirebaseService';
+import { uploadMovie, fetchAllVideos, deleteMovie, fetchSaludos, addSaludo, deleteSaludo, updateSaludo } from '../services/FirebaseService';
 
 const AdminDashboard = ({ onClose, onRefresh }) => {
   const [activeTab, setActiveTab] = useState('upload'); // 'upload' or 'manage'
@@ -36,13 +36,71 @@ const AdminDashboard = ({ onClose, onRefresh }) => {
   const [ytEmbedStatus, setYtEmbedStatus] = useState(null); // null|'checking'|'ok'|'blocked'|'invalid'
   const [batchUrlStatuses, setBatchUrlStatuses] = useState({});
 
+  // Saludos / Marquesina
+  const [saludosList, setSaludosList] = useState([]);
+  const [saludoName, setSaludoName] = useState('');
+  const [saludoMessage, setSaludoMessage] = useState('');
+  const [saludoType, setSaludoType] = useState('birthday');
+  const [saludoBirthdate, setSaludoBirthdate] = useState('');
+  const [saludoLoading, setSaludoLoading] = useState(false);
+  const [saludoSuccess, setSaludoSuccess] = useState('');
+  const [saludoError, setSaludoError] = useState('');
+
   const ADMIN_PIN = 'COSMOS2026';
 
   useEffect(() => {
-    if (isAuthorized && activeTab === 'manage') {
-      loadMovies();
-    }
+    if (isAuthorized && activeTab === 'manage') loadMovies();
+    if (isAuthorized && activeTab === 'saludos') loadSaludosList();
   }, [isAuthorized, activeTab]);
+
+  const loadSaludosList = async () => {
+    setSaludoLoading(true);
+    const data = await fetchSaludos();
+    setSaludosList(data);
+    setSaludoLoading(false);
+  };
+
+  const handleAddSaludo = async (e) => {
+    e.preventDefault();
+    if (!saludoName.trim()) return setSaludoError('Escribe el nombre de la persona');
+    setSaludoError('');
+    setSaludoLoading(true);
+    try {
+      await addSaludo({
+        name: saludoName.trim(),
+        message: saludoMessage.trim(),
+        type: saludoType,
+        birthdate: saludoType === 'birthday' ? saludoBirthdate.trim() : '',
+        active: true,
+      });
+      setSaludoSuccess('¡Saludo agregado a la marquesina!');
+      setSaludoName(''); setSaludoMessage(''); setSaludoBirthdate(''); setSaludoType('birthday');
+      setTimeout(() => setSaludoSuccess(''), 3000);
+      loadSaludosList();
+    } catch {
+      setSaludoError('Error al guardar el saludo');
+    } finally {
+      setSaludoLoading(false);
+    }
+  };
+
+  const handleDeleteSaludo = async (id) => {
+    if (!window.confirm('¿Eliminar este saludo de la marquesina?')) return;
+    await deleteSaludo(id);
+    setSaludosList(prev => prev.filter(s => s.id !== id));
+  };
+
+  const handleToggleSaludo = async (id, current) => {
+    await updateSaludo(id, { active: !current });
+    setSaludosList(prev => prev.map(s => s.id === id ? { ...s, active: !current } : s));
+  };
+
+  const isTodayBirthdate = (bd) => {
+    if (!bd) return false;
+    const today = new Date();
+    const [dd, mm] = bd.split('/');
+    return parseInt(dd) === today.getDate() && parseInt(mm) === (today.getMonth() + 1);
+  };
 
   const loadMovies = async () => {
     setIsLoadingMovies(true);
@@ -268,15 +326,102 @@ const AdminDashboard = ({ onClose, onRefresh }) => {
               >
                 Lanzar Nuevo
               </button>
-              <button 
+              <button
                 className={`admin-dashboard__tab ${activeTab === 'manage' ? 'active' : ''}`}
                 onClick={() => setActiveTab('manage')}
               >
                 Gestionar Contenido ({existingMovies.length})
               </button>
+              <button
+                className={`admin-dashboard__tab ${activeTab === 'saludos' ? 'active' : ''}`}
+                onClick={() => setActiveTab('saludos')}
+              >
+                🎉 Saludos
+              </button>
             </div>
 
-            {activeTab === 'upload' ? (
+            {activeTab === 'saludos' ? (
+              <div className="admin-dashboard__saludos">
+                <form className="admin-dashboard__form admin-dashboard__saludos-form" onSubmit={handleAddSaludo}>
+                  <h3>Agregar Saludo a la Marquesina</h3>
+                  <div className="admin-dashboard__row">
+                    <input
+                      type="text"
+                      placeholder="Nombre de la persona *"
+                      value={saludoName}
+                      onChange={e => setSaludoName(e.target.value)}
+                    />
+                    <select value={saludoType} onChange={e => setSaludoType(e.target.value)}>
+                      <option value="birthday">🎂 Cumpleaños</option>
+                      <option value="anniversary">💍 Aniversario</option>
+                      <option value="special">⭐ Saludo Especial</option>
+                      <option value="custom">💫 Personalizado</option>
+                    </select>
+                  </div>
+                  {saludoType === 'birthday' && (
+                    <input
+                      type="text"
+                      placeholder="Fecha cumpleaños (dd/mm) — para mostrar automáticamente ese día"
+                      value={saludoBirthdate}
+                      onChange={e => setSaludoBirthdate(e.target.value)}
+                      maxLength={5}
+                    />
+                  )}
+                  <textarea
+                    placeholder="Mensaje personalizado (opcional)"
+                    value={saludoMessage}
+                    onChange={e => setSaludoMessage(e.target.value)}
+                    rows="2"
+                  />
+                  {saludoError && <div className="admin-dashboard__error">{saludoError}</div>}
+                  {saludoSuccess && <div className="admin-dashboard__success">{saludoSuccess}</div>}
+                  <button type="submit" className="admin-dashboard__submit" disabled={saludoLoading}>
+                    {saludoLoading ? 'Guardando...' : '✨ Agregar a la Marquesina'}
+                  </button>
+                </form>
+
+                <div className="admin-dashboard__saludos-list">
+                  <h3>Saludos Activos ({saludosList.filter(s => s.active !== false).length})</h3>
+                  {saludoLoading && saludosList.length === 0 ? (
+                    <p style={{ color: '#aaa' }}>Cargando...</p>
+                  ) : saludosList.length === 0 ? (
+                    <p style={{ color: '#aaa' }}>No hay saludos todavía.</p>
+                  ) : (
+                    saludosList.map(s => (
+                      <div key={s.id} className={`admin-dashboard__saludo-item ${s.active === false ? 'inactive' : ''}`}>
+                        <div className="admin-dashboard__saludo-icon">
+                          {s.type === 'birthday' ? '🎂' : s.type === 'anniversary' ? '💍' : s.type === 'special' ? '⭐' : '💫'}
+                        </div>
+                        <div className="admin-dashboard__saludo-info">
+                          <strong>{s.name}</strong>
+                          {s.birthdate && (
+                            <span className={`admin-dashboard__saludo-date ${isTodayBirthdate(s.birthdate) ? 'today' : ''}`}>
+                              {isTodayBirthdate(s.birthdate) ? '🎉 ¡HOY!' : s.birthdate}
+                            </span>
+                          )}
+                          {s.message && <em>"{s.message}"</em>}
+                        </div>
+                        <div className="admin-dashboard__saludo-actions">
+                          <button
+                            type="button"
+                            className={`admin-dashboard__saludo-toggle ${s.active !== false ? 'on' : 'off'}`}
+                            onClick={() => handleToggleSaludo(s.id, s.active !== false)}
+                            title={s.active !== false ? 'Desactivar' : 'Activar'}
+                          >
+                            {s.active !== false ? '✓ Activo' : '✗ Inactivo'}
+                          </button>
+                          <button
+                            type="button"
+                            className="admin-dashboard__delete-btn"
+                            onClick={() => handleDeleteSaludo(s.id)}
+                          >🗑️</button>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            ) : activeTab === 'upload' ? (
               <>
               <div className="admin-dashboard__mode-toggle">
                 <button type="button" className={uploadMode === 'single' ? 'active' : ''} onClick={() => { setUploadMode('single'); setError(null); setSuccess(false); }}>

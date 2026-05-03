@@ -14,6 +14,8 @@ import './components/AdminDashboard.css';
 import MusicView from './components/MusicView';
 import MusicPlayer from './components/MusicPlayer';
 import SeriesDetail from './components/SeriesDetail';
+import MarqueeTicker from './components/MarqueeTicker';
+import { fetchSaludos } from './services/FirebaseService';
 
 const SKELETON_COUNT = 6;
 
@@ -46,6 +48,7 @@ function App() {
   const [musicRepeat, setMusicRepeat] = useState('none'); // 'none' | 'all' | 'one'
   const audioRef = useRef(null);
   const [audioUrl, setAudioUrl] = useState('');
+  const [saludos, setSaludos] = useState([]);
 
   // Persist Mi Lista in localStorage
   const [myList, setMyList] = useState(() => {
@@ -77,7 +80,12 @@ function App() {
       }
       setFirebaseLoading(false);
     };
+    const getSaludos = async () => {
+      const data = await fetchSaludos();
+      setSaludos(data);
+    };
     getVideos();
+    getSaludos();
   }, []);
 
   const handleHoverMovie = (movie) => {
@@ -673,6 +681,9 @@ function App() {
         </>
       )}
 
+      {/* Marquesina de Saludos */}
+      <MarqueeTicker saludos={saludos} isPlaying={isMusicPlaying} />
+
       {/* Music Player (persistente) */}
       <MusicPlayer
         currentTrack={currentTrack}
@@ -776,8 +787,12 @@ function App() {
       )}
       {/* Admin Dashboard */}
       {showAdmin && (
-        <AdminDashboard 
-          onClose={() => setShowAdmin(false)} 
+        <AdminDashboard
+          onClose={async () => {
+            setShowAdmin(false);
+            const data = await fetchSaludos();
+            setSaludos(data);
+          }}
           onRefresh={handleAdminRefresh}
         />
       )}
