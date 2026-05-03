@@ -198,11 +198,13 @@ const MusicPlayer = ({
                 <path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/>
               </svg>
             </button>
-            <div className="music-player__time-display">
-              <span>{formatTime(currentTime)}</span>
-              <span className="music-player__time-sep">/</span>
-              <span>{formatTime(duration)}</span>
-            </div>
+            {!youtubeId && (
+              <div className="music-player__time-display">
+                <span>{formatTime(currentTime)}</span>
+                <span className="music-player__time-sep">/</span>
+                <span>{formatTime(duration)}</span>
+              </div>
+            )}
           </div>
 
           <div className="music-player__right">
