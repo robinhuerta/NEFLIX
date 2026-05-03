@@ -614,10 +614,9 @@ function App() {
 
       {/* Películas Page */}
       {showPeliculas && !searchResults && (
-        <div className="firebase-gallery" style={{ paddingTop: '90px', minHeight: '100vh' }}>
-          <h2 className="firebase-gallery__title">Películas</h2>
+        <div style={{ paddingTop: '90px', minHeight: '100vh' }}>
           {firebaseLoading ? (
-            <div className="firebase-gallery__grid">
+            <div className="firebase-gallery__grid" style={{ padding: '0 4%' }}>
               {Array.from({ length: SKELETON_COUNT }).map((_, i) => <SkeletonCard key={i} />)}
             </div>
           ) : peliculasVideos.length === 0 ? (
@@ -625,22 +624,31 @@ function App() {
               No hay películas disponibles todavía.
             </p>
           ) : (
-            <div className="firebase-gallery__grid">
-              {peliculasVideos.map(video => (
-                <MovieCard
-                  key={video.id}
-                  movie={video}
+            <>
+              {/* Agrupar por género y mostrar cada uno como fila */}
+              {Object.entries(
+                peliculasVideos.reduce((acc, v) => {
+                  const key = v.genre || v.category || 'Otros';
+                  if (!acc[key]) acc[key] = [];
+                  acc[key].push(v);
+                  return acc;
+                }, {})
+              ).map(([genero, items]) => (
+                <MovieRow
+                  key={genero}
+                  title={genero}
+                  items={items}
                   onSelect={handleSelectMovie}
                   onPlay={handlePlayMovie}
                   onAddToList={handleAddToList}
                   onInfo={setInfoMovie}
-                  isInMyList={isInMyList(video.id)}
-                  isLiked={isLiked(video.id)}
+                  isInMyList={isInMyList}
+                  isLiked={isLiked}
                   onLike={toggleLike}
                   onHover={handleHoverMovie}
                 />
               ))}
-            </div>
+            </>
           )}
         </div>
       )}
