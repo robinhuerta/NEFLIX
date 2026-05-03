@@ -8,18 +8,21 @@ import VideoPlayer from './components/VideoPlayer';
 import SkeletonCard from './components/SkeletonCard';
 import CosmosIntro from './components/CosmosIntro';
 import { mockMovies } from './data/mockData';
-import { fetchAllVideos } from './services/FirebaseService';
+import { fetchAllVideos, fetchSaludos, saveUser } from './services/FirebaseService';
 import AdminDashboard from './components/AdminDashboard';
+import AuthScreen from './components/AuthScreen';
+import { auth } from './firebaseConfig';
+import { onAuthStateChanged, signOut } from 'firebase/auth';
 import './components/AdminDashboard.css';
 import MusicView from './components/MusicView';
 import MusicPlayer from './components/MusicPlayer';
 import SeriesDetail from './components/SeriesDetail';
 import MarqueeTicker from './components/MarqueeTicker';
-import { fetchSaludos } from './services/FirebaseService';
 
 const SKELETON_COUNT = 6;
 
 function App() {
+  const [user, setUser] = useState(undefined); // undefined = cargando, null = no logueado
   const [showIntro, setShowIntro] = useState(true);
   const [showPlayer, setShowPlayer] = useState(false);
   const [selectedVideo, setSelectedVideo] = useState(null);
@@ -69,6 +72,19 @@ function App() {
   useEffect(() => {
     localStorage.setItem('cosmos_history', JSON.stringify(watchHistory));
   }, [watchHistory]);
+
+  // ── Auth listener ───────────────────────────────────────────────────────────
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        await saveUser(firebaseUser);
+        setUser(firebaseUser);
+      } else {
+        setUser(null);
+      }
+    });
+    return () => unsub();
+  }, []);
 
   useEffect(() => {
     const getVideos = async () => {
@@ -139,7 +155,9 @@ function App() {
     catch { return {}; }
   });
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await signOut(auth);
+    setUser(null);
     setSearchQuery('');
     setInfoMovie(null);
     setShowPlayer(false);
@@ -439,6 +457,20 @@ function App() {
     dynamicCategories[2].items = firebaseVideos.slice(10, 15);
   }
 
+  // Cargando sesión
+  if (user === undefined) {
+    return (
+      <div style={{ position: 'fixed', inset: 0, background: '#0a0814', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ color: '#6c63ff', fontSize: '28px', fontWeight: 900, letterSpacing: '4px' }}>COSMOS</div>
+      </div>
+    );
+  }
+
+  // No logueado → pantalla de login
+  if (user === null) {
+    return <AuthScreen onAuth={(u) => setUser(u)} />;
+  }
+
   if (showIntro) {
     return <CosmosIntro onDone={() => setShowIntro(false)} />;
   }
@@ -488,6 +520,7 @@ function App() {
       />
 
       <Navbar
+        user={user}
         onSearch={setSearchQuery}
         myListCount={myList.length}
         onShowMyList={() => setShowMyList(true)}

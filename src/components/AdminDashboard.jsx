@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import './AdminDashboard.css';
-import { uploadMovie, fetchAllVideos, deleteMovie, fetchSaludos, addSaludo, deleteSaludo, updateSaludo } from '../services/FirebaseService';
+import { uploadMovie, fetchAllVideos, deleteMovie, fetchSaludos, addSaludo, deleteSaludo, updateSaludo, fetchUsuarios } from '../services/FirebaseService';
 
 const AdminDashboard = ({ onClose, onRefresh }) => {
   const [activeTab, setActiveTab] = useState('upload'); // 'upload' or 'manage'
@@ -36,6 +36,10 @@ const AdminDashboard = ({ onClose, onRefresh }) => {
   const [ytEmbedStatus, setYtEmbedStatus] = useState(null); // null|'checking'|'ok'|'blocked'|'invalid'
   const [batchUrlStatuses, setBatchUrlStatuses] = useState({});
 
+  // Usuarios
+  const [usuariosList, setUsuariosList] = useState([]);
+  const [usuariosLoading, setUsuariosLoading] = useState(false);
+
   // Saludos / Marquesina
   const [saludosList, setSaludosList] = useState([]);
   const [saludoName, setSaludoName] = useState('');
@@ -51,7 +55,15 @@ const AdminDashboard = ({ onClose, onRefresh }) => {
   useEffect(() => {
     if (isAuthorized && activeTab === 'manage') loadMovies();
     if (isAuthorized && activeTab === 'saludos') loadSaludosList();
+    if (isAuthorized && activeTab === 'usuarios') loadUsuarios();
   }, [isAuthorized, activeTab]);
+
+  const loadUsuarios = async () => {
+    setUsuariosLoading(true);
+    const data = await fetchUsuarios();
+    setUsuariosList(data);
+    setUsuariosLoading(false);
+  };
 
   const loadSaludosList = async () => {
     setSaludoLoading(true);
@@ -338,9 +350,50 @@ const AdminDashboard = ({ onClose, onRefresh }) => {
               >
                 🎉 Saludos
               </button>
+              <button
+                className={`admin-dashboard__tab ${activeTab === 'usuarios' ? 'active' : ''}`}
+                onClick={() => setActiveTab('usuarios')}
+              >
+                👥 Usuarios
+              </button>
             </div>
 
-            {activeTab === 'saludos' ? (
+            {activeTab === 'usuarios' ? (
+              <div className="admin-dashboard__usuarios">
+                <div className="admin-dashboard__usuarios-header">
+                  <h3>👥 Usuarios registrados</h3>
+                  <span className="admin-dashboard__usuarios-count">{usuariosList.length} en total</span>
+                </div>
+                {usuariosLoading ? (
+                  <div className="admin-dashboard__loading">Cargando usuarios...</div>
+                ) : usuariosList.length === 0 ? (
+                  <div className="admin-dashboard__empty">Aún no hay usuarios registrados.</div>
+                ) : (
+                  <div className="admin-dashboard__usuarios-list">
+                    {usuariosList.map(u => (
+                      <div key={u.id} className="admin-dashboard__usuario-item">
+                        <img
+                          className="admin-dashboard__usuario-avatar"
+                          src={u.photoURL || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&auto=format&fit=crop&q=60"}
+                          alt={u.name}
+                          referrerPolicy="no-referrer"
+                          onError={e => { e.currentTarget.src = "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&auto=format&fit=crop&q=60"; }}
+                        />
+                        <div className="admin-dashboard__usuario-info">
+                          <strong>{u.name || 'Sin nombre'}</strong>
+                          <span>{u.email}</span>
+                        </div>
+                        <div className="admin-dashboard__usuario-last">
+                          {u.lastLogin?.seconds
+                            ? new Date(u.lastLogin.seconds * 1000).toLocaleDateString('es-PE', { day: '2-digit', month: 'short', year: 'numeric' })
+                            : '—'}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ) : activeTab === 'saludos' ? (
               <div className="admin-dashboard__saludos">
                 <form className="admin-dashboard__form admin-dashboard__saludos-form" onSubmit={handleAddSaludo}>
                   <h3>Agregar Saludo a la Marquesina</h3>

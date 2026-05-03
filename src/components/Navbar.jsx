@@ -9,7 +9,7 @@ const mockNotifications = [
   { id: 5, text: "Nuevas películas agregadas", time: "Hace 3d", isNew: false },
 ];
 
-const Navbar = ({ onSearch, myListCount = 0, onShowMyList, onLogout, onShowAdmin, onShowMusic, onShowPeliculas, onShowSeries, onGoHome, activeSection = '' }) => {
+const Navbar = ({ user, onSearch, myListCount = 0, onShowMyList, onLogout, onShowAdmin, onShowMusic, onShowPeliculas, onShowSeries, onGoHome, activeSection = '' }) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const [searchValue, setSearchValue] = useState('');
@@ -141,8 +141,9 @@ const Navbar = ({ onSearch, myListCount = 0, onShowMyList, onLogout, onShowAdmin
         <div className="navbar__profile" ref={profileRef} onClick={() => setShowProfile(!showProfile)}>
           <img
             className="navbar__avatar"
-            src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&auto=format&fit=crop&q=60"
+            src={user?.photoURL || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&auto=format&fit=crop&q=60"}
             alt="User Avatar"
+            referrerPolicy="no-referrer"
           />
           <span className={`navbar__caret ${showProfile ? 'navbar__caret--open' : ''}`}>▼</span>
           {showProfile && (
@@ -150,10 +151,11 @@ const Navbar = ({ onSearch, myListCount = 0, onShowMyList, onLogout, onShowAdmin
               <div className="navbar__profile-item">
                 <img
                   className="navbar__profile-item-avatar"
-                  src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&auto=format&fit=crop&q=60"
+                  src={user?.photoURL || "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=100&auto=format&fit=crop&q=60"}
                   alt="Avatar"
+                  referrerPolicy="no-referrer"
                 />
-                <span>Usuario</span>
+                <span>{user?.displayName || 'Usuario'}</span>
               </div>
               <hr className="navbar__divider" />
               <div className="navbar__profile-option" onClick={() => { setShowProfile(false); onShowAdmin(); }}>Gestionar contenido (Admin)</div>
