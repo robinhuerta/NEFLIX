@@ -117,12 +117,6 @@ const MusicPlayer = ({
         <div className={`music-player__yt-panel ${ytExpanded ? 'music-player__yt-panel--open' : ''}`}>
           <div className="music-player__yt-header">
             <span>🎵 Reproduciendo en YouTube</span>
-            <button
-              className="music-player__yt-toggle"
-              onClick={() => setYtExpanded(v => !v)}
-            >
-              {ytExpanded ? '▼ Ocultar' : '▲ Ver video'}
-            </button>
           </div>
           {/* iframe siempre en el DOM con height:0 cuando está colapsado — el audio sigue sonando */}
           <div className="music-player__yt-video-wrap">
