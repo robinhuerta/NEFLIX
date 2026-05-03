@@ -30,7 +30,7 @@
 
 /* Ensure cards in grid have a sensible size */
 .firebase-gallery__grid .movie-card {
-  width: calc(16.66% - 13px); /* 6 per row */
+  width: calc(20% - 13px); /* 5 per row */
   flex: none;
 }
 
