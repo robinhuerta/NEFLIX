@@ -231,6 +231,7 @@ const VideoPlayer = ({ onBack, fileName, videoUrl: initialUrl, movieTitle = "COS
             ref={videoRef}
             className="video-player__video"
             autoPlay
+            playsInline
             preload="auto"
             src={videoUrl}
             onTimeUpdate={handleTimeUpdate}
