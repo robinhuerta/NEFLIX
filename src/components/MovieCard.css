@@ -3,6 +3,16 @@
   flex: 0 0 auto;
   width: 16vw;
   cursor: pointer;
+  outline: none;
+  border-radius: 4px;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.movie-card:focus {
+  outline: none;
+  transform: scale(1.08);
+  box-shadow: 0 0 0 3px #6c63ff, 0 0 24px rgba(108, 99, 255, 0.7);
+  z-index: 10;
 }
 
 .movie-card__clickable {

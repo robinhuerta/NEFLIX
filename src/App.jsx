@@ -367,6 +367,55 @@ function App() {
     return () => document.removeEventListener('keydown', handleEsc);
   }, [infoMovie, showMyList]);
 
+  // Navegación con flechas (control remoto / proyector)
+  useEffect(() => {
+    const handleArrowNav = (e) => {
+      if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)) return;
+      const cards = Array.from(document.querySelectorAll('[data-focusable="true"]'));
+      if (cards.length === 0) return;
+
+      const focused = document.activeElement;
+      const currentIndex = cards.indexOf(focused);
+
+      if (currentIndex < 0) {
+        e.preventDefault();
+        cards[0].focus();
+        cards[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+      }
+
+      const currentRect = focused.getBoundingClientRect();
+      let next = null;
+
+      if (e.key === 'ArrowRight') {
+        next = cards[currentIndex + 1] || null;
+      } else if (e.key === 'ArrowLeft') {
+        next = cards[currentIndex - 1] || null;
+      } else if (e.key === 'ArrowDown') {
+        next = cards.slice(currentIndex + 1).find(card => {
+          const r = card.getBoundingClientRect();
+          return r.top > currentRect.bottom - 10 &&
+            Math.abs(r.left - currentRect.left) < currentRect.width * 1.5;
+        }) || null;
+      } else if (e.key === 'ArrowUp') {
+        next = cards.slice(0, currentIndex).reverse().find(card => {
+          const r = card.getBoundingClientRect();
+          return r.bottom < currentRect.top + 10 &&
+            Math.abs(r.left - currentRect.left) < currentRect.width * 1.5;
+        }) || null;
+      }
+
+      if (next) {
+        e.preventDefault();
+        next.focus();
+        next.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    };
+
+    document.addEventListener('keydown', handleArrowNav);
+    return () => document.removeEventListener('keydown', handleArrowNav);
+  }, []);
+
   // Search filter
   const allMovies = firebaseVideos || [];
   const searchResults = searchQuery.trim()

@@ -49,6 +49,14 @@ const MovieCard = ({ movie, isTop10, isPortrait, onSelect, progress, onPlay, onA
     setShowMini(false);
   };
 
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (onPlay) onPlay(movie);
+      else if (onSelect) onSelect(movie);
+    }
+  };
+
   return (
     <>
       <div
@@ -57,6 +65,9 @@ const MovieCard = ({ movie, isTop10, isPortrait, onSelect, progress, onPlay, onA
         onClick={handleClick}
         onMouseEnter={handleCardMouseEnter}
         onMouseLeave={handleCardMouseLeave}
+        onKeyDown={handleKeyDown}
+        tabIndex={0}
+        data-focusable="true"
       >
         {isTop10 && <div className="movie-card__rank">{movie.rank}</div>}
         <div className="movie-card__clickable">
