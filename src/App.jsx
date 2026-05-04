@@ -840,7 +840,7 @@ function App() {
         </div>
       )}
       {/* Chatbot flotante */}
-      <ChatBot movies={firebaseVideos} />
+      <ChatBot movies={firebaseVideos} watchHistory={watchHistory} myList={myList} />
 
       {/* Admin Dashboard */}
       {showAdmin && (

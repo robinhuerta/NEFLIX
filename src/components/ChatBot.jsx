@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import './ChatBot.css';
 
-export default function ChatBot({ movies = [] }) {
+export default function ChatBot({ movies = [], watchHistory = [], myList = [] }) {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState([
     { role: 'assistant', content: '¡Hola! Soy tu asistente de COSMOS. ¿Qué quieres ver hoy? Puedes pedirme algo de acción, comedia, terror... ¡lo que quieras!' }
@@ -33,7 +33,7 @@ export default function ChatBot({ movies = [] }) {
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: apiMessages, movies }),
+        body: JSON.stringify({ messages: apiMessages, movies, watchHistory, myList }),
       });
       const data = await res.json();
       setMessages(prev => [...prev, { role: 'assistant', content: data.reply || 'Lo siento, no pude responder.' }]);
