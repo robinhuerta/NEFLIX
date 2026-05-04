@@ -18,6 +18,7 @@ import MusicView from './components/MusicView';
 import MusicPlayer from './components/MusicPlayer';
 import SeriesDetail from './components/SeriesDetail';
 import MarqueeTicker from './components/MarqueeTicker';
+import ChatBot from './components/ChatBot';
 
 const SKELETON_COUNT = 6;
 
@@ -838,6 +839,9 @@ function App() {
           </div>
         </div>
       )}
+      {/* Chatbot flotante */}
+      <ChatBot movies={firebaseVideos} />
+
       {/* Admin Dashboard */}
       {showAdmin && (
         <AdminDashboard
