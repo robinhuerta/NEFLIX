@@ -1,0 +1,24 @@
+{
+  "name": "COSMOS - Streaming Interestelar",
+  "short_name": "COSMOS",
+  "description": "Tu plataforma de streaming interestelar",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0a0814",
+  "theme_color": "#6c63ff",
+  "icons": [
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    },
+    {
+      "src": "/logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
