@@ -222,6 +222,7 @@ const VideoPlayer = ({ onBack, fileName, videoUrl: initialUrl, movieTitle = "COS
               allow="autoplay; encrypted-media; fullscreen"
               allowFullScreen
             />
+            <div className="video-player__yt-corner-blocker" />
           </div>
         ) : isDrive(videoUrl) ? (
           <iframe

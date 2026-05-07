@@ -99,6 +99,18 @@
   height: 100%;
 }
 
+.video-player__yt-corner-blocker {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 25%; /* Cubre el logo y Más videos */
+  height: 15%; /* Ajustado para no tapar la línea de tiempo principal */
+  background: transparent;
+  z-index: 2;
+  pointer-events: all;
+  cursor: default;
+}
+
 /* .video-player__yt-blocker removed to allow native interactions */
 
 .video-player__video {
