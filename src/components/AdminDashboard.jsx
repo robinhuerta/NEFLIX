@@ -35,6 +35,7 @@ const AdminDashboard = ({ onClose, onRefresh }) => {
   const [batchProgress, setBatchProgress] = useState({ current: 0, total: 0 });
   const [ytEmbedStatus, setYtEmbedStatus] = useState(null); // null|'checking'|'ok'|'blocked'|'invalid'
   const [batchUrlStatuses, setBatchUrlStatuses] = useState({});
+  const [showPreview, setShowPreview] = useState(false);
 
   // Usuarios
   const [usuariosList, setUsuariosList] = useState([]);
@@ -171,6 +172,7 @@ const AdminDashboard = ({ onClose, onRefresh }) => {
       setArtist('');
       setEpisodeNumber('');
       setYtEmbedStatus(null);
+      setShowPreview(false);
       setProgress(0);
       if (onRefresh) onRefresh();
     } catch (err) {
@@ -204,6 +206,12 @@ const AdminDashboard = ({ onClose, onRefresh }) => {
     return (m && m[2].length === 11) ? m[2] : null;
   };
 
+  const getDriveId = (url) => {
+    if (!url) return null;
+    const match = url.match(/(?:\/d\/|id=)([\w-]+)/);
+    return match ? match[1] : null;
+  };
+
   const checkYouTubeEmbed = async (url, callback) => {
     const id = getYouTubeId(url);
     if (!id) { callback('invalid'); return; }
@@ -221,6 +229,7 @@ const AdminDashboard = ({ onClose, onRefresh }) => {
   useEffect(() => {
     if (!externalUrl || !isYouTube(externalUrl)) { setYtEmbedStatus(null); return; }
     setYtEmbedStatus('checking');
+    setShowPreview(false); // Reset preview when URL changes
     const timer = setTimeout(() => {
       checkYouTubeEmbed(externalUrl, setYtEmbedStatus);
     }, 800);
@@ -696,8 +705,42 @@ const AdminDashboard = ({ onClose, onRefresh }) => {
                             ⚠️ Para música se recomienda YouTube o subir un archivo .mp3/.mp4
                           </div>
                         )}
-                        {externalUrl && isMusic && isDirectMedia(externalUrl) && !isYouTube(externalUrl) && (
+                        {externalUrl && isDirectMedia(externalUrl) && !isYouTube(externalUrl) && (
                           <div className="admin-dashboard__url-badge youtube">✅ URL de audio/video directa</div>
+                        )}
+
+                        {externalUrl && (isYouTube(externalUrl) || isDrive(externalUrl) || isDirectMedia(externalUrl)) && (
+                          <div className="admin-dashboard__preview-section">
+                            <button 
+                              type="button" 
+                              className={`admin-dashboard__preview-btn ${showPreview ? 'active' : ''}`}
+                              onClick={() => setShowPreview(!showPreview)}
+                            >
+                              {showPreview ? 'Ocultar Previsualización' : '👁️ Ver Previsualización'}
+                            </button>
+                            
+                            {showPreview && (
+                              <div className="admin-dashboard__preview-window">
+                                {isYouTube(externalUrl) ? (
+                                  <iframe
+                                    src={`https://www.youtube.com/embed/${getYouTubeId(externalUrl)}?rel=0`}
+                                    title="YouTube preview"
+                                    frameBorder="0"
+                                    allowFullScreen
+                                  />
+                                ) : isDrive(externalUrl) ? (
+                                  <iframe
+                                    src={`https://drive.google.com/file/d/${getDriveId(externalUrl)}/preview`}
+                                    title="Drive preview"
+                                    frameBorder="0"
+                                    allowFullScreen
+                                  />
+                                ) : (
+                                  <video src={externalUrl} controls />
+                                )}
+                              </div>
+                            )}
+                          </div>
                         )}
                       </div>
                     )}
