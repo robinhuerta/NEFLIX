@@ -1,17 +1,77 @@
+import React, { useState, useEffect } from 'react';
 import './MiniModal.css';
 
 const MiniModal = ({ movie, onPlay, onAddToList, onInfo, isInMyList, isLiked, onLike }) => {
+  const [showPreview, setShowPreview] = useState(false);
+
+  const isYouTube = (url) => url && (url.includes('youtube.com') || url.includes('youtu.be'));
+  const isDrive = (url) => url && (url.includes('drive.google.com') || url.includes('docs.google.com'));
+
+  const getYouTubeId = (url) => {
+    if (!url) return null;
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+    const match = url.match(regExp);
+    return (match && match[2].length === 11) ? match[2] : null;
+  };
+
+  const getDriveId = (url) => {
+    if (!url) return null;
+    const regExp = /(?:\/d\/|id=)([\w-]+)/;
+    const match = url.match(regExp);
+    return match ? match[1] : null;
+  };
+
+  useEffect(() => {
+    if (!movie.videoUrl) return;
+
+    // Start preview after 0.5s of modal being open
+    const startTimer = setTimeout(() => setShowPreview(true), 500);
+
+    // Stop after 8.5s total (8s of play)
+    const stopTimer = setTimeout(() => setShowPreview(false), 8500);
+
+    return () => {
+      clearTimeout(startTimer);
+      clearTimeout(stopTimer);
+    };
+  }, [movie.videoUrl]);
+
+  const ytId = getYouTubeId(movie.videoUrl);
+  const drId = getDriveId(movie.videoUrl);
 
   return (
     <div className="mini-modal">
       <div className="mini-modal__thumbnail" onClick={onPlay}>
         <img
-          className="mini-modal__image"
+          className={`mini-modal__image ${showPreview ? 'mini-modal__image--hidden' : ''}`}
           src={movie.image || movie.thumbnail}
           alt={movie.title}
           loading="lazy"
           onError={e => { e.currentTarget.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Crect width='300' height='300' fill='%23333'/%3E%3C/svg%3E"; }}
         />
+        
+        {showPreview && movie.videoUrl && (
+          <div className="mini-modal__video">
+            {isYouTube(movie.videoUrl) ? (
+              <iframe
+                src={`https://www.youtube.com/embed/${ytId}?autoplay=1&mute=1&controls=0&modestbranding=1&rel=0`}
+                title="Preview"
+                frameBorder="0"
+                allow="autoplay"
+              />
+            ) : isDrive(movie.videoUrl) ? (
+              <iframe
+                src={`https://drive.google.com/file/d/${drId}/preview`}
+                title="Preview"
+                frameBorder="0"
+                allow="autoplay"
+              />
+            ) : (
+              <video src={movie.videoUrl} autoPlay muted playsInline />
+            )}
+          </div>
+        )}
+
         <div className="mini-modal__vignette" />
         <h3 className="mini-modal__title">{movie.title}</h3>
       </div>
