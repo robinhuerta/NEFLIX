@@ -315,6 +315,7 @@
 }
 
 .video-player__volume-popup {
+  display: none;
   position: absolute;
   bottom: 50px;
   left: 50%;
@@ -323,11 +324,14 @@
   border: 1px solid rgba(255,255,255,0.15);
   border-radius: 8px;
   padding: 12px 10px;
-  display: flex;
   flex-direction: column;
   align-items: center;
   gap: 8px;
   z-index: 2015;
+}
+
+.video-player__volume-wrapper:hover .video-player__volume-popup {
+  display: flex;
 }
 
 .video-player__volume-slider {
