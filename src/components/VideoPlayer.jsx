@@ -202,6 +202,12 @@ const VideoPlayer = ({ onBack, fileName, videoUrl: initialUrl, movieTitle = "COS
         <button className="video-player__back" onClick={onBack}>
           <svg viewBox="0 0 24 24" fill="white" width="36" height="36"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
         </button>
+        {isExternal && (
+          <div className="video-player__top-info">
+            <span className="video-player__top-title">{movieTitle}</span>
+            <span className="video-player__top-episode">{episode}</span>
+          </div>
+        )}
       </div>
 
       <div className="video-player__video-container">
@@ -216,7 +222,6 @@ const VideoPlayer = ({ onBack, fileName, videoUrl: initialUrl, movieTitle = "COS
               allow="autoplay; encrypted-media; fullscreen"
               allowFullScreen
             />
-            <div className="video-player__yt-blocker" />
           </div>
         ) : isDrive(videoUrl) ? (
           <iframe
@@ -243,44 +248,38 @@ const VideoPlayer = ({ onBack, fileName, videoUrl: initialUrl, movieTitle = "COS
         )}
       </div>
 
-      <div className="video-player__bottom">
-        {!isYouTube(videoUrl) && !isDrive(videoUrl) && (
+      {!isExternal && (
+        <div className="video-player__bottom">
           <div className="video-player__seek-bar" onClick={handleSeek}>
             <div className="video-player__progress" style={{ width: `${progress}%` }}>
               <div className="video-player__handle" />
             </div>
             <span className="video-player__time">{remainingTime}</span>
           </div>
-        )}
 
-        <div className="video-player__controls">
-          <div className="video-player__controls-left">
-            <button className="video-player__btn" onClick={togglePlay}>
-              {isPlaying ? (
-                <svg viewBox="0 0 24 24" fill="white" width="36" height="36"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
-              ) : (
-                <svg viewBox="0 0 24 24" fill="white" width="36" height="36"><path d="M8 5v14l11-7z"/></svg>
-              )}
-            </button>
-            {!isYouTube(videoUrl) && !isDrive(videoUrl) && (
-              <>
-                <button className="video-player__btn" onClick={() => skip(-10)}>
-                  <svg viewBox="0 0 24 24" fill="white" width="30" height="30"><path d="M11 18V6l-8.5 6 8.5 6zm.5-6l8.5 6V6l-8.5 6z"/></svg>
-                </button>
-                <button className="video-player__btn" onClick={() => skip(10)}>
-                  <svg viewBox="0 0 24 24" fill="white" width="30" height="30"><path d="M13 6v12l8.5-6L13 6zM4 18l8.5-6L4 6v12z"/></svg>
-                </button>
-              </>
-            )}
-          </div>
+          <div className="video-player__controls">
+            <div className="video-player__controls-left">
+              <button className="video-player__btn" onClick={togglePlay}>
+                {isPlaying ? (
+                  <svg viewBox="0 0 24 24" fill="white" width="36" height="36"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                ) : (
+                  <svg viewBox="0 0 24 24" fill="white" width="36" height="36"><path d="M8 5v14l11-7z"/></svg>
+                )}
+              </button>
+              <button className="video-player__btn" onClick={() => skip(-10)}>
+                <svg viewBox="0 0 24 24" fill="white" width="30" height="30"><path d="M11 18V6l-8.5 6 8.5 6zm.5-6l8.5 6V6l-8.5 6z"/></svg>
+              </button>
+              <button className="video-player__btn" onClick={() => skip(10)}>
+                <svg viewBox="0 0 24 24" fill="white" width="30" height="30"><path d="M13 6v12l8.5-6L13 6zM4 18l8.5-6L4 6v12z"/></svg>
+              </button>
+            </div>
 
-          <div className="video-player__title-box">
-            <span className="video-player__title">{movieTitle}</span>
-            <span className="video-player__episode">{episode}</span>
-          </div>
+            <div className="video-player__title-box">
+              <span className="video-player__title">{movieTitle}</span>
+              <span className="video-player__episode">{episode}</span>
+            </div>
 
-          <div className="video-player__controls-right">
-            {!isYouTube(videoUrl) && (
+            <div className="video-player__controls-right">
               <div className="video-player__settings-wrapper" ref={settingsRef}>
                 <button className="video-player__btn" onClick={() => setShowSettings(!showSettings)}>
                   <svg viewBox="0 0 24 24" fill="white" width="24" height="24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/><path d="M12.5 7H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>
@@ -293,19 +292,19 @@ const VideoPlayer = ({ onBack, fileName, videoUrl: initialUrl, movieTitle = "COS
                   </div>
                 )}
               </div>
-            )}
-            <button className="video-player__btn" onClick={toggleFullScreen}>
-              <svg viewBox="0 0 24 24" fill="white" width="24" height="24">
-                {isFullScreen ? (
-                  <path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"/>
-                ) : (
-                  <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/>
-                )}
-              </svg>
-            </button>
+              <button className="video-player__btn" onClick={toggleFullScreen}>
+                <svg viewBox="0 0 24 24" fill="white" width="24" height="24">
+                  {isFullScreen ? (
+                    <path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"/>
+                  ) : (
+                    <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/>
+                  )}
+                </svg>
+              </button>
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

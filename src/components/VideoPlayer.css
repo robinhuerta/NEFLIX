@@ -33,6 +33,26 @@
   pointer-events: none;
 }
 
+.video-player__top-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  text-align: right;
+  pointer-events: none;
+}
+
+.video-player__top-title {
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: white;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+}
+
+.video-player__top-episode {
+  font-size: 0.85rem;
+  color: rgba(255,255,255,0.7);
+}
+
 /* Fix for external videos (YouTube/Drive) where iframes block mouse events */
 .video-player--external.video-player--hide-controls .video-player__top {
   opacity: 0.5;
@@ -79,13 +99,7 @@
   height: 100%;
 }
 
-.video-player__yt-blocker {
-  position: absolute;
-  inset: 0;
-  pointer-events: all;
-  background: transparent;
-  z-index: 1;
-}
+/* .video-player__yt-blocker removed to allow native interactions */
 
 .video-player__video {
   width: 100%;
