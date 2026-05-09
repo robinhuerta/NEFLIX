@@ -228,7 +228,7 @@
 .mt-marquee__text {
   display: inline-block;
   padding: 0 40px;
-  font-size: 13px;
+  font-size: 14.3px;
   font-weight: 600;
   letter-spacing: 0.5px;
   background: linear-gradient(90deg, #d4af37, #fff8e1, #ffd700, #d4af37, #fff8e1);
