@@ -3,7 +3,7 @@ import './VideoPlayer.css';
 import { storage } from '../firebaseConfig';
 import { ref, getDownloadURL } from 'firebase/storage';
 
-const VideoPlayer = ({ onBack, fileName, videoUrl: initialUrl, movieTitle = "COSMOS Original", episode = "Película", initialTime = 0, onProgress, onNext, hasNext }) => {
+const VideoPlayer = ({ onBack, fileName, videoUrl: initialUrl, movieTitle = "COSMOS Original", episode = "Película", initialTime = 0, onProgress, onNext, hasNext, children }) => {
   const [isPlaying, setIsPlaying] = useState(true);
   const [videoUrl, setVideoUrl] = useState(initialUrl || '');
   const [currentTime, setCurrentTime] = useState(0);
@@ -364,6 +364,9 @@ const VideoPlayer = ({ onBack, fileName, videoUrl: initialUrl, movieTitle = "COS
           </div>
         </div>
       )}
+
+      {/* Contenido extra (ej. MarqueeTicker) — visible también en fullscreen */}
+      {children}
     </div>
   );
 };

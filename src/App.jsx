@@ -542,30 +542,29 @@ function App() {
 
   if (showPlayer && selectedVideo) {
     return (
-      <>
-        <VideoPlayer
-          onBack={() => setShowPlayer(false)}
-          fileName={selectedVideo.fileName}
-          videoUrl={selectedVideo.videoUrl}
-          movieTitle={selectedVideo.title}
-          episode={
-            selectedVideo.category === 'Videos Musicales' ? 'Música' :
-            selectedVideo.category === 'Series' ? (
-              selectedVideo.season && selectedVideo.episodeNumber
-                ? `T${selectedVideo.season} · E${selectedVideo.episodeNumber}${selectedVideo.episodeTitle ? ' — ' + selectedVideo.episodeTitle : ''}`
-                : 'Serie'
-            ) :
-            selectedVideo.category === 'Acción y Suspenso' ? 'Acción' :
-            selectedVideo.category === 'Películas Latinas' ? 'Película' :
-            selectedVideo.category || 'Película'
-          }
-          onNext={handleNextVideo}
-          hasNext={hasNext}
-          initialTime={watchHistory.find(h => h.id === selectedVideo.id)?.currentTime || 0}
-          onProgress={(currentTime, duration) => updateWatchProgress(selectedVideo, currentTime, duration)}
-        />
+      <VideoPlayer
+        onBack={() => setShowPlayer(false)}
+        fileName={selectedVideo.fileName}
+        videoUrl={selectedVideo.videoUrl}
+        movieTitle={selectedVideo.title}
+        episode={
+          selectedVideo.category === 'Videos Musicales' ? 'Música' :
+          selectedVideo.category === 'Series' ? (
+            selectedVideo.season && selectedVideo.episodeNumber
+              ? `T${selectedVideo.season} · E${selectedVideo.episodeNumber}${selectedVideo.episodeTitle ? ' — ' + selectedVideo.episodeTitle : ''}`
+              : 'Serie'
+          ) :
+          selectedVideo.category === 'Acción y Suspenso' ? 'Acción' :
+          selectedVideo.category === 'Películas Latinas' ? 'Película' :
+          selectedVideo.category || 'Película'
+        }
+        onNext={handleNextVideo}
+        hasNext={hasNext}
+        initialTime={watchHistory.find(h => h.id === selectedVideo.id)?.currentTime || 0}
+        onProgress={(currentTime, duration) => updateWatchProgress(selectedVideo, currentTime, duration)}
+      >
         <MarqueeTicker saludos={saludos} isPlaying={true} />
-      </>
+      </VideoPlayer>
     );
   }
 
