@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import './MarqueeTicker.css';
 
 const TYPE_ICON = {
@@ -23,7 +23,7 @@ const isTodayBirthdate = (birthdate) => {
   return parseInt(dd) === today.getDate() && parseInt(mm) === (today.getMonth() + 1);
 };
 
-const MarqueeTicker = ({ saludos = [], isPlaying }) => {
+const MarqueeTicker = ({ saludos = [], isPlaying, inPlayer = false }) => {
   const [phase, setPhase] = useState('hidden'); // 'hidden' | 'modal' | 'marquee'
   const [modalIndex, setModalIndex] = useState(0);
   const [countdown, setCountdown] = useState(8);
@@ -100,7 +100,7 @@ const MarqueeTicker = ({ saludos = [], isPlaying }) => {
     <>
       {/* ── PREMIUM MODAL ── */}
       {phase === 'modal' && current && (
-        <div className="mt-overlay" onClick={handleCloseModal}>
+        <div className={`mt-overlay${inPlayer ? ' mt-overlay--in-player' : ''}`} onClick={handleCloseModal}>
           <div className="mt-modal" onClick={e => e.stopPropagation()}>
             {/* Sparkles */}
             <div className="mt-modal__sparkles">
@@ -142,7 +142,7 @@ const MarqueeTicker = ({ saludos = [], isPlaying }) => {
 
       {/* ── MARQUEE BAR ── */}
       {phase === 'marquee' && (
-        <div className="mt-marquee" onClick={() => setPhase('modal')}>
+        <div className={`mt-marquee${inPlayer ? ' mt-marquee--in-player' : ''}`} onClick={() => setPhase('modal')}>
           <div className="mt-marquee__track">
             <span className="mt-marquee__text">{marqueeText}&nbsp;&nbsp;&nbsp;•&nbsp;&nbsp;&nbsp;{marqueeText}</span>
           </div>

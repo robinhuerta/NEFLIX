@@ -563,7 +563,7 @@ function App() {
         initialTime={watchHistory.find(h => h.id === selectedVideo.id)?.currentTime || 0}
         onProgress={(currentTime, duration) => updateWatchProgress(selectedVideo, currentTime, duration)}
       >
-        <MarqueeTicker saludos={saludos} isPlaying={true} />
+        <MarqueeTicker saludos={saludos} isPlaying={true} inPlayer />
       </VideoPlayer>
     );
   }

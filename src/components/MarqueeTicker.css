@@ -198,6 +198,15 @@
   font-weight: 600;
 }
 
+/* Cuando está dentro del VideoPlayer usa absolute para que funcione en fullscreen nativo */
+.mt-overlay--in-player {
+  position: absolute;
+}
+
+.mt-marquee--in-player {
+  position: absolute;
+}
+
 /* ===== MARQUEE BAR ===== */
 .mt-marquee {
   position: fixed;
