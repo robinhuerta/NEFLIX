@@ -143,6 +143,28 @@
   background-color: rgba(109, 109, 110, 0.4);
 }
 
+.hero__mute-btn {
+  position: absolute;
+  right: 80px;
+  bottom: 22%;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 2px solid rgba(255,255,255,0.7);
+  background: rgba(0,0,0,0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 20;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.hero__mute-btn:hover {
+  border-color: white;
+  background: rgba(0,0,0,0.65);
+}
+
 .hero__rating {
   position: absolute;
   right: 0;
