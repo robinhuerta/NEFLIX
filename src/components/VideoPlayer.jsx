@@ -234,6 +234,16 @@ const VideoPlayer = ({ onBack, fileName, videoUrl: initialUrl, movieTitle = "COS
         <button className="video-player__back" onClick={onBack}>
           <svg viewBox="0 0 24 24" fill="white" width="36" height="36"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
         </button>
+        {isExternal && (
+          <button className="video-player__btn video-player__fullscreen-ext" onClick={toggleFullScreen} title="Pantalla completa">
+            <svg viewBox="0 0 24 24" fill="white" width="28" height="28">
+              {isFullScreen
+                ? <path d="M5 16h3v3h2v-5H5v2zm3-8H5v2h5V5H8v3zm6 11h2v-3h3v-2h-5v5zm2-11V5h-2v5h5V8h-3z"/>
+                : <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/>
+              }
+            </svg>
+          </button>
+        )}
       </div>
 
       {/* Título inferior izquierdo — visible unos segundos, se desvanece solo */}
@@ -251,8 +261,7 @@ const VideoPlayer = ({ onBack, fileName, videoUrl: initialUrl, movieTitle = "COS
               className="video-player__video"
               src={`https://www.youtube.com/embed/${getYouTubeId(videoUrl)}?autoplay=1&controls=1&modestbranding=1&rel=0&iv_load_policy=3`}
               title={movieTitle}
-              allow="autoplay; encrypted-media; fullscreen"
-              allowFullScreen
+              allow="autoplay; encrypted-media"
             />
             <div className="video-player__yt-corner-blocker" />
           </div>
@@ -262,7 +271,6 @@ const VideoPlayer = ({ onBack, fileName, videoUrl: initialUrl, movieTitle = "COS
             src={`https://drive.google.com/file/d/${getDriveId(videoUrl)}/preview`}
             title={movieTitle}
             allow="autoplay"
-            allowFullScreen
           />
         ) : videoUrl ? (
           <video
