@@ -342,6 +342,31 @@
   .navbar__link { font-size: 14px; margin-left: 25px; }
 }
 
+/* TV / Proyector — pantallas >= 1920px */
+@media (min-width: 1920px) {
+  .navbar { height: 80px; padding: 0 5%; }
+  .navbar__logo { font-size: 2.4rem; margin-right: 50px; }
+  .navbar__links { gap: 10px; }
+  .navbar__link { font-size: 18px; margin-left: 32px; }
+  .navbar__search-input { font-size: 18px; }
+  .navbar__avatar { width: 42px; height: 42px; }
+  .navbar__badge { font-size: 13px; padding: 3px 7px; }
+  .navbar__caret { font-size: 13px; }
+  .navbar__profile-option { font-size: 17px; padding: 14px 20px; }
+  .navbar__dropdown-title { font-size: 18px; padding: 16px 20px; }
+  .navbar__notif-text { font-size: 16px; }
+  .navbar__notif-time { font-size: 13px; }
+  .navbar__list-count { font-size: 13px; padding: 2px 7px; }
+}
+
+/* TV 4K — pantallas >= 2560px */
+@media (min-width: 2560px) {
+  .navbar { height: 100px; padding: 0 5%; }
+  .navbar__logo { font-size: 3rem; margin-right: 60px; }
+  .navbar__link { font-size: 22px; margin-left: 40px; }
+  .navbar__avatar { width: 52px; height: 52px; }
+}
+
 @media (max-width: 1024px) {
   .navbar { height: 65px; }
   .navbar__logo { margin-right: 20px; }

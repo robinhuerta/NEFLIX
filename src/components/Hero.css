@@ -85,7 +85,7 @@
 }
 
 .hero__title {
-  font-size: clamp(1.8rem, 4.5vw, 3.2rem);
+  font-size: clamp(1.5rem, 3.8vw, 2.7rem);
   font-weight: 900;
   line-height: 1.1;
   margin-bottom: 1.2rem;
@@ -161,7 +161,7 @@
 }
 
 .hero__title {
-  font-size: clamp(2.2rem, 6vw, 4.5rem);
+  font-size: clamp(1.9rem, 5.1vw, 3.8rem);
   font-weight: 900;
   line-height: 1.1;
   margin-bottom: 1.2rem;
@@ -214,21 +214,21 @@
     max-width: 350px; 
   }
   
-  .hero__title { font-size: 8vw; }
+  .hero__title { font-size: 6.8vw; }
   .hero__description { font-size: 3vw; max-width: 80%; margin: 0 auto 2rem; }
   .hero__buttons { justify-content: center; }
 }
 
 @media (max-width: 768px) {
   .hero { min-height: auto; padding-top: 100px; padding-bottom: 50px; }
-  .hero__title { font-size: 2rem; line-height: 1.2; text-align: center; }
+  .hero__title { font-size: 1.7rem; line-height: 1.2; text-align: center; }
   .hero__description { font-size: 14px; max-width: 90%; margin: 0 auto 1.5rem; text-align: center; }
   .hero__banner-image-container { width: 70vw; max-width: 320px; margin: 0 auto 20px; }
 }
 
 @media (max-width: 480px) {
   .hero { padding-top: 90px; }
-  .hero__title { font-size: 1.8rem; }
+  .hero__title { font-size: 1.5rem; }
   .hero__description { font-size: 13px; line-height: 1.5; }
   .hero__buttons { flex-direction: column; width: 100%; max-width: 250px; margin: 0 auto; gap: 0.8rem; }
   .hero__button { width: 100%; justify-content: center; padding: 10px; font-size: 15px; }

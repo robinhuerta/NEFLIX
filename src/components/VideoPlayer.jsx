@@ -19,6 +19,8 @@ const VideoPlayer = ({ onBack, fileName, videoUrl: initialUrl, movieTitle = "COS
   const settingsRef = useRef(null);
   const controlsTimeoutRef = useRef(null);
   const [showControls, setShowControls] = useState(true);
+  const [showTitle, setShowTitle] = useState(true);
+  const titleTimerRef = useRef(null);
 
   const isYouTube = (url) => url && (url.includes('youtube.com') || url.includes('youtu.be'));
   const isDrive = (url) => url && (url.includes('drive.google.com') || url.includes('docs.google.com'));
@@ -159,8 +161,30 @@ const VideoPlayer = ({ onBack, fileName, videoUrl: initialUrl, movieTitle = "COS
     return () => document.removeEventListener('fullscreenchange', handleFsChange);
   }, []);
 
+  const resetTitleTimer = () => {
+    setShowTitle(true);
+    clearTimeout(titleTimerRef.current);
+    titleTimerRef.current = setTimeout(() => setShowTitle(false), 4000);
+  };
+
+  useEffect(() => {
+    resetTitleTimer();
+    return () => clearTimeout(titleTimerRef.current);
+  }, []);
+
+  // Ocultar título más rápido al entrar a pantalla completa
+  useEffect(() => {
+    if (isFullScreen) {
+      clearTimeout(titleTimerRef.current);
+      titleTimerRef.current = setTimeout(() => setShowTitle(false), 1500);
+    } else {
+      resetTitleTimer();
+    }
+  }, [isFullScreen]);
+
   const resetControlsTimeout = () => {
     setShowControls(true);
+    resetTitleTimer();
     if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
     if (isPlaying) {
       controlsTimeoutRef.current = setTimeout(() => setShowControls(false), 3000);
@@ -210,12 +234,12 @@ const VideoPlayer = ({ onBack, fileName, videoUrl: initialUrl, movieTitle = "COS
         <button className="video-player__back" onClick={onBack}>
           <svg viewBox="0 0 24 24" fill="white" width="36" height="36"><path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/></svg>
         </button>
-        {isExternal && (
-          <div className="video-player__top-info">
-            <span className="video-player__top-title">{movieTitle}</span>
-            <span className="video-player__top-episode">{episode}</span>
-          </div>
-        )}
+      </div>
+
+      {/* Título inferior izquierdo — visible unos segundos, se desvanece solo */}
+      <div className={`video-player__title-overlay${showTitle ? '' : ' video-player__title-overlay--hidden'}`}>
+        <span className="video-player__title-overlay-name">{movieTitle}</span>
+        <span className="video-player__title-overlay-ep">{episode}</span>
       </div>
 
       <div className="video-player__video-container">

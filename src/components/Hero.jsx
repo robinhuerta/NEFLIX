@@ -29,10 +29,10 @@ const Hero = ({ movie, onPlay, onInfo }) => {
       setShowPreview(true);
     }, 1500);
 
-    // Timer to stop preview after 9.5s (1.5 delay + 8s play)
+    // Timer to stop preview after 21.5s (1.5 delay + 20s play)
     const stopTimer = setTimeout(() => {
       setShowPreview(false);
-    }, 10500);
+    }, 21500);
 
     return () => {
       clearTimeout(startTimer);

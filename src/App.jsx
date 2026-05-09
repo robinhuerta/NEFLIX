@@ -12,7 +12,7 @@ import { fetchAllVideos, fetchSaludos, saveUser } from './services/FirebaseServi
 import AdminDashboard from './components/AdminDashboard';
 import AuthScreen from './components/AuthScreen';
 import { auth } from './firebaseConfig';
-import { onAuthStateChanged, signOut } from 'firebase/auth';
+import { onAuthStateChanged, signOut, getRedirectResult } from 'firebase/auth';
 import './components/AdminDashboard.css';
 import MusicView from './components/MusicView';
 import MusicPlayer from './components/MusicPlayer';
@@ -76,6 +76,14 @@ function App() {
 
   // ── Auth listener ───────────────────────────────────────────────────────────
   useEffect(() => {
+    // Capturar resultado si el usuario viene de un signInWithRedirect (móvil/PWA)
+    getRedirectResult(auth).then(async (result) => {
+      if (result?.user) {
+        await saveUser(result.user);
+        setUser(result.user);
+      }
+    }).catch(() => {});
+
     const unsub = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
         await saveUser(firebaseUser);
@@ -732,7 +740,7 @@ function App() {
 
             {/* Firebase videos con skeleton */}
             <div className="firebase-gallery" id="section-peliculas">
-              <h2 className="firebase-gallery__title">Tus Videos de Firebase</h2>
+              <h2 className="firebase-gallery__title">Tus Videos de Cosmos</h2>
               <div className="firebase-gallery__grid">
                 {firebaseLoading
                   ? Array.from({ length: SKELETON_COUNT }).map((_, i) => <SkeletonCard key={i} />)

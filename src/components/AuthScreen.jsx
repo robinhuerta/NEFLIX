@@ -1,7 +1,11 @@
-import React, { useState } from 'react';
-import { signInWithPopup } from 'firebase/auth';
+import { useState } from 'react';
+import { signInWithPopup, signInWithRedirect } from 'firebase/auth';
 import { auth, googleProvider } from '../firebaseConfig';
 import './AuthScreen.css';
+
+const isMobileOrPWA = () =>
+  window.matchMedia('(display-mode: standalone)').matches ||
+  /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
 const AuthScreen = ({ onAuth }) => {
   const [loading, setLoading] = useState(false);
@@ -10,6 +14,13 @@ const AuthScreen = ({ onAuth }) => {
   const handleGoogle = async () => {
     setLoading(true);
     setError('');
+
+    // En móvil o PWA instalada usar redirect (los popups son bloqueados)
+    if (isMobileOrPWA()) {
+      await signInWithRedirect(auth, googleProvider);
+      return; // la página se redirige, no hay result aquí
+    }
+
     try {
       const result = await signInWithPopup(auth, googleProvider);
       onAuth(result.user);
@@ -19,7 +30,9 @@ const AuthScreen = ({ onAuth }) => {
       } else if (err.code === 'auth/operation-not-allowed') {
         setError('Google Sign-In no está activado en Firebase Console para este proyecto.');
       } else if (err.code === 'auth/popup-blocked') {
-        setError('El navegador bloqueó la ventana emergente. Permite popups para este sitio.');
+        // Fallback automático a redirect si el popup fue bloqueado
+        await signInWithRedirect(auth, googleProvider);
+        return;
       } else {
         setError(`Error: ${err.message}`);
       }
