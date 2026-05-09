@@ -201,7 +201,7 @@
 /* ===== MARQUEE BAR ===== */
 .mt-marquee {
   position: fixed;
-  bottom: 90px;
+  bottom: 100px;
   left: 0;
   right: 0;
   z-index: 8001;

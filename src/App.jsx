@@ -793,7 +793,7 @@ function App() {
       )}
 
       {/* Marquesina de Saludos */}
-      <MarqueeTicker saludos={saludos} isPlaying={isMusicPlaying} />
+      <MarqueeTicker saludos={saludos} isPlaying={isMusicPlaying || showPlayer} />
 
       {/* Music Player (persistente) */}
       <MusicPlayer
