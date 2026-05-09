@@ -206,17 +206,16 @@
   right: 0;
   z-index: 8001;
   height: 36px;
-  background: linear-gradient(90deg, rgba(10, 8, 24, 0.97) 0%, rgba(20, 14, 50, 0.97) 50%, rgba(10, 8, 24, 0.97) 100%);
-  border-top: 1px solid rgba(212, 175, 55, 0.3);
-  border-bottom: 1px solid rgba(212, 175, 55, 0.15);
+  background: transparent;
+  border-top: none;
+  border-bottom: none;
   overflow: hidden;
   cursor: pointer;
-  box-shadow: 0 -4px 20px rgba(212, 175, 55, 0.08);
-  transition: border-color 0.3s ease;
+  transition: opacity 0.3s ease;
 }
 
 .mt-marquee:hover {
-  border-top-color: rgba(212, 175, 55, 0.6);
+  opacity: 0.85;
 }
 
 .mt-marquee__track {
