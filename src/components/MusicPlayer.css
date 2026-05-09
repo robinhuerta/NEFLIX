@@ -505,25 +505,32 @@
 }
 
 .music-player__yt-panel--open .music-player__yt-video-wrap {
-  height: 180px;
+  height: 160px;
 }
 
-/* Crop para ocultar el chrome de YouTube (logo, recomendaciones, barra) */
+/* Crop agresivo para ocultar logo, título y barra de controles de YouTube */
 .music-player__yt-crop {
   position: relative;
   width: 100%;
-  height: 180px;
+  height: 160px;
   overflow: hidden;
 }
 
+/* El div contenedor del YT.Player y el iframe que genera dentro */
 .music-player__yt-iframe {
-  width: calc(100% + 4px);
-  height: calc(180px + 140px);
-  margin-top: -70px;
-  margin-left: -2px;
-  border: none;
+  width: calc(100% + 80px);  /* extra ancho para ocultar laterales */
+  height: calc(160px + 220px); /* 380px total — clip 110px arriba y abajo */
+  margin-top: -110px;
+  margin-left: -40px;
   display: block;
   pointer-events: none;
+}
+
+.music-player__yt-iframe iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  display: block;
 }
 
 /* Botón pantalla completa de COSMOS encima del blocker */

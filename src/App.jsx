@@ -228,14 +228,26 @@ function App() {
 
   // Sync audio element — solo para tracks locales (NO YouTube)
   useEffect(() => {
-    if (!audioRef.current || !audioUrl || !currentTrack || isYouTubeTrack(currentTrack)) return;
+    if (!audioRef.current) return;
+    // Cuando se cambia a YouTube, detener el audio local inmediatamente
+    if (!audioUrl || isYouTubeTrack(currentTrack)) {
+      audioRef.current.pause();
+      audioRef.current.src = '';
+      audioRef.current.load(); // fuerza al browser a soltar el recurso de audio
+      return;
+    }
     audioRef.current.src = audioUrl;
     audioRef.current.volume = musicVolume;
     if (isMusicPlaying) audioRef.current.play().catch(() => {});
   }, [audioUrl]);
 
   useEffect(() => {
-    if (!audioRef.current || isYouTubeTrack(currentTrack)) return;
+    if (!audioRef.current) return;
+    // Para YouTube: siempre pausar el audio local (por si quedó algo sonando)
+    if (isYouTubeTrack(currentTrack)) {
+      audioRef.current.pause();
+      return;
+    }
     if (isMusicPlaying) audioRef.current.play().catch(() => {});
     else audioRef.current.pause();
   }, [isMusicPlaying]);

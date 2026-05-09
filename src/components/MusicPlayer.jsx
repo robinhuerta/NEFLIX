@@ -27,16 +27,90 @@ const MusicPlayer = ({
   const [isMuted, setIsMuted] = useState(false);
   const [prevVolume, setPrevVolume] = useState(volume);
   const [ytExpanded, setYtExpanded] = useState(false);
-  const iframeRef = useRef(null);
+  const ytContainerRef = useRef(null);
+  const ytPlayerRef = useRef(null);
+  const isPlayingRef = useRef(isPlaying);
+  const volumeRef = useRef(volume);
+  const isMutedRef = useRef(isMuted);
 
-  // Sincronizar volumen con el iframe de YouTube via postMessage
+  // Mantener refs sincronizados para usar dentro de callbacks del YT API
+  useEffect(() => { isPlayingRef.current = isPlaying; }, [isPlaying]);
+  useEffect(() => { volumeRef.current = volume; isMutedRef.current = isMuted; }, [volume, isMuted]);
+
+  // Cargar el script de YouTube IFrame API una sola vez
   useEffect(() => {
-    if (!youtubeId || !iframeRef.current) return;
+    if (document.getElementById('yt-iframe-api')) return;
+    const tag = document.createElement('script');
+    tag.id = 'yt-iframe-api';
+    tag.src = 'https://www.youtube.com/iframe_api';
+    document.head.appendChild(tag);
+  }, []);
+
+  // Inicializar/destruir el YT.Player cuando cambia el youtubeId
+  useEffect(() => {
+    if (!youtubeId) {
+      ytPlayerRef.current?.destroy?.();
+      ytPlayerRef.current = null;
+      return;
+    }
+
+    const createPlayer = () => {
+      if (!window.YT?.Player || !ytContainerRef.current) return;
+      ytPlayerRef.current?.destroy?.();
+      ytPlayerRef.current = new window.YT.Player(ytContainerRef.current, {
+        width: '100%',
+        height: '100%',
+        videoId: youtubeId,
+        playerVars: {
+          autoplay: 1,
+          controls: 0,
+          modestbranding: 1,
+          rel: 0,
+          iv_load_policy: 3,
+          disablekb: 1,
+          fs: 0,
+          origin: window.location.origin,
+        },
+        events: {
+          onReady: (e) => {
+            const vol = isMutedRef.current ? 0 : Math.round(volumeRef.current * 100);
+            e.target.setVolume(vol);
+            if (isPlayingRef.current) e.target.playVideo();
+            else e.target.pauseVideo();
+          },
+        },
+      });
+    };
+
+    if (window.YT?.Player) {
+      createPlayer();
+    } else {
+      const prev = window.onYouTubeIframeAPIReady;
+      window.onYouTubeIframeAPIReady = () => {
+        prev?.();
+        createPlayer();
+      };
+    }
+
+    return () => {
+      ytPlayerRef.current?.destroy?.();
+      ytPlayerRef.current = null;
+    };
+  }, [youtubeId]);
+
+  // Sincronizar play/pause con el YT.Player
+  useEffect(() => {
+    if (!ytPlayerRef.current) return;
+    if (isPlaying) ytPlayerRef.current.playVideo?.();
+    else ytPlayerRef.current.pauseVideo?.();
+  }, [isPlaying]);
+
+  // Sincronizar volumen con el YT.Player
+  useEffect(() => {
+    if (!ytPlayerRef.current) return;
     const vol = isMuted ? 0 : Math.round(volume * 100);
-    iframeRef.current.contentWindow?.postMessage(
-      JSON.stringify({ event: 'command', func: 'setVolume', args: [vol] }), '*'
-    );
-  }, [volume, isMuted, youtubeId]);
+    ytPlayerRef.current.setVolume?.(vol);
+  }, [volume, isMuted]);
 
   const formatTime = (sec) => {
     if (!sec || isNaN(sec)) return '0:00';
@@ -118,20 +192,14 @@ const MusicPlayer = ({
           <div className="music-player__yt-header">
             <span>🎵 Reproduciendo en COSMOS</span>
           </div>
-          {/* iframe siempre en el DOM con height:0 cuando está colapsado — el audio sigue sonando */}
+          {/* El YT.Player crea su iframe dentro de ytContainerRef */}
           <div className="music-player__yt-video-wrap">
             <div className="music-player__yt-crop">
-              <iframe
-                ref={iframeRef}
-                className="music-player__yt-iframe"
-                src={`https://www.youtube.com/embed/${youtubeId}?autoplay=1&controls=0&modestbranding=1&rel=0&enablejsapi=1&iv_load_policy=3&disablekb=1&fs=0`}
-                title={currentTrack.title}
-                allow="autoplay; encrypted-media; fullscreen"
-              />
+              <div key={youtubeId} ref={ytContainerRef} className="music-player__yt-iframe" />
               <div className="music-player__yt-blocker" />
               <button
                 className="music-player__yt-fullscreen"
-                onClick={() => iframeRef.current?.requestFullscreen?.()}
+                onClick={() => ytPlayerRef.current?.getIframe?.()?.requestFullscreen?.()}
                 title="Pantalla completa"
               >
                 <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
