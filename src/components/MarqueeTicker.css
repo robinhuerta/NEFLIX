@@ -205,12 +205,13 @@
 
 .mt-marquee--in-player {
   position: absolute;
+  bottom: 28px; /* dentro del video player no hay barra de música */
 }
 
 /* ===== MARQUEE BAR ===== */
 .mt-marquee {
   position: fixed;
-  bottom: 28px;
+  bottom: 90px; /* encima del MusicPlayer bar (72px min-height) */
   left: 0;
   right: 0;
   z-index: 8001;
