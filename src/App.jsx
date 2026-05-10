@@ -24,6 +24,7 @@ function App() {
   const [showIntro, setShowIntro] = useState(true);
   const [showPlayer, setShowPlayer] = useState(false);
   const [selectedVideo, setSelectedVideo] = useState(null);
+  const videoStartRef = useRef(null); // timestamp cuando se abrió el video (para YouTube/Drive)
   const [firebaseVideos, setFirebaseVideos] = useState([]);
   const [firebaseLoading, setFirebaseLoading] = useState(true);
   const [featuredMovie, setFeaturedMovie] = useState(null);
@@ -100,6 +101,7 @@ function App() {
     if (featuredMovie && (featuredMovie.fileName || featuredMovie.videoUrl)) {
       setSelectedVideo(featuredMovie);
       setShowPlayer(true);
+      videoStartRef.current = Date.now();
     }
   };
 
@@ -115,6 +117,7 @@ function App() {
       setSelectedVideo(movie);
       setSeriesPlayQueue([]);
       setShowPlayer(true);
+      videoStartRef.current = Date.now();
     }
   };
 
@@ -124,6 +127,22 @@ function App() {
     setSeriesPlayQueue(sorted.slice(idx + 1));
     setSelectedVideo(episode);
     setShowPlayer(true);
+    videoStartRef.current = Date.now();
+  };
+
+  const isExternalVideo = (video) =>
+    video?.videoUrl && (video.videoUrl.includes('youtube') || video.videoUrl.includes('youtu.be') || video.videoUrl.includes('drive.google'));
+
+  const handleClosePlayer = () => {
+    // Guardar progreso estimado para YouTube/Drive usando tiempo real transcurrido
+    if (selectedVideo && isExternalVideo(selectedVideo) && videoStartRef.current) {
+      const elapsed = (Date.now() - videoStartRef.current) / 1000;
+      if (elapsed > 30) { // solo si vio más de 30 segundos
+        const estimatedDuration = 5400; // 90 min por defecto
+        updateWatchProgress(selectedVideo, elapsed, estimatedDuration);
+      }
+    }
+    setShowPlayer(false);
   };
 
   const handleAddToList = (movie) => {
@@ -516,7 +535,7 @@ function App() {
   if (showPlayer && selectedVideo) {
     return (
       <VideoPlayer
-        onBack={() => setShowPlayer(false)}
+        onBack={handleClosePlayer}
         fileName={selectedVideo.fileName}
         videoUrl={selectedVideo.videoUrl}
         movieTitle={selectedVideo.title}
