@@ -25,8 +25,12 @@ const VideoPlayer = ({ onBack, fileName, videoUrl: initialUrl, movieTitle = "COS
     try { return JSON.parse(localStorage.getItem('cosmos_autoplay') ?? 'true'); }
     catch { return true; }
   });
-  const [nextCountdown, setNextCountdown] = useState(null); // null | número
-  const countdownRef = useRef(null);
+  // Refs para evitar stale closures en listeners de postMessage
+  const autoplayRef = useRef(autoplay);
+  const onNextRef = useRef(onNext);
+  const hasNextRef = useRef(hasNext);
+  useEffect(() => { autoplayRef.current = autoplay; }, [autoplay]);
+  useEffect(() => { onNextRef.current = onNext; hasNextRef.current = hasNext; }, [onNext, hasNext]);
 
   const isYouTube = (url) => url && (url.includes('youtube.com') || url.includes('youtu.be'));
   const isDrive = (url) => url && (url.includes('drive.google.com') || url.includes('docs.google.com'));
@@ -90,24 +94,22 @@ const VideoPlayer = ({ onBack, fileName, videoUrl: initialUrl, movieTitle = "COS
     return () => clearInterval(interval);
   }, [onProgress, videoUrl]);
 
-  // Detectar fin de video de YouTube via postMessage
+  // Detectar fin de video de YouTube via postMessage (usa refs para evitar stale closures)
   useEffect(() => {
     if (!isYouTube(videoUrl)) return;
     const handleYTMessage = (e) => {
       try {
         const data = typeof e.data === 'string' ? JSON.parse(e.data) : e.data;
-        // Estado 0 = video terminado
-        if (data?.event === 'infoDelivery' && data?.info?.playerState === 0) {
-          handleVideoEnded();
-        }
         if (data?.info?.playerState === 0) {
-          handleVideoEnded();
+          if (autoplayRef.current && hasNextRef.current && onNextRef.current) {
+            onNextRef.current();
+          }
         }
       } catch {}
     };
     window.addEventListener('message', handleYTMessage);
     return () => window.removeEventListener('message', handleYTMessage);
-  }, [videoUrl, autoplay, hasNext, onNext]);
+  }, [videoUrl]);
 
   const toggleAutoplay = () => {
     const val = !autoplay;
@@ -116,34 +118,9 @@ const VideoPlayer = ({ onBack, fileName, videoUrl: initialUrl, movieTitle = "COS
     showToast(val ? 'Reproducción automática activada' : 'Reproducción automática desactivada');
   };
 
-  const startNextCountdown = () => {
-    if (!hasNext || !onNext) return;
-    let count = 5;
-    setNextCountdown(count);
-    countdownRef.current = setInterval(() => {
-      count -= 1;
-      setNextCountdown(count);
-      if (count <= 0) {
-        clearInterval(countdownRef.current);
-        setNextCountdown(null);
-        onNext();
-      }
-    }, 1000);
-  };
-
-  const cancelNextCountdown = () => {
-    clearInterval(countdownRef.current);
-    setNextCountdown(null);
-  };
-
-  useEffect(() => () => clearInterval(countdownRef.current), []);
-
+  // Para videos locales (Firebase)
   const handleVideoEnded = () => {
-    if (autoplay && hasNext && onNext) {
-      startNextCountdown();
-    } else if (hasNext && onNext) {
-      onNext();
-    }
+    if (autoplay && hasNext && onNext) onNext();
   };
 
   const showToast = (msg) => {
@@ -446,19 +423,6 @@ const VideoPlayer = ({ onBack, fileName, videoUrl: initialUrl, movieTitle = "COS
                 </svg>
               </button>
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* Cuenta regresiva para siguiente video */}
-      {nextCountdown !== null && (
-        <div className="video-player__next-countdown">
-          <div className="video-player__next-countdown__box">
-            <span className="video-player__next-countdown__label">Siguiente video en</span>
-            <span className="video-player__next-countdown__num">{nextCountdown}</span>
-            <button className="video-player__next-countdown__cancel" onClick={cancelNextCountdown}>
-              Cancelar
-            </button>
           </div>
         </div>
       )}
