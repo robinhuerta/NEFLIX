@@ -211,6 +211,32 @@
 .chatbot-input button:disabled { opacity: 0.4; cursor: not-allowed; }
 .chatbot-input button:not(:disabled):hover { transform: scale(1.08); }
 
+/* ── Quick chips ─────────────────────────────────────────── */
+.chatbot-chips {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 4px 0 8px;
+}
+
+.chatbot-chip {
+  background: rgba(108, 99, 255, 0.1);
+  border: 1px solid rgba(108, 99, 255, 0.3);
+  color: #a78bfa;
+  font-size: 12px;
+  padding: 7px 12px;
+  border-radius: 20px;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.chatbot-chip:hover {
+  background: rgba(108, 99, 255, 0.2);
+  border-color: #6c63ff;
+  color: #fff;
+}
+
 /* ── Responsive ──────────────────────────────────────────── */
 @media (max-width: 480px) {
   .chatbot-window {

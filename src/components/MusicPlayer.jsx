@@ -56,8 +56,16 @@ const MusicPlayer = ({
 
     const createPlayer = () => {
       if (!window.YT?.Player || !ytContainerRef.current) return;
-      ytPlayerRef.current?.destroy?.();
-      ytPlayerRef.current = new window.YT.Player(ytContainerRef.current, {
+      if (ytPlayerRef.current) {
+        try { ytPlayerRef.current.destroy(); } catch {}
+        ytPlayerRef.current = null;
+      }
+      // Crear un div no-React para que YT.Player lo reemplace con su iframe
+      ytContainerRef.current.innerHTML = '';
+      const mountPoint = document.createElement('div');
+      ytContainerRef.current.appendChild(mountPoint);
+
+      ytPlayerRef.current = new window.YT.Player(mountPoint, {
         width: '100%',
         height: '100%',
         videoId: youtubeId,
@@ -93,8 +101,11 @@ const MusicPlayer = ({
     }
 
     return () => {
-      ytPlayerRef.current?.destroy?.();
-      ytPlayerRef.current = null;
+      if (ytPlayerRef.current) {
+        try { ytPlayerRef.current.destroy(); } catch {}
+        ytPlayerRef.current = null;
+      }
+      if (ytContainerRef.current) ytContainerRef.current.innerHTML = '';
     };
   }, [youtubeId]);
 
@@ -195,7 +206,7 @@ const MusicPlayer = ({
           {/* El YT.Player crea su iframe dentro de ytContainerRef */}
           <div className="music-player__yt-video-wrap">
             <div className="music-player__yt-crop">
-              <div key={youtubeId} ref={ytContainerRef} className="music-player__yt-iframe" />
+              <div ref={ytContainerRef} className="music-player__yt-iframe" />
               <div className="music-player__yt-blocker" />
               <button
                 className="music-player__yt-fullscreen"

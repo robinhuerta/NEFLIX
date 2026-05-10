@@ -1,10 +1,10 @@
-import React, { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import './ChatBot.css';
 
 export default function ChatBot({ movies = [], watchHistory = [], myList = [] }) {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState([
-    { role: 'assistant', content: '¡Hola! Soy tu asistente de COSMOS. ¿Qué quieres ver hoy? Puedes pedirme algo de acción, comedia, terror... ¡lo que quieras!' }
+    { role: 'assistant', content: '¡Hola! Soy COSMOS Assistant 🚀\n\nPuedo ayudarte con:\n🎬 Recomendar películas o series\n🎵 Encontrar música o artistas\n🎧 Explicarte el Modo DJ\n⚙️ Cualquier función de COSMOS\n\n¿Qué necesitas?' }
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -51,6 +51,37 @@ export default function ChatBot({ movies = [], watchHistory = [], myList = [] })
     }
   };
 
+  const sendQuick = (text) => {
+    setInput(text);
+    setTimeout(() => {
+      setInput('');
+      const userMsg = { role: 'user', content: text };
+      const newMessages = [...messages, userMsg];
+      setMessages(newMessages);
+      setLoading(true);
+      const apiMessages = newMessages.slice(1).map(m => ({ role: m.role, content: m.content }));
+      fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages: apiMessages, movies, watchHistory, myList }),
+      })
+        .then(r => r.json())
+        .then(data => setMessages(prev => [...prev, { role: 'assistant', content: data.reply || 'Sin respuesta.' }]))
+        .catch(() => setMessages(prev => [...prev, { role: 'assistant', content: 'Error de conexión.' }]))
+        .finally(() => setLoading(false));
+    }, 0);
+  };
+
+  const QUICK_CHIPS = [
+    { label: '🎬 Recomiéndame algo', text: '¿Qué me recomiendas ver hoy?' },
+    { label: '🎵 Música latina',     text: '¿Qué videos musicales tienen de música latina?' },
+    { label: '🎧 Modo DJ',           text: '¿Cómo funciona el Modo DJ?' },
+    { label: '📋 Mis pendientes',    text: '¿Qué tengo en mi lista y qué he visto?' },
+    { label: '⚙️ ¿Qué puede hacer COSMOS?', text: '¿Qué funciones tiene COSMOS?' },
+  ];
+
+  const showChips = messages.length <= 1;
+
   return (
     <>
       {/* Burbuja flotante */}
@@ -80,9 +111,20 @@ export default function ChatBot({ movies = [], watchHistory = [], myList = [] })
           <div className="chatbot-messages">
             {messages.map((msg, i) => (
               <div key={i} className={`chatbot-msg chatbot-msg--${msg.role}`}>
-                {msg.content}
+                {msg.content.split('\n').map((line, j) => (
+                  <span key={j}>{line}{j < msg.content.split('\n').length - 1 && <br />}</span>
+                ))}
               </div>
             ))}
+            {showChips && (
+              <div className="chatbot-chips">
+                {QUICK_CHIPS.map((chip, i) => (
+                  <button key={i} className="chatbot-chip" onClick={() => sendQuick(chip.text)}>
+                    {chip.label}
+                  </button>
+                ))}
+              </div>
+            )}
             {loading && (
               <div className="chatbot-msg chatbot-msg--assistant chatbot-msg--loading">
                 <span /><span /><span />
@@ -94,7 +136,7 @@ export default function ChatBot({ movies = [], watchHistory = [], myList = [] })
           <div className="chatbot-input">
             <input
               type="text"
-              placeholder="¿Qué quieres ver hoy?"
+              placeholder="Pregunta algo..."
               value={input}
               onChange={e => setInput(e.target.value)}
               onKeyDown={handleKey}
