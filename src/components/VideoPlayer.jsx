@@ -110,7 +110,7 @@ const VideoPlayer = ({ onBack, fileName, videoUrl: initialUrl, movieTitle = "COS
   useEffect(() => {
     if (!isYouTube(videoUrl)) return;
     const videoId = getYouTubeId(videoUrl);
-    if (!videoId) return;
+    if (!videoId || !ytContainerRef.current) return;
 
     const createPlayer = () => {
       if (!ytContainerRef.current) return;
@@ -118,7 +118,12 @@ const VideoPlayer = ({ onBack, fileName, videoUrl: initialUrl, movieTitle = "COS
         try { ytPlayerRef.current.destroy(); } catch {}
         ytPlayerRef.current = null;
       }
-      ytPlayerRef.current = new window.YT.Player(ytContainerRef.current, {
+      // Crear un div no-React para que YT.Player lo reemplace con su iframe
+      ytContainerRef.current.innerHTML = '';
+      const mountPoint = document.createElement('div');
+      ytContainerRef.current.appendChild(mountPoint);
+
+      ytPlayerRef.current = new window.YT.Player(mountPoint, {
         width: '100%',
         height: '100%',
         videoId,
@@ -145,6 +150,7 @@ const VideoPlayer = ({ onBack, fileName, videoUrl: initialUrl, movieTitle = "COS
         try { ytPlayerRef.current.destroy(); } catch {}
         ytPlayerRef.current = null;
       }
+      if (ytContainerRef.current) ytContainerRef.current.innerHTML = '';
     };
   }, [videoUrl]);
 
@@ -333,7 +339,7 @@ const VideoPlayer = ({ onBack, fileName, videoUrl: initialUrl, movieTitle = "COS
           <div className="video-player__error">{error}</div>
         ) : isYouTube(videoUrl) ? (
           <div className="video-player__yt-wrap">
-            <div key={getYouTubeId(videoUrl)} ref={ytContainerRef} className="video-player__video" style={{ background: 'black' }} />
+            <div ref={ytContainerRef} className="video-player__video" style={{ background: 'black' }} />
             <div className="video-player__yt-corner-blocker" />
           </div>
         ) : isDrive(videoUrl) ? (
