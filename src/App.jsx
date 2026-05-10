@@ -12,6 +12,7 @@ import { fetchAllVideos, fetchSaludos } from './services/FirebaseService';
 import AdminDashboard from './components/AdminDashboard';
 import './components/AdminDashboard.css';
 import MusicView from './components/MusicView';
+import DJView from './components/DJView';
 import MusicPlayer from './components/MusicPlayer';
 import SeriesDetail from './components/SeriesDetail';
 import MarqueeTicker from './components/MarqueeTicker';
@@ -33,6 +34,7 @@ function App() {
   const [showMyList, setShowMyList] = useState(false);
   const [showAdmin, setShowAdmin] = useState(false);
   const [showMusic, setShowMusic] = useState(false);
+  const [showDJ, setShowDJ] = useState(false);
   const [showPeliculas, setShowPeliculas] = useState(false);
   const [showSeries, setShowSeries] = useState(false);
   const [selectedSeries, setSelectedSeries] = useState(null);
@@ -166,6 +168,7 @@ function App() {
     setShowPlayer(false);
     setShowAdmin(false);
     setShowMusic(false);
+    setShowDJ(false);
     setShowPeliculas(false);
     setShowSeries(false);
     setSelectedSeries(null);
@@ -581,11 +584,12 @@ function App() {
           const pwd = window.prompt('Contraseña de administrador:');
           if (pwd === 'cosmos2025') setShowAdmin(true);
         }}
-        onShowMusic={() => { setShowMusic(true); setShowPeliculas(false); setShowSeries(false); setSearchQuery(''); }}
-        onShowPeliculas={() => { setShowPeliculas(true); setShowMusic(false); setShowSeries(false); setSearchQuery(''); }}
-        onShowSeries={() => { setShowSeries(true); setShowMusic(false); setShowPeliculas(false); setSelectedSeries(null); setSearchQuery(''); }}
-        onGoHome={() => { setShowMusic(false); setShowPeliculas(false); setShowSeries(false); setSelectedSeries(null); setSearchQuery(''); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-        activeSection={showMusic ? 'musica' : showPeliculas ? 'peliculas' : showSeries ? 'series' : ''}
+        onShowMusic={() => { setShowMusic(true); setShowDJ(false); setShowPeliculas(false); setShowSeries(false); setSearchQuery(''); }}
+        onShowDJ={() => { setShowDJ(true); setShowMusic(false); setShowPeliculas(false); setShowSeries(false); setSearchQuery(''); }}
+        onShowPeliculas={() => { setShowPeliculas(true); setShowMusic(false); setShowDJ(false); setShowSeries(false); setSearchQuery(''); }}
+        onShowSeries={() => { setShowSeries(true); setShowMusic(false); setShowDJ(false); setShowPeliculas(false); setSelectedSeries(null); setSearchQuery(''); }}
+        onGoHome={() => { setShowMusic(false); setShowDJ(false); setShowPeliculas(false); setShowSeries(false); setSelectedSeries(null); setSearchQuery(''); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+        activeSection={showMusic ? 'musica' : showDJ ? 'dj' : showPeliculas ? 'peliculas' : showSeries ? 'series' : ''}
       />
 
       {/* Search Results */}
@@ -627,6 +631,18 @@ function App() {
           onPlay={(track, queue) => playTrack(track, queue || [])}
           onAddToQueue={addToQueue}
           onWatch={(track) => { setSelectedVideo(track); setShowPlayer(true); }}
+        />
+      )}
+
+      {/* DJ Page */}
+      {showDJ && !searchResults && (
+        <DJView
+          tracks={musicVideos}
+          currentTrack={currentTrack}
+          isPlaying={isMusicPlaying}
+          onPlay={(track, queue) => playTrack(track, queue || [])}
+          onAddToQueue={addToQueue}
+          queue={musicQueue}
         />
       )}
 
