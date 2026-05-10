@@ -21,6 +21,12 @@ const VideoPlayer = ({ onBack, fileName, videoUrl: initialUrl, movieTitle = "COS
   const [showControls, setShowControls] = useState(true);
   const [showTitle, setShowTitle] = useState(true);
   const titleTimerRef = useRef(null);
+  const [autoplay, setAutoplay] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('cosmos_autoplay') ?? 'true'); }
+    catch { return true; }
+  });
+  const [nextCountdown, setNextCountdown] = useState(null); // null | número
+  const countdownRef = useRef(null);
 
   const isYouTube = (url) => url && (url.includes('youtube.com') || url.includes('youtu.be'));
   const isDrive = (url) => url && (url.includes('drive.google.com') || url.includes('docs.google.com'));
@@ -83,6 +89,43 @@ const VideoPlayer = ({ onBack, fileName, videoUrl: initialUrl, movieTitle = "COS
     }, 5000);
     return () => clearInterval(interval);
   }, [onProgress, videoUrl]);
+
+  const toggleAutoplay = () => {
+    const val = !autoplay;
+    setAutoplay(val);
+    localStorage.setItem('cosmos_autoplay', JSON.stringify(val));
+    showToast(val ? 'Reproducción automática activada' : 'Reproducción automática desactivada');
+  };
+
+  const startNextCountdown = () => {
+    if (!hasNext || !onNext) return;
+    let count = 5;
+    setNextCountdown(count);
+    countdownRef.current = setInterval(() => {
+      count -= 1;
+      setNextCountdown(count);
+      if (count <= 0) {
+        clearInterval(countdownRef.current);
+        setNextCountdown(null);
+        onNext();
+      }
+    }, 1000);
+  };
+
+  const cancelNextCountdown = () => {
+    clearInterval(countdownRef.current);
+    setNextCountdown(null);
+  };
+
+  useEffect(() => () => clearInterval(countdownRef.current), []);
+
+  const handleVideoEnded = () => {
+    if (autoplay && hasNext && onNext) {
+      startNextCountdown();
+    } else if (hasNext && onNext) {
+      onNext();
+    }
+  };
 
   const showToast = (msg) => {
     setToast(msg);
@@ -282,7 +325,7 @@ const VideoPlayer = ({ onBack, fileName, videoUrl: initialUrl, movieTitle = "COS
             src={videoUrl}
             onTimeUpdate={handleTimeUpdate}
             onLoadedMetadata={handleTimeUpdate}
-            onEnded={() => { if (hasNext && onNext) onNext(); }}
+            onEnded={handleVideoEnded}
           />
         ) : (
           <div className="video-player__loading">Cargando COSMOS...</div>
@@ -347,6 +390,21 @@ const VideoPlayer = ({ onBack, fileName, videoUrl: initialUrl, movieTitle = "COS
             </div>
 
             <div className="video-player__controls-right">
+              {/* Switch reproducción automática */}
+              {hasNext && (
+                <button
+                  className={`video-player__btn video-player__autoplay-btn ${autoplay ? 'video-player__autoplay-btn--on' : ''}`}
+                  onClick={toggleAutoplay}
+                  title={autoplay ? 'Reproducción automática: ON' : 'Reproducción automática: OFF'}
+                >
+                  <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z"/>
+                  </svg>
+                  <svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14" style={{marginLeft:2}}>
+                    <path d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/>
+                  </svg>
+                </button>
+              )}
               <div className="video-player__settings-wrapper" ref={settingsRef}>
                 <button className="video-player__btn" onClick={() => setShowSettings(!showSettings)}>
                   <svg viewBox="0 0 24 24" fill="white" width="24" height="24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/><path d="M12.5 7H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>
@@ -369,6 +427,19 @@ const VideoPlayer = ({ onBack, fileName, videoUrl: initialUrl, movieTitle = "COS
                 </svg>
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Cuenta regresiva para siguiente video */}
+      {nextCountdown !== null && (
+        <div className="video-player__next-countdown">
+          <div className="video-player__next-countdown__box">
+            <span className="video-player__next-countdown__label">Siguiente video en</span>
+            <span className="video-player__next-countdown__num">{nextCountdown}</span>
+            <button className="video-player__next-countdown__cancel" onClick={cancelNextCountdown}>
+              Cancelar
+            </button>
           </div>
         </div>
       )}
