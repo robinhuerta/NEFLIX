@@ -344,26 +344,26 @@ function App() {
     });
   };
 
-  // All playable videos for next navigation
-  const allVideos = firebaseVideos.filter(v => v.fileName);
+  const isMusicVideo = (video) => {
+    if (!video) return false;
+    const cat = video.category?.toLowerCase() || '';
+    const type = video.type?.toLowerCase() || '';
+    return cat === 'videos musicales' || cat === 'musica' || cat === 'música' ||
+           type === 'musica' || type === 'música';
+  };
 
+  // Autoplay solo para videos musicales
   const handleNextVideo = () => {
-    if (seriesPlayQueue.length > 0) {
-      const [next, ...rest] = seriesPlayQueue;
-      setSelectedVideo(next);
-      setSeriesPlayQueue(rest);
-      return;
-    }
-    if (!selectedVideo) return;
-    const idx = allVideos.findIndex(v => v.id === selectedVideo.id);
-    if (idx >= 0 && idx < allVideos.length - 1) {
-      setSelectedVideo(allVideos[idx + 1]);
+    if (!selectedVideo || !isMusicVideo(selectedVideo)) return;
+    const idx = musicVideos.findIndex(v => v.id === selectedVideo.id);
+    if (idx >= 0 && idx < musicVideos.length - 1) {
+      setSelectedVideo(musicVideos[idx + 1]);
+      videoStartRef.current = Date.now();
     }
   };
 
-  const hasNext = seriesPlayQueue.length > 0 || (selectedVideo
-    ? allVideos.findIndex(v => v.id === selectedVideo.id) < allVideos.length - 1
-    : false);
+  const hasNext = isMusicVideo(selectedVideo) &&
+    musicVideos.findIndex(v => v.id === selectedVideo?.id) < musicVideos.length - 1;
 
   // "Continuar viendo" — items with progress between 2% and 95%
   const continueWatching = watchHistory.filter(h => h.progress > 0.02 && h.progress < 0.95);
