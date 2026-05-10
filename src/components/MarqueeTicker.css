@@ -262,3 +262,15 @@
   from { background-position: 0% center; }
   to   { background-position: 300% center; }
 }
+
+/* ===== TV / PANTALLA GRANDE ===== */
+@media (min-width: 1920px) {
+  .mt-marquee {
+    height: 56px;
+    bottom: 110px;
+  }
+  .mt-marquee__text {
+    font-size: 28px;
+    letter-spacing: 1px;
+  }
+}
