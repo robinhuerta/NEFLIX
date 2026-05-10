@@ -25,12 +25,15 @@ const VideoPlayer = ({ onBack, fileName, videoUrl: initialUrl, movieTitle = "COS
     try { return JSON.parse(localStorage.getItem('cosmos_autoplay') ?? 'true'); }
     catch { return true; }
   });
-  // Refs para evitar stale closures en listeners de postMessage
   const autoplayRef = useRef(autoplay);
   const onNextRef = useRef(onNext);
   const hasNextRef = useRef(hasNext);
   useEffect(() => { autoplayRef.current = autoplay; }, [autoplay]);
   useEffect(() => { onNextRef.current = onNext; hasNextRef.current = hasNext; }, [onNext, hasNext]);
+
+  // YouTube IFrame Player API
+  const ytContainerRef = useRef(null);
+  const ytPlayerRef = useRef(null);
 
   const isYouTube = (url) => url && (url.includes('youtube.com') || url.includes('youtu.be'));
   const isDrive = (url) => url && (url.includes('drive.google.com') || url.includes('docs.google.com'));
@@ -94,21 +97,55 @@ const VideoPlayer = ({ onBack, fileName, videoUrl: initialUrl, movieTitle = "COS
     return () => clearInterval(interval);
   }, [onProgress, videoUrl]);
 
-  // Detectar fin de video de YouTube via postMessage (usa refs para evitar stale closures)
+  // Cargar YouTube IFrame API script una sola vez
+  useEffect(() => {
+    if (!window.YT && !document.querySelector('script[src*="youtube.com/iframe_api"]')) {
+      const tag = document.createElement('script');
+      tag.src = 'https://www.youtube.com/iframe_api';
+      document.head.appendChild(tag);
+    }
+  }, []);
+
+  // Crear YT.Player cuando cambia el video de YouTube
   useEffect(() => {
     if (!isYouTube(videoUrl)) return;
-    const handleYTMessage = (e) => {
-      try {
-        const data = typeof e.data === 'string' ? JSON.parse(e.data) : e.data;
-        if (data?.info?.playerState === 0) {
-          if (autoplayRef.current && hasNextRef.current && onNextRef.current) {
-            onNextRef.current();
-          }
-        }
-      } catch {}
+    const videoId = getYouTubeId(videoUrl);
+    if (!videoId) return;
+
+    const createPlayer = () => {
+      if (!ytContainerRef.current) return;
+      if (ytPlayerRef.current) {
+        try { ytPlayerRef.current.destroy(); } catch {}
+        ytPlayerRef.current = null;
+      }
+      ytPlayerRef.current = new window.YT.Player(ytContainerRef.current, {
+        width: '100%',
+        height: '100%',
+        videoId,
+        playerVars: { autoplay: 1, controls: 1, modestbranding: 1, rel: 0, iv_load_policy: 3, origin: window.location.origin },
+        events: {
+          onStateChange: (event) => {
+            if (event.data === 0 && autoplayRef.current && hasNextRef.current && onNextRef.current) {
+              onNextRef.current();
+            }
+          },
+        },
+      });
     };
-    window.addEventListener('message', handleYTMessage);
-    return () => window.removeEventListener('message', handleYTMessage);
+
+    if (window.YT && window.YT.Player) {
+      createPlayer();
+    } else {
+      const prev = window.onYouTubeIframeAPIReady;
+      window.onYouTubeIframeAPIReady = () => { if (prev) prev(); createPlayer(); };
+    }
+
+    return () => {
+      if (ytPlayerRef.current) {
+        try { ytPlayerRef.current.destroy(); } catch {}
+        ytPlayerRef.current = null;
+      }
+    };
   }, [videoUrl]);
 
   const toggleAutoplay = () => {
@@ -296,12 +333,7 @@ const VideoPlayer = ({ onBack, fileName, videoUrl: initialUrl, movieTitle = "COS
           <div className="video-player__error">{error}</div>
         ) : isYouTube(videoUrl) ? (
           <div className="video-player__yt-wrap">
-            <iframe
-              className="video-player__video"
-              src={`https://www.youtube.com/embed/${getYouTubeId(videoUrl)}?autoplay=1&controls=1&modestbranding=1&rel=0&iv_load_policy=3&enablejsapi=1&origin=${encodeURIComponent(window.location.origin)}`}
-              title={movieTitle}
-              allow="autoplay; encrypted-media"
-            />
+            <div key={getYouTubeId(videoUrl)} ref={ytContainerRef} className="video-player__video" style={{ background: 'black' }} />
             <div className="video-player__yt-corner-blocker" />
           </div>
         ) : isDrive(videoUrl) ? (
