@@ -90,6 +90,25 @@ const VideoPlayer = ({ onBack, fileName, videoUrl: initialUrl, movieTitle = "COS
     return () => clearInterval(interval);
   }, [onProgress, videoUrl]);
 
+  // Detectar fin de video de YouTube via postMessage
+  useEffect(() => {
+    if (!isYouTube(videoUrl)) return;
+    const handleYTMessage = (e) => {
+      try {
+        const data = typeof e.data === 'string' ? JSON.parse(e.data) : e.data;
+        // Estado 0 = video terminado
+        if (data?.event === 'infoDelivery' && data?.info?.playerState === 0) {
+          handleVideoEnded();
+        }
+        if (data?.info?.playerState === 0) {
+          handleVideoEnded();
+        }
+      } catch {}
+    };
+    window.addEventListener('message', handleYTMessage);
+    return () => window.removeEventListener('message', handleYTMessage);
+  }, [videoUrl, autoplay, hasNext, onNext]);
+
   const toggleAutoplay = () => {
     const val = !autoplay;
     setAutoplay(val);
@@ -302,7 +321,7 @@ const VideoPlayer = ({ onBack, fileName, videoUrl: initialUrl, movieTitle = "COS
           <div className="video-player__yt-wrap">
             <iframe
               className="video-player__video"
-              src={`https://www.youtube.com/embed/${getYouTubeId(videoUrl)}?autoplay=1&controls=1&modestbranding=1&rel=0&iv_load_policy=3`}
+              src={`https://www.youtube.com/embed/${getYouTubeId(videoUrl)}?autoplay=1&controls=1&modestbranding=1&rel=0&iv_load_policy=3&enablejsapi=1&origin=${encodeURIComponent(window.location.origin)}`}
               title={movieTitle}
               allow="autoplay; encrypted-media"
             />
