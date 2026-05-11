@@ -89,6 +89,16 @@ const MarqueeTicker = ({ saludos = [], isPlaying, inPlayer = false }) => {
 
   useEffect(() => () => clearTimers(), []);
 
+  // Añade clase al body para que VideoPlayer pueda encoger cuando la barra está visible
+  useEffect(() => {
+    if (inPlayer && phase === 'marquee') {
+      document.body.classList.add('has-player-marquee');
+    } else {
+      document.body.classList.remove('has-player-marquee');
+    }
+    return () => document.body.classList.remove('has-player-marquee');
+  }, [inPlayer, phase]);
+
   if (!isPlaying || sorted.length === 0 || phase === 'hidden') return null;
 
   const current = sorted[modalIndex] || sorted[0];

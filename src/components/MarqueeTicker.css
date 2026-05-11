@@ -201,14 +201,23 @@
   font-weight: 600;
 }
 
-/* Cuando está dentro del VideoPlayer usa absolute para que funcione en fullscreen nativo */
+/* Cuando está dentro del VideoPlayer: overlay cubre solo el área del video */
 .mt-overlay--in-player {
   position: absolute;
+  bottom: 44px; /* deja espacio para la barra de marquesina */
 }
 
+/* Barra de marquesina dentro del player — fuera del video, con fondo propio */
 .mt-marquee--in-player {
-  position: absolute;
-  bottom: 28px; /* dentro del video player no hay barra de música */
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 44px;
+  background: linear-gradient(90deg, #0a0814 0%, #12102a 50%, #0a0814 100%);
+  border-top: 1px solid rgba(212, 175, 55, 0.5);
+  box-shadow: 0 -4px 20px rgba(212, 175, 55, 0.08);
+  z-index: 9100;
 }
 
 /* ===== MARQUEE BAR ===== */
