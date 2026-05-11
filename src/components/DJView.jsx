@@ -66,6 +66,9 @@ const cfVolB = (cf) => cf >= 50 ? 100 : Math.round(cf * 2);
 const finalVol = (deckVol, cfVol) => Math.round(deckVol * cfVol / 100);
 
 export default function DJView({ tracks = [], currentTrack, isPlaying, onPlay, onAddToQueue, queue = [] }) {
+  // ── Tab ──────────────────────────────────────────────────────────────────
+  const [activeTab, setActiveTab] = useState('cabina'); // 'cabina' | 'youtube'
+
   // ── COSMOS setlist state ──────────────────────────────────────────────────
   const [mixMode, setMixMode]         = useState('shuffle');
   const [isMixActive, setIsMixActive] = useState(false);
@@ -610,8 +613,24 @@ export default function DJView({ tracks = [], currentTrack, isPlaying, onPlay, o
         <p className="dj-view__subtitle">{tracks.length} tracks en la cabina &nbsp;·&nbsp; Modo Fiesta</p>
       </header>
 
+      {/* ── Tabs ── */}
+      <div className="dj-view__tabs">
+        <button
+          className={`dj-view__tab ${activeTab === 'cabina' ? 'dj-view__tab--on' : ''}`}
+          onClick={() => setActiveTab('cabina')}
+        >
+          🎧 CABINA
+        </button>
+        <button
+          className={`dj-view__tab ${activeTab === 'youtube' ? 'dj-view__tab--on' : ''}`}
+          onClick={() => setActiveTab('youtube')}
+        >
+          🎬 YOUTUBE DJ
+        </button>
+      </div>
+
       {/* ── YouTube DJ Panel ── */}
-      <section className="dj-view__yt-section">
+      {activeTab === 'youtube' && <section className="dj-view__yt-section">
         {renderDeck('A')}
 
         {/* Crossfader center */}
@@ -639,10 +658,10 @@ export default function DJView({ tracks = [], currentTrack, isPlaying, onPlay, o
         </div>
 
         {renderDeck('B')}
-      </section>
+      </section>}
 
-      {/* ── Vinyl stage ── */}
-      <section className="dj-view__stage">
+      {/* ── Vinyl stage + setlist (tab CABINA) ── */}
+      {activeTab === 'cabina' && <section className="dj-view__stage">
         <div className="dj-view__deck">
           <div className="dj-view__deck-tag">DECK A</div>
           <div
@@ -710,10 +729,9 @@ export default function DJView({ tracks = [], currentTrack, isPlaying, onPlay, o
             <p className="dj-view__deck-artist">{nextTrack?.artist || nextTrack?.category || (deckBId ? `${speedB.toFixed(2)}x` : '')}</p>
           </div>
         </div>
-      </section>
+      </section>}
 
-      {/* ── Setlist ── */}
-      <section className="dj-view__setlist">
+      {activeTab === 'cabina' && <section className="dj-view__setlist">
         <div className="dj-view__setlist-bar">
           <h2 className="dj-view__setlist-title">Setlist <span className="dj-view__setlist-count">{filteredTracks.length}</span></h2>
           <input className="dj-view__search" placeholder="Buscar track..." value={search} onChange={e => setSearch(e.target.value)} />
@@ -745,7 +763,8 @@ export default function DJView({ tracks = [], currentTrack, isPlaying, onPlay, o
               );
             })}
         </div>
-      </section>
+      </section>}
+
     </div>
   );
 }
