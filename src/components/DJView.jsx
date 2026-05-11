@@ -65,7 +65,7 @@ const cfVolA = (cf) => cf <= 50 ? 100 : Math.round((100 - cf) * 2);
 const cfVolB = (cf) => cf >= 50 ? 100 : Math.round(cf * 2);
 const finalVol = (deckVol, cfVol) => Math.round(deckVol * cfVol / 100);
 
-export default function DJView({ tracks = [], currentTrack, isPlaying, onPlay, onAddToQueue, queue = [] }) {
+export default function DJView({ tracks = [], currentTrack, isPlaying, onPlay, onAddToQueue, queue = [], onDJPlay }) {
   // ── Tab ──────────────────────────────────────────────────────────────────
   const [activeTab, setActiveTab] = useState('cabina'); // 'cabina' | 'youtube'
 
@@ -194,7 +194,7 @@ export default function DJView({ tracks = [], currentTrack, isPlaying, onPlay, o
         onStateChange: (e) => {
           const playing = e.data === window.YT.PlayerState.PLAYING;
           setPlaying(playing);
-          if (playing) startPoller();
+          if (playing) { startPoller(); onDJPlay?.(); }
 
           // Auto-transition al otro deck cuando termina la pista
           if (e.data === window.YT.PlayerState.ENDED) {

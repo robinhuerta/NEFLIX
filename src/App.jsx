@@ -650,6 +650,7 @@ function App() {
           onPlay={(track, queue) => playTrack(track, queue || [])}
           onAddToQueue={addToQueue}
           queue={musicQueue}
+          onDJPlay={() => setIsMusicPlaying(false)}
         />
       )}
 
