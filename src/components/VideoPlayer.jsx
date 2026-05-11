@@ -160,6 +160,11 @@ const VideoPlayer = ({ onBack, fileName, videoUrl: initialUrl, movieTitle = "COS
     };
   }, [videoUrl]);
 
+  const showToast = (msg) => {
+    setToast(msg);
+    setTimeout(() => setToast(''), 3000);
+  };
+
   const toggleAutoplay = () => {
     const val = !autoplay;
     setAutoplay(val);
@@ -167,14 +172,8 @@ const VideoPlayer = ({ onBack, fileName, videoUrl: initialUrl, movieTitle = "COS
     showToast(val ? 'Reproducción automática activada' : 'Reproducción automática desactivada');
   };
 
-  // Para videos locales (Firebase)
   const handleVideoEnded = () => {
     if (autoplay && hasNext && onNext) onNext();
-  };
-
-  const showToast = (msg) => {
-    setToast(msg);
-    setTimeout(() => setToast(''), 3000);
   };
 
   const togglePlay = () => {
