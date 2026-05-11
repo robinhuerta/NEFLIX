@@ -11,9 +11,9 @@
   transition: height 0.3s ease, cursor 0.3s;
 }
 
-/* Encoge el player para que la barra de marquesina quede fuera del video */
-body.has-player-marquee .video-player {
-  height: calc(100vh - 44px);
+/* Cuando la barra de marquesina es un flex child, los controles suben para no taparla */
+body.has-player-marquee .video-player__bottom {
+  bottom: 44px;
 }
 
 .video-player--hide-controls {
