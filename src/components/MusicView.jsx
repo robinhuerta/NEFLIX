@@ -16,13 +16,18 @@ const MusicView = ({ tracks = [], currentTrack, isPlaying, onPlay, onAddToQueue,
     if (!q.trim()) { setYtResults([]); return; }
     setYtLoading(true);
     const key = import.meta.env.VITE_YOUTUBE_API_KEY;
-    fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&videoCategoryId=10&maxResults=12&q=${encodeURIComponent(q)}&key=${key}`)
+    fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=12&q=${encodeURIComponent(q)}&key=${key}`)
       .then(r => r.json())
       .then(data => {
-        setYtResults(data.items || []);
+        if (data.error) {
+          console.error('YouTube API error:', data.error.message);
+          setYtResults([]);
+        } else {
+          setYtResults(data.items || []);
+        }
         setYtLoading(false);
       })
-      .catch(() => setYtLoading(false));
+      .catch(err => { console.error('YouTube fetch error:', err); setYtLoading(false); });
   };
 
   const handleYtInput = (val) => {
