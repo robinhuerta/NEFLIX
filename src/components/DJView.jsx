@@ -142,13 +142,17 @@ export default function DJView({ tracks = [], currentTrack, isPlaying, onPlay, o
   const scratchStartX = useRef(0);
   const loopARef      = useRef(loopA);
   const loopBRef      = useRef(loopB);
+  const deckAIdRef    = useRef(null);
+  const deckBIdRef    = useRef(null);
 
   // ── Keep refs in sync ────────────────────────────────────────────────────
-  useEffect(() => { cfRef.current   = crossfader; }, [crossfader]);
-  useEffect(() => { volARef.current = volA; },       [volA]);
-  useEffect(() => { volBRef.current = volB; },       [volB]);
-  useEffect(() => { loopARef.current = loopA; },     [loopA]);
-  useEffect(() => { loopBRef.current = loopB; },     [loopB]);
+  useEffect(() => { cfRef.current      = crossfader; }, [crossfader]);
+  useEffect(() => { volARef.current    = volA; },        [volA]);
+  useEffect(() => { volBRef.current    = volB; },        [volB]);
+  useEffect(() => { loopARef.current   = loopA; },       [loopA]);
+  useEffect(() => { loopBRef.current   = loopB; },       [loopB]);
+  useEffect(() => { deckAIdRef.current = deckAId; },     [deckAId]);
+  useEffect(() => { deckBIdRef.current = deckBId; },     [deckBId]);
 
   // ── Volume update helper ──────────────────────────────────────────────────
   const applyVolumes = (cf, vA, vB) => {
@@ -191,6 +195,33 @@ export default function DJView({ tracks = [], currentTrack, isPlaying, onPlay, o
           const playing = e.data === window.YT.PlayerState.PLAYING;
           setPlaying(playing);
           if (playing) startPoller();
+
+          // Auto-transition al otro deck cuando termina la pista
+          if (e.data === window.YT.PlayerState.ENDED) {
+            const otherHasTrack = deck === 'A' ? deckBIdRef.current : deckAIdRef.current;
+            const otherPlayer   = deck === 'A' ? ytPlayerB.current  : ytPlayerA.current;
+            if (!otherHasTrack || !otherPlayer) return;
+
+            // Arrancar el otro deck
+            otherPlayer.playVideo?.();
+
+            // Crossfade suave hacia el otro deck (3 segundos)
+            const targetCf = deck === 'A' ? 100 : 0;
+            clearInterval(autoFadeTimer.current);
+            setAutoFading(true);
+            const from = cfRef.current;
+            const steps = 30;
+            let step = 0;
+            autoFadeTimer.current = setInterval(() => {
+              step++;
+              const newCf = Math.round(from + (targetCf - from) * (step / steps));
+              setCrossfader(newCf);
+              cfRef.current = newCf;
+              ytPlayerA.current?.setVolume?.(finalVol(volARef.current, cfVolA(newCf)));
+              ytPlayerB.current?.setVolume?.(finalVol(volBRef.current, cfVolB(newCf)));
+              if (step >= steps) { clearInterval(autoFadeTimer.current); setAutoFading(false); }
+            }, 100);
+          }
         },
       },
     });
