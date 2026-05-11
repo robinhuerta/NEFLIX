@@ -1,5 +1,21 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import './DJView.css';
+
+const YT_API_KEY = import.meta.env.VITE_YOUTUBE_API_KEY;
+
+const searchYouTube = async (query) => {
+  if (!query.trim() || !YT_API_KEY) return [];
+  const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&q=${encodeURIComponent(query)}&key=${YT_API_KEY}&maxResults=8&videoCategoryId=10`;
+  const res = await fetch(url);
+  if (!res.ok) return [];
+  const data = await res.json();
+  return (data.items || []).map(item => ({
+    id: item.id.videoId,
+    title: item.snippet.title,
+    channel: item.snippet.channelTitle,
+    thumb: item.snippet.thumbnails?.default?.url,
+  }));
+};
 
 const GENRE_BPM = {
   reggaeton: [85, 100], merengue: [120, 145], salsa: [160, 220],
@@ -59,18 +75,28 @@ export default function DJView({ tracks = [], currentTrack, isPlaying, onPlay, o
   const [activeGenre, setActiveGenre] = useState('Todos');
 
   // YouTube DJ state
-  const [deckAId, setDeckAId]         = useState(null);
-  const [deckBId, setDeckBId]         = useState(null);
-  const [deckATitle, setDeckATitle]   = useState('');
-  const [deckBTitle, setDeckBTitle]   = useState('');
+  const [deckAId, setDeckAId]           = useState(null);
+  const [deckBId, setDeckBId]           = useState(null);
+  const [deckATitle, setDeckATitle]     = useState('');
+  const [deckBTitle, setDeckBTitle]     = useState('');
   const [deckAPlaying, setDeckAPlaying] = useState(false);
   const [deckBPlaying, setDeckBPlaying] = useState(false);
-  const [crossfader, setCrossfader]   = useState(50);
-  const [inputA, setInputA]           = useState('');
-  const [inputB, setInputB]           = useState('');
-  const [showVideoA, setShowVideoA]   = useState(true);
-  const [showVideoB, setShowVideoB]   = useState(true);
-  const [ytReady, setYtReady]         = useState(false);
+  const [crossfader, setCrossfader]     = useState(50);
+  const [showVideoA, setShowVideoA]     = useState(true);
+  const [showVideoB, setShowVideoB]     = useState(true);
+  const [ytReady, setYtReady]           = useState(false);
+
+  // Search state per deck
+  const [queryA, setQueryA]       = useState('');
+  const [queryB, setQueryB]       = useState('');
+  const [resultsA, setResultsA]   = useState([]);
+  const [resultsB, setResultsB]   = useState([]);
+  const [loadingA, setLoadingA]   = useState(false);
+  const [loadingB, setLoadingB]   = useState(false);
+  const [showResA, setShowResA]   = useState(false);
+  const [showResB, setShowResB]   = useState(false);
+  const searchTimerA = useRef(null);
+  const searchTimerB = useRef(null);
 
   const ytContainerA = useRef(null);
   const ytContainerB = useRef(null);
@@ -175,12 +201,47 @@ export default function DJView({ tracks = [], currentTrack, isPlaying, onPlay, o
     setIsMixActive(true);
   };
 
+  const handleSearchChange = (deck, value) => {
+    if (deck === 'A') { setQueryA(value); setShowResA(true); }
+    else              { setQueryB(value); setShowResB(true); }
+
+    const timer = deck === 'A' ? searchTimerA : searchTimerB;
+    const setLoading = deck === 'A' ? setLoadingA : setLoadingB;
+    const setResults = deck === 'A' ? setResultsA : setResultsB;
+
+    clearTimeout(timer.current);
+    if (!value.trim()) { setResults([]); return; }
+    setLoading(true);
+    timer.current = setTimeout(async () => {
+      const res = await searchYouTube(value);
+      setResults(res);
+      setLoading(false);
+    }, 500);
+  };
+
+  const pickResult = (deck, result) => {
+    if (deck === 'A') {
+      setDeckAId(result.id);
+      setDeckATitle(result.title);
+      setQueryA('');
+      setResultsA([]);
+      setShowResA(false);
+    } else {
+      setDeckBId(result.id);
+      setDeckBTitle(result.title);
+      setQueryB('');
+      setResultsB([]);
+      setShowResB(false);
+    }
+  };
+
   const loadDeck = (deck) => {
-    const input = deck === 'A' ? inputA : inputB;
-    const id = getYtId(input);
-    if (!id) return;
-    if (deck === 'A') { setDeckAId(id); setDeckATitle(input); setInputA(''); }
-    else              { setDeckBId(id); setDeckBTitle(input); setInputB(''); }
+    const query = deck === 'A' ? queryA : queryB;
+    const id = getYtId(query);
+    if (id) {
+      if (deck === 'A') { setDeckAId(id); setDeckATitle(query); setQueryA(''); setShowResA(false); }
+      else              { setDeckBId(id); setDeckBTitle(query); setQueryB(''); setShowResB(false); }
+    }
   };
 
   const toggleDeck = (deck) => {
@@ -257,15 +318,30 @@ export default function DJView({ tracks = [], currentTrack, isPlaying, onPlay, o
             </div>
           )}
 
-          <div className="dj-view__yt-input-row">
+          <div className="dj-view__yt-search-wrap">
             <input
               className="dj-view__yt-input"
-              placeholder="URL de YouTube..."
-              value={inputA}
-              onChange={e => setInputA(e.target.value)}
+              placeholder="Buscar en YouTube..."
+              value={queryA}
+              onChange={e => handleSearchChange('A', e.target.value)}
+              onFocus={() => setShowResA(true)}
+              onBlur={() => setTimeout(() => setShowResA(false), 200)}
               onKeyDown={e => e.key === 'Enter' && loadDeck('A')}
             />
-            <button className="dj-view__yt-load" onClick={() => loadDeck('A')}>Cargar</button>
+            {loadingA && <span className="dj-view__yt-spinner" />}
+            {showResA && resultsA.length > 0 && (
+              <div className="dj-view__yt-results">
+                {resultsA.map(r => (
+                  <div key={r.id} className="dj-view__yt-result" onMouseDown={() => pickResult('A', r)}>
+                    <img src={r.thumb} alt="" className="dj-view__yt-result-thumb" />
+                    <div className="dj-view__yt-result-info">
+                      <span className="dj-view__yt-result-title">{r.title}</span>
+                      <span className="dj-view__yt-result-ch">{r.channel}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {deckAId && (
@@ -335,15 +411,30 @@ export default function DJView({ tracks = [], currentTrack, isPlaying, onPlay, o
             </div>
           )}
 
-          <div className="dj-view__yt-input-row">
+          <div className="dj-view__yt-search-wrap">
             <input
               className="dj-view__yt-input"
-              placeholder="URL de YouTube..."
-              value={inputB}
-              onChange={e => setInputB(e.target.value)}
+              placeholder="Buscar en YouTube..."
+              value={queryB}
+              onChange={e => handleSearchChange('B', e.target.value)}
+              onFocus={() => setShowResB(true)}
+              onBlur={() => setTimeout(() => setShowResB(false), 200)}
               onKeyDown={e => e.key === 'Enter' && loadDeck('B')}
             />
-            <button className="dj-view__yt-load" onClick={() => loadDeck('B')}>Cargar</button>
+            {loadingB && <span className="dj-view__yt-spinner" />}
+            {showResB && resultsB.length > 0 && (
+              <div className="dj-view__yt-results">
+                {resultsB.map(r => (
+                  <div key={r.id} className="dj-view__yt-result" onMouseDown={() => pickResult('B', r)}>
+                    <img src={r.thumb} alt="" className="dj-view__yt-result-thumb" />
+                    <div className="dj-view__yt-result-info">
+                      <span className="dj-view__yt-result-title">{r.title}</span>
+                      <span className="dj-view__yt-result-ch">{r.channel}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {deckBId && (
