@@ -3,6 +3,31 @@ import './VideoPlayer.css';
 import { storage } from '../firebaseConfig';
 import { ref, getDownloadURL } from 'firebase/storage';
 
+// Funciones puras a nivel de módulo (evita TDZ en minificación)
+const isYouTube = (url) => !!(url && (url.includes('youtube.com') || url.includes('youtu.be')));
+const isDrive   = (url) => !!(url && (url.includes('drive.google.com') || url.includes('docs.google.com')));
+
+const getYouTubeId = (url) => {
+  if (!url) return null;
+  const m = url.match(/^.*(youtu\.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/);
+  return (m && m[2].length === 11) ? m[2] : null;
+};
+
+const getDriveId = (url) => {
+  if (!url || url.includes('/folders/')) return null;
+  const m = url.match(/(?:\/d\/|id=)([\w-]+)/);
+  return m ? m[1] : null;
+};
+
+const formatTime = (time) => {
+  if (!time || isNaN(time)) return '00:00';
+  const m = Math.floor(time / 60);
+  const s = Math.floor(time % 60);
+  return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+};
+
+const SPEED_OPTIONS = [0.5, 1, 1.5, 2];
+
 const VideoPlayer = ({ onBack, fileName, videoUrl: initialUrl, movieTitle = "COSMOS Original", episode = "Película", initialTime = 0, onProgress, onNext, hasNext, children }) => {
   const [isPlaying, setIsPlaying] = useState(true);
   const [videoUrl, setVideoUrl] = useState(initialUrl || '');
@@ -34,25 +59,6 @@ const VideoPlayer = ({ onBack, fileName, videoUrl: initialUrl, movieTitle = "COS
   // YouTube IFrame Player API
   const ytContainerRef = useRef(null);
   const ytPlayerRef = useRef(null);
-
-  const isYouTube = (url) => url && (url.includes('youtube.com') || url.includes('youtu.be'));
-  const isDrive = (url) => url && (url.includes('drive.google.com') || url.includes('docs.google.com'));
-  
-  const getYouTubeId = (url) => {
-    if (!url) return null;
-    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
-    const match = url.match(regExp);
-    return (match && match[2].length === 11) ? match[2] : null;
-  };
-
-  const getDriveId = (url) => {
-    if (!url) return null;
-    // Evitar que detecte IDs de carpetas como si fueran archivos
-    if (url.includes('/folders/')) return null;
-    const regExp = /(?:\/d\/|id=)([\w-]+)/;
-    const match = url.match(regExp);
-    return match ? match[1] : null;
-  };
 
   useEffect(() => {
     if (initialUrl && initialUrl !== videoUrl) {
@@ -199,12 +205,6 @@ const VideoPlayer = ({ onBack, fileName, videoUrl: initialUrl, movieTitle = "COS
     }
   };
 
-  const formatTime = (time) => {
-    if (isNaN(time) || time === 0) return "00:00";
-    const minutes = Math.floor(time / 60);
-    const seconds = Math.floor(time % 60);
-    return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-  };
 
   const handleSeek = (e) => {
     if (videoRef.current && duration > 0) {
@@ -445,7 +445,7 @@ const VideoPlayer = ({ onBack, fileName, videoUrl: initialUrl, movieTitle = "COS
                 </button>
                 {showSettings && (
                   <div className="video-player__settings-popup">
-                    {[0.5, 1, 1.5, 2].map(speed => (
+                    {SPEED_OPTIONS.map(speed => (
                       <div key={speed} className="video-player__speed-option" onClick={() => handleSpeedChange(speed)}>{speed}x</div>
                     ))}
                   </div>
