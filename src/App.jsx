@@ -579,10 +579,7 @@ function App() {
         myListCount={myList.length}
         onShowMyList={() => setShowMyList(true)}
         onLogout={handleLogout}
-        onShowAdmin={() => {
-          const pwd = window.prompt('Contraseña de administrador:');
-          if (pwd === 'cosmos2025') setShowAdmin(true);
-        }}
+        onShowAdmin={() => setShowAdmin(true)}
         onShowMusic={() => { setShowMusic(true); setShowDJ(false); setShowSeries(false); setSearchQuery(''); }}
         onShowDJ={() => { setShowDJ(true); setShowMusic(false); setShowSeries(false); setSearchQuery(''); }}
         onShowSeries={() => { setShowSeries(true); setShowMusic(false); setShowDJ(false); setSelectedSeries(null); setSearchQuery(''); }}
