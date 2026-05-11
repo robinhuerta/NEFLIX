@@ -31,17 +31,23 @@ const MusicView = ({ tracks = [], currentTrack, isPlaying, onPlay, onAddToQueue,
     ytTimer.current = setTimeout(() => searchYouTube(val), 500);
   };
 
-  const playYt = (item) => {
+  const toTrack = (item) => {
     const id = item.id?.videoId;
     const snip = item.snippet;
-    onWatch({
+    return {
       id,
       title: snip.title,
       artist: snip.channelTitle,
       image: snip.thumbnails?.high?.url || snip.thumbnails?.default?.url,
       videoUrl: `https://www.youtube.com/watch?v=${id}`,
       category: 'Videos Musicales',
-    });
+    };
+  };
+
+  const playYt = (item) => {
+    const idx = ytResults.indexOf(item);
+    const queue = ytResults.slice(idx + 1).map(toTrack);
+    onWatch(toTrack(item), queue);
   };
 
 

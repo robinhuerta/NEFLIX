@@ -25,6 +25,7 @@ function App() {
   const [showIntro, setShowIntro] = useState(true);
   const [showPlayer, setShowPlayer] = useState(false);
   const [selectedVideo, setSelectedVideo] = useState(null);
+  const [ytVideoQueue, setYtVideoQueue] = useState([]);
   const videoStartRef = useRef(null); // timestamp cuando se abrió el video (para YouTube/Drive)
   const [firebaseVideos, setFirebaseVideos] = useState([]);
   const [firebaseLoading, setFirebaseLoading] = useState(true);
@@ -356,7 +357,16 @@ function App() {
 
   // Autoplay solo para videos musicales
   const handleNextVideo = () => {
-    if (!selectedVideo || !isMusicVideo(selectedVideo)) return;
+    if (!selectedVideo) return;
+    // Cola de búsqueda YouTube
+    if (ytVideoQueue.length > 0) {
+      const [next, ...rest] = ytVideoQueue;
+      setSelectedVideo(next);
+      setYtVideoQueue(rest);
+      videoStartRef.current = Date.now();
+      return;
+    }
+    if (!isMusicVideo(selectedVideo)) return;
     const idx = musicVideos.findIndex(v => v.id === selectedVideo.id);
     if (idx >= 0 && idx < musicVideos.length - 1) {
       setSelectedVideo(musicVideos[idx + 1]);
@@ -444,8 +454,10 @@ function App() {
     v.type?.toLowerCase() === 'música'
   );
 
-  const hasNext = isMusicVideo(selectedVideo) &&
-    musicVideos.findIndex(v => v.id === selectedVideo?.id) < musicVideos.length - 1;
+  const hasNext = ytVideoQueue.length > 0 || (
+    isMusicVideo(selectedVideo) &&
+    musicVideos.findIndex(v => v.id === selectedVideo?.id) < musicVideos.length - 1
+  );
 
   // Solo películas (excluye música y series)
   const peliculasVideos = firebaseVideos.filter(v => {
@@ -625,7 +637,7 @@ function App() {
           isPlaying={isMusicPlaying}
           onPlay={(track, queue) => playTrack(track, queue || [])}
           onAddToQueue={addToQueue}
-          onWatch={(track) => { setSelectedVideo(track); setShowPlayer(true); }}
+          onWatch={(track, queue) => { setSelectedVideo(track); setYtVideoQueue(queue || []); setShowPlayer(true); }}
         />
       )}
 
