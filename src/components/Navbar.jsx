@@ -9,7 +9,7 @@ const mockNotifications = [
   { id: 5, text: "Nuevas películas agregadas", time: "Hace 3d", isNew: false },
 ];
 
-const Navbar = ({ user, onSearch, myListCount = 0, onShowMyList, onLogout, onShowAdmin, onShowMusic, onShowPeliculas, onShowSeries, onShowDJ, onGoHome, activeSection = '' }) => {
+const Navbar = ({ user, onSearch, myListCount = 0, onShowMyList, onLogout, onShowAdmin, onShowMusic, onShowSeries, onShowDJ, onGoHome, activeSection = '' }) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const [searchValue, setSearchValue] = useState('');
@@ -64,9 +64,6 @@ const Navbar = ({ user, onSearch, myListCount = 0, onShowMyList, onLogout, onSho
       case 'series':
         if (onShowSeries) onShowSeries();
         break;
-      case 'peliculas':
-        if (onShowPeliculas) onShowPeliculas();
-        break;
       case 'musica':
         if (onShowMusic) onShowMusic();
         break;
@@ -90,7 +87,6 @@ const Navbar = ({ user, onSearch, myListCount = 0, onShowMyList, onLogout, onSho
         <ul className="navbar__links">
           <li className="navbar__link" onClick={() => handleNavClick('inicio')}>Inicio</li>
           <li className={`navbar__link ${activeSection === 'series' ? 'navbar__link--active' : ''}`} onClick={() => handleNavClick('series')}>Series</li>
-          <li className={`navbar__link ${activeSection === 'peliculas' ? 'navbar__link--active' : ''}`} onClick={() => handleNavClick('peliculas')}>Películas</li>
           <li className={`navbar__link ${activeSection === 'musica' ? 'navbar__link--active' : ''}`} onClick={() => handleNavClick('musica')}>Música</li>
           <li className={`navbar__link navbar__link--dj ${activeSection === 'dj' ? 'navbar__link--active' : ''}`} onClick={() => handleNavClick('dj')}>🎧 DJ</li>
           <li className="navbar__link navbar__link--mylist" onClick={() => onShowMyList && onShowMyList()}>
@@ -191,7 +187,6 @@ const Navbar = ({ user, onSearch, myListCount = 0, onShowMyList, onLogout, onSho
             <nav className="mobile-menu__links">
               <div className="mobile-menu__link" onClick={() => { handleNavClick('inicio'); setShowMobileMenu(false); }}>Inicio</div>
               <div className="mobile-menu__link" onClick={() => { handleNavClick('series'); setShowMobileMenu(false); }}>Series</div>
-              <div className="mobile-menu__link" onClick={() => { handleNavClick('peliculas'); setShowMobileMenu(false); }}>Películas</div>
               <div className="mobile-menu__link" onClick={() => { handleNavClick('musica'); setShowMobileMenu(false); }}>Música</div>
               <div className="mobile-menu__link" onClick={() => { handleNavClick('dj'); setShowMobileMenu(false); }}>🎧 DJ</div>
               <div className="mobile-menu__link" onClick={() => { onShowMyList && onShowMyList(); setShowMobileMenu(false); }}>

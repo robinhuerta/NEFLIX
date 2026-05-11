@@ -35,7 +35,6 @@ function App() {
   const [showAdmin, setShowAdmin] = useState(false);
   const [showMusic, setShowMusic] = useState(false);
   const [showDJ, setShowDJ] = useState(false);
-  const [showPeliculas, setShowPeliculas] = useState(false);
   const [showSeries, setShowSeries] = useState(false);
   const [selectedSeries, setSelectedSeries] = useState(null);
   const [seriesPlayQueue, setSeriesPlayQueue] = useState([]);
@@ -584,12 +583,11 @@ function App() {
           const pwd = window.prompt('Contraseña de administrador:');
           if (pwd === 'cosmos2025') setShowAdmin(true);
         }}
-        onShowMusic={() => { setShowMusic(true); setShowDJ(false); setShowPeliculas(false); setShowSeries(false); setSearchQuery(''); }}
-        onShowDJ={() => { setShowDJ(true); setShowMusic(false); setShowPeliculas(false); setShowSeries(false); setSearchQuery(''); }}
-        onShowPeliculas={() => { setShowPeliculas(true); setShowMusic(false); setShowDJ(false); setShowSeries(false); setSearchQuery(''); }}
-        onShowSeries={() => { setShowSeries(true); setShowMusic(false); setShowDJ(false); setShowPeliculas(false); setSelectedSeries(null); setSearchQuery(''); }}
-        onGoHome={() => { setShowMusic(false); setShowDJ(false); setShowPeliculas(false); setShowSeries(false); setSelectedSeries(null); setSearchQuery(''); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
-        activeSection={showMusic ? 'musica' : showDJ ? 'dj' : showPeliculas ? 'peliculas' : showSeries ? 'series' : ''}
+        onShowMusic={() => { setShowMusic(true); setShowDJ(false); setShowSeries(false); setSearchQuery(''); }}
+        onShowDJ={() => { setShowDJ(true); setShowMusic(false); setShowSeries(false); setSearchQuery(''); }}
+        onShowSeries={() => { setShowSeries(true); setShowMusic(false); setShowDJ(false); setSelectedSeries(null); setSearchQuery(''); }}
+        onGoHome={() => { setShowMusic(false); setShowDJ(false); setShowSeries(false); setSelectedSeries(null); setSearchQuery(''); window.scrollTo({ top: 0, behavior: 'smooth' }); }}
+        activeSection={showMusic ? 'musica' : showDJ ? 'dj' : showSeries ? 'series' : ''}
       />
 
       {/* Search Results */}
@@ -683,48 +681,7 @@ function App() {
         />
       )}
 
-      {/* Películas Page */}
-      {showPeliculas && !searchResults && (
-        <div style={{ paddingTop: '90px', minHeight: '100vh' }}>
-          {firebaseLoading ? (
-            <div className="firebase-gallery__grid" style={{ padding: '0 4%' }}>
-              {Array.from({ length: SKELETON_COUNT }).map((_, i) => <SkeletonCard key={i} />)}
-            </div>
-          ) : peliculasVideos.length === 0 ? (
-            <p style={{ color: '#aaa', textAlign: 'center', marginTop: '60px', fontSize: '1.1rem' }}>
-              No hay películas disponibles todavía.
-            </p>
-          ) : (
-            <>
-              {/* Agrupar por género y mostrar cada uno como fila */}
-              {Object.entries(
-                peliculasVideos.reduce((acc, v) => {
-                  const key = v.genre || v.category || 'Otros';
-                  if (!acc[key]) acc[key] = [];
-                  acc[key].push(v);
-                  return acc;
-                }, {})
-              ).map(([genero, items]) => (
-                <MovieRow
-                  key={genero}
-                  title={genero}
-                  items={items}
-                  onSelect={handleSelectMovie}
-                  onPlay={handlePlayMovie}
-                  onAddToList={handleAddToList}
-                  onInfo={setInfoMovie}
-                  isInMyList={isInMyList}
-                  isLiked={isLiked}
-                  onLike={toggleLike}
-                  onHover={handleHoverMovie}
-                />
-              ))}
-            </>
-          )}
-        </div>
-      )}
-
-      {!showMusic && !showPeliculas && !showSeries && !searchResults && (
+      {!showMusic && !showDJ && !showSeries && !searchResults && (
         <>
           <Hero
             movie={featuredMovie}
@@ -751,38 +708,42 @@ function App() {
               />
             )}
 
-            {/* Firebase videos con skeleton */}
-            <div className="firebase-gallery" id="section-peliculas">
-              <h2 className="firebase-gallery__title">Tus Videos de Cosmos</h2>
-              <div className="firebase-gallery__grid">
-                {firebaseLoading
-                  ? Array.from({ length: SKELETON_COUNT }).map((_, i) => <SkeletonCard key={i} />)
-                  : firebaseVideos.map(video => (
-                      <MovieCard
-                        key={video.id}
-                        movie={video}
-                        onSelect={handleSelectMovie}
-                        onPlay={handlePlayMovie}
-                        onAddToList={handleAddToList}
-                        onInfo={setInfoMovie}
-                        isInMyList={isInMyList(video.id)}
-                        isLiked={isLiked(video.id)}
-                        onLike={toggleLike}
-                        onHover={handleHoverMovie}
-                      />
-                    ))
-                }
+            {/* Películas agrupadas por género */}
+            {firebaseLoading ? (
+              <div className="firebase-gallery__grid" style={{ padding: '0 4%', marginTop: '2rem' }}>
+                {Array.from({ length: SKELETON_COUNT }).map((_, i) => <SkeletonCard key={i} />)}
               </div>
-            </div>
+            ) : peliculasVideos.length > 0 ? (
+              Object.entries(
+                peliculasVideos.reduce((acc, v) => {
+                  const key = v.genre || v.category || 'Otros';
+                  if (!acc[key]) acc[key] = [];
+                  acc[key].push(v);
+                  return acc;
+                }, {})
+              ).map(([genero, items]) => (
+                <MovieRow
+                  key={genero}
+                  title={genero}
+                  items={items}
+                  onSelect={handleSelectMovie}
+                  onPlay={handlePlayMovie}
+                  onAddToList={handleAddToList}
+                  onInfo={setInfoMovie}
+                  isInMyList={isInMyList}
+                  isLiked={isLiked}
+                  onLike={toggleLike}
+                  onHover={handleHoverMovie}
+                />
+              ))
+            ) : null}
 
-            {dynamicCategories.map((category) => category.items.length > 0 && (
+            {/* Series Populares — fila preview */}
+            {seriesList.length > 0 && (
               <MovieRow
-                key={category.id}
-                title={category.title}
-                items={category.items}
-                isTop10Row={category.isTop10Row}
+                title="Series Populares"
+                items={seriesList}
                 onSelect={handleSelectMovie}
-                id={category.id === 'series' ? 'section-series' : category.id === 'movies' ? 'section-peliculas-row' : category.id === 'musica' ? 'section-musica' : undefined}
                 onPlay={handlePlayMovie}
                 onAddToList={handleAddToList}
                 onInfo={setInfoMovie}
@@ -791,7 +752,23 @@ function App() {
                 onLike={toggleLike}
                 onHover={handleHoverMovie}
               />
-            ))}
+            )}
+
+            {/* Destacados de Música — fila preview */}
+            {musicVideos.length > 0 && (
+              <MovieRow
+                title="🎵 Destacados de Música"
+                items={musicVideos.slice(0, 12)}
+                onSelect={handleSelectMovie}
+                onPlay={handlePlayMovie}
+                onAddToList={handleAddToList}
+                onInfo={setInfoMovie}
+                isInMyList={isInMyList}
+                isLiked={isLiked}
+                onLike={toggleLike}
+                onHover={handleHoverMovie}
+              />
+            )}
           </div>
 
           <footer className="footer" style={{ padding: '80px 0 50px', textAlign: 'center', color: '#808080', fontSize: '13px', borderTop: '1px solid rgba(255,255,255,0.05)', marginTop: '50px' }}>
