@@ -308,3 +308,27 @@
   .music-view__grid { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px; }
   .music-view__hero-title { font-size: 28px; }
 }
+
+@media (max-width: 360px) {
+  .music-view__hero { height: 160px; }
+  .music-view__hero-icon { font-size: 36px; }
+  .music-view__controls { padding: 12px 12px 0; gap: 8px; }
+  .music-view__content { padding: 12px 12px; }
+}
+
+@media (min-width: 1920px) {
+  .music-view__hero { height: 380px; }
+  .music-view__hero-title { font-size: clamp(48px, 4vw, 80px); }
+  .music-view__controls { padding: 28px 80px 0; }
+  .music-view__content { padding: 32px 80px; }
+  .music-view__group-title { font-size: 28px; }
+  .music-view__grid { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
+}
+
+@media (min-width: 2560px) {
+  .music-view__hero { height: 480px; }
+  .music-view__controls { padding: 36px 120px 0; }
+  .music-view__content { padding: 40px 120px; }
+  .music-view__grid { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
+  .music-view__group-title { font-size: 34px; }
+}

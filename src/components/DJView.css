@@ -701,4 +701,28 @@
 
 @media (max-width: 480px) {
   .dj-view__title { font-size: 2.2rem; letter-spacing: 2px; }
+  .dj-view__bpm-num { font-size: 2rem; }
+  .dj-view__platter { width: 140px; height: 140px; }
+  .dj-view__label { width: 60px; height: 60px; }
+  .dj-view__setlist { padding: 0 12px 24px; }
+  .dj-view__row { padding: 8px 10px; gap: 8px; }
+}
+
+@media (max-width: 360px) {
+  .dj-view__bpm-num { font-size: 1.6rem; }
+  .dj-view__platter { width: 120px; height: 120px; }
+}
+
+@media (min-width: 1920px) {
+  .dj-view__platter { width: 300px; height: 300px; }
+  .dj-view__label { width: 110px; height: 110px; }
+  .dj-view__bpm-num { font-size: 5rem; }
+  .dj-view__row { padding: 14px 20px; }
+  .dj-view__setlist { max-width: 1200px; }
+}
+
+@media (min-width: 2560px) {
+  .dj-view__platter { width: 380px; height: 380px; }
+  .dj-view__bpm-num { font-size: 6.5rem; }
+  .dj-view__setlist { max-width: 1600px; }
 }

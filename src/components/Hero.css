@@ -269,13 +269,13 @@
   .hero__buttons { flex-direction: column; width: 100%; max-width: 250px; margin: 0 auto; gap: 0.8rem; }
   .hero__button { width: 100%; justify-content: center; padding: 10px; font-size: 15px; }
   .hero__banner-image-container { width: 75vw; max-width: 260px; box-shadow: 0 10px 40px rgba(0,0,0,0.6); }
-  .hero__rating { 
-    position: relative; 
-    bottom: auto; 
-    right: auto; 
-    display: inline-block; 
-    margin: 10px auto; 
-    width: fit-content; 
+  .hero__rating {
+    position: relative;
+    bottom: auto;
+    right: auto;
+    display: inline-block;
+    margin: 10px auto;
+    width: fit-content;
     font-size: 11px;
     padding: 2px 8px;
     background: rgba(0,0,0,0.5);
@@ -283,4 +283,28 @@
     border-radius: 4px;
     color: #ffd700;
   }
+  .hero__mute-btn { right: 16px; bottom: 18%; width: 34px; height: 34px; }
+  .hero__rating { right: 0; bottom: 32%; }
+}
+
+/* Tiny phones */
+@media (max-width: 360px) {
+  .hero__title { font-size: 1.3rem; }
+  .hero__description { font-size: 12px; }
+  .hero__mute-btn { right: 12px; bottom: 15%; width: 32px; height: 32px; }
+  .hero__rating { display: none; }
+  .hero__button { padding: 0.6rem 1.2rem; font-size: 0.85rem; }
+}
+
+/* TV */
+@media (min-width: 1920px) {
+  .hero__mute-btn { right: 120px; width: 52px; height: 52px; }
+  .hero__rating { font-size: 1.1rem; padding: 0.7rem 1.8rem; }
+  .hero__button { padding: 1rem 2.8rem; font-size: 1.1rem; }
+}
+
+/* 4K */
+@media (min-width: 2560px) {
+  .hero__mute-btn { right: 160px; width: 64px; height: 64px; }
+  .hero__button { padding: 1.2rem 3.5rem; font-size: 1.4rem; }
 }

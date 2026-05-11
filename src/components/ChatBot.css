@@ -238,6 +238,10 @@
 }
 
 /* ── Responsive ──────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .chatbot-window { width: 300px; }
+}
+
 @media (max-width: 480px) {
   .chatbot-window {
     right: 8px;
@@ -249,4 +253,17 @@
     right: 12px;
     bottom: 130px;
   }
+}
+
+@media (min-width: 1920px) {
+  .chatbot-bubble { width: 68px; height: 68px; bottom: 180px; }
+  .chatbot-window { width: 420px; max-height: 620px; bottom: 240px; }
+  .chatbot-msg { font-size: 15px; }
+  .chatbot-input input { font-size: 15px; }
+}
+
+@media (min-width: 2560px) {
+  .chatbot-bubble { width: 80px; height: 80px; }
+  .chatbot-window { width: 500px; max-height: 700px; }
+  .chatbot-msg { font-size: 18px; }
 }
