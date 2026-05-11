@@ -204,22 +204,7 @@
 /* Cuando está dentro del VideoPlayer: overlay cubre solo el área del video */
 .mt-overlay--in-player {
   position: absolute;
-  bottom: 44px; /* deja espacio para la barra de marquesina */
-}
-
-/* Barra de marquesina dentro del player — flex child real, fuera del video */
-.mt-marquee--in-player {
-  position: relative;   /* sale del flujo fixed y pasa al flex layout */
-  bottom: auto;
-  left: auto;
-  right: auto;
-  width: 100%;
-  height: 44px;
-  flex-shrink: 0;
-  background: linear-gradient(90deg, #0a0814 0%, #12102a 50%, #0a0814 100%);
-  border-top: 1px solid rgba(212, 175, 55, 0.5);
-  box-shadow: 0 -4px 20px rgba(212, 175, 55, 0.08);
-  z-index: 200;
+  bottom: 44px;
 }
 
 /* ===== MARQUEE BAR ===== */
@@ -236,6 +221,21 @@
   overflow: hidden;
   cursor: pointer;
   transition: opacity 0.3s ease;
+}
+
+/* Barra dentro del player — DEBE ir después de .mt-marquee para ganar la cascada */
+.mt-marquee--in-player {
+  position: relative;   /* sale del flujo fixed y entra al flex layout del VideoPlayer */
+  bottom: auto;
+  left: auto;
+  right: auto;
+  width: 100%;
+  height: 44px;
+  flex-shrink: 0;
+  background: linear-gradient(90deg, #0a0814 0%, #12102a 50%, #0a0814 100%);
+  border-top: 1px solid rgba(212, 175, 55, 0.5);
+  box-shadow: 0 -4px 20px rgba(212, 175, 55, 0.08);
+  z-index: 200;
 }
 
 .mt-marquee:hover {
