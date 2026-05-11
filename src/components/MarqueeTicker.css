@@ -210,7 +210,7 @@
 /* ===== MARQUEE BAR ===== */
 .mt-marquee {
   position: fixed;
-  bottom: 76px; /* justo encima del MusicPlayer bar */
+  bottom: 0;
   left: 0;
   right: 0;
   z-index: 8001;
@@ -222,6 +222,12 @@
   overflow: hidden;
   cursor: pointer;
   transition: opacity 0.3s ease;
+}
+
+/* MusicPlayer sube cuando la marquesina está activa debajo */
+body.has-marquee .music-player {
+  bottom: 44px;
+  transition: bottom 0.3s ease;
 }
 
 /* Barra dentro del player — DEBE ir después de .mt-marquee para ganar la cascada */

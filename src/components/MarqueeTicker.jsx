@@ -89,14 +89,24 @@ const MarqueeTicker = ({ saludos = [], isPlaying, inPlayer = false }) => {
 
   useEffect(() => () => clearTimers(), []);
 
-  // Añade clase al body para que VideoPlayer pueda encoger cuando la barra está visible
+  // Clases en body para coordinar MusicPlayer y VideoPlayer con la marquesina
   useEffect(() => {
-    if (inPlayer && phase === 'marquee') {
-      document.body.classList.add('has-player-marquee');
+    if (phase === 'marquee') {
+      if (inPlayer) {
+        document.body.classList.add('has-player-marquee');
+        document.body.classList.remove('has-marquee');
+      } else {
+        document.body.classList.add('has-marquee');
+        document.body.classList.remove('has-player-marquee');
+      }
     } else {
+      document.body.classList.remove('has-marquee');
       document.body.classList.remove('has-player-marquee');
     }
-    return () => document.body.classList.remove('has-player-marquee');
+    return () => {
+      document.body.classList.remove('has-marquee');
+      document.body.classList.remove('has-player-marquee');
+    };
   }, [inPlayer, phase]);
 
   if (!isPlaying || sorted.length === 0 || phase === 'hidden') return null;
