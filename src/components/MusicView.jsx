@@ -44,18 +44,6 @@ const MusicView = ({ tracks = [], currentTrack, isPlaying, onPlay, onAddToQueue,
     });
   };
 
-  const queueYt = (item) => {
-    const id = item.id?.videoId;
-    const snip = item.snippet;
-    onAddToQueue?.({
-      id,
-      title: snip.title,
-      artist: snip.channelTitle,
-      image: snip.thumbnails?.high?.url || snip.thumbnails?.default?.url,
-      videoUrl: `https://www.youtube.com/watch?v=${id}`,
-      category: 'Videos Musicales',
-    });
-  };
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -258,11 +246,6 @@ const MusicView = ({ tracks = [], currentTrack, isPlaying, onPlay, onAddToQueue,
                     <p className="music-view__yt-name">{snip.title}</p>
                     <p className="music-view__yt-channel">{snip.channelTitle}</p>
                   </div>
-                  <button
-                    className="music-view__yt-queue-btn"
-                    title="Agregar a la cola"
-                    onClick={e => { e.stopPropagation(); queueYt(item); }}
-                  >+</button>
                 </div>
               );
             })}
