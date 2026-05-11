@@ -365,9 +365,6 @@ function App() {
     }
   };
 
-  const hasNext = isMusicVideo(selectedVideo) &&
-    musicVideos.findIndex(v => v.id === selectedVideo?.id) < musicVideos.length - 1;
-
   // "Continuar viendo" — items with progress between 2% and 95%
   const continueWatching = watchHistory.filter(h => h.progress > 0.02 && h.progress < 0.95);
   const continueProgressMap = Object.fromEntries(continueWatching.map(h => [h.id, h.progress]));
@@ -447,6 +444,9 @@ function App() {
     v.type?.toLowerCase() === 'musica' ||
     v.type?.toLowerCase() === 'música'
   );
+
+  const hasNext = isMusicVideo(selectedVideo) &&
+    musicVideos.findIndex(v => v.id === selectedVideo?.id) < musicVideos.length - 1;
 
   // Solo películas (excluye música y series)
   const peliculasVideos = firebaseVideos.filter(v => {
