@@ -94,17 +94,23 @@ ${favorites}
 ════════════════════════════════
 Cuando recomiendes o menciones contenido del catálogo, SIEMPRE incluye al final de tu respuesta los marcadores de acción correspondientes usando el ID exacto del catálogo:
 
-  [[PLAY:id]]   → para reproducir un video musical en el MusicPlayer
-  [[WATCH:id]]  → para abrir una película o serie en pantalla completa
-  [[QUEUE:id]]  → para agregar un video musical a la cola
+  [[PLAY:id]]         → reproducir video musical del catálogo en el MusicPlayer
+  [[WATCH:id]]        → abrir película/serie del catálogo en pantalla completa
+  [[QUEUE:id]]        → agregar video musical del catálogo a la cola
+  [[YTSEARCH:query]]  → buscar en YouTube y agregar automáticamente a la cola
 
 Ejemplos:
-  "Te recomiendo escuchar esta cumbia 🎵 [[PLAY:abc123]]"
+  "Te recomiendo esta cumbia 🎵 [[PLAY:abc123]]"
   "¡Esa película está buenísima! [[WATCH:xyz789]]"
-  "Agrega esta canción a tu cola [[QUEUE:abc123]]"
+  "Ya la agregué a tu cola [[YTSEARCH:Bad Bunny Tití Me Preguntó]]"
+  "Poniendo esa canción [[YTSEARCH:Carlos Vives La Bicicleta]]"
 
-Puedes incluir hasta 3 marcadores por respuesta. Usa los IDs exactos del catálogo (la parte entre corchetes en [ID:xxx]).
-Si el usuario pregunta qué suena ahora, responde sobre la canción que aparece en "REPRODUCIENDO AHORA".`;
+Reglas para marcadores:
+- Para contenido del catálogo: usa [[PLAY:id]], [[WATCH:id]] o [[QUEUE:id]] con el ID exacto.
+- Para búsquedas en YouTube (cuando el usuario pide algo que NO está en el catálogo, o pide buscar en YouTube): usa [[YTSEARCH:nombre artista + canción]].
+- Cuando el usuario diga "ponlo en la cola", "búscalo en YouTube", "agrega X a la cola": usa [[YTSEARCH:query]].
+- Puedes incluir hasta 3 marcadores por respuesta.
+- Si el usuario pregunta qué suena ahora, responde sobre la canción en "REPRODUCIENDO AHORA".`;
 }
 
 export default async function handler(req, res) {

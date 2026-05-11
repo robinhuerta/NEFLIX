@@ -55,6 +55,25 @@ export default function ChatBot({
     if (open) bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, open]);
 
+  const searchAndQueue = async (query) => {
+    const key = import.meta.env.VITE_YOUTUBE_API_KEY;
+    const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&videoCategoryId=10&maxResults=1&q=${encodeURIComponent(query)}&key=${key}`;
+    const resp = await fetch(url);
+    const data = await resp.json();
+    if (!data.items?.length) return null;
+    const item = data.items[0];
+    const track = {
+      id: item.id.videoId,
+      title: item.snippet.title,
+      artist: item.snippet.channelTitle,
+      image: item.snippet.thumbnails?.high?.url || item.snippet.thumbnails?.default?.url,
+      videoUrl: `https://www.youtube.com/watch?v=${item.id.videoId}`,
+      category: 'Videos Musicales',
+    };
+    onAddToQueue?.(track);
+    return track;
+  };
+
   const sendText = async (text) => {
     if (!text || loading) return;
     const userMsg = { role: 'user', content: text, actions: [] };
@@ -71,8 +90,23 @@ export default function ChatBot({
       });
       const data = await res.json();
       const raw = data.reply || 'Sin respuesta.';
-      const { text: cleanText, actions } = parseActions(raw, movies);
+
+      // Handle YTSEARCH markers before parsing other actions
+      const ytRegex = /\[\[YTSEARCH:([^\]]+)\]\]/g;
+      const ytMatches = [...raw.matchAll(ytRegex)];
+      const rawClean = raw.replace(ytRegex, '').trim();
+      const { text: cleanText, actions } = parseActions(rawClean, movies);
       setMessages(prev => [...prev, { role: 'assistant', content: cleanText, actions }]);
+
+      // Execute YouTube searches sequentially and confirm each
+      for (const match of ytMatches) {
+        const query = match[1].trim();
+        const track = await searchAndQueue(query);
+        const confirm = track
+          ? `🎵 Agregué "${track.title}" a la cola.`
+          : `No encontré "${query}" en YouTube.`;
+        setMessages(prev => [...prev, { role: 'assistant', content: confirm, actions: [] }]);
+      }
     } catch {
       setMessages(prev => [...prev, { role: 'assistant', content: 'Error de conexión.', actions: [] }]);
     } finally {
