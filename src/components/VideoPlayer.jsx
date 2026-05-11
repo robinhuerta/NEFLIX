@@ -29,6 +29,8 @@ const formatTime = (time) => {
 const SPEED_OPTIONS = [0.5, 1, 1.5, 2];
 
 const VideoPlayer = ({ onBack, fileName, videoUrl: initialUrl, movieTitle = "COSMOS Original", episode = "Película", initialTime = 0, onProgress, onNext, hasNext, children }) => {
+
+  // ── Estado ────────────────────────────────────────────────
   const [isPlaying, setIsPlaying] = useState(true);
   const [videoUrl, setVideoUrl] = useState(initialUrl || '');
   const [currentTime, setCurrentTime] = useState(0);
@@ -39,33 +41,133 @@ const VideoPlayer = ({ onBack, fileName, videoUrl: initialUrl, movieTitle = "COS
   const [showSettings, setShowSettings] = useState(false);
   const [toast, setToast] = useState('');
   const [isFullScreen, setIsFullScreen] = useState(false);
-  const videoRef = useRef(null);
-  const playerRef = useRef(null);
-  const settingsRef = useRef(null);
-  const controlsTimeoutRef = useRef(null);
   const [showControls, setShowControls] = useState(true);
   const [showTitle, setShowTitle] = useState(true);
-  const titleTimerRef = useRef(null);
   const [autoplay, setAutoplay] = useState(() => {
     try { return JSON.parse(localStorage.getItem('cosmos_autoplay') ?? 'true'); }
     catch { return true; }
   });
+
+  // ── Refs ──────────────────────────────────────────────────
+  const videoRef = useRef(null);
+  const playerRef = useRef(null);
+  const settingsRef = useRef(null);
+  const controlsTimeoutRef = useRef(null);
+  const titleTimerRef = useRef(null);
   const autoplayRef = useRef(autoplay);
   const onNextRef = useRef(onNext);
   const hasNextRef = useRef(hasNext);
-  useEffect(() => { autoplayRef.current = autoplay; }, [autoplay]);
-  useEffect(() => { onNextRef.current = onNext; hasNextRef.current = hasNext; }, [onNext, hasNext]);
-
-  // YouTube IFrame Player API
   const ytContainerRef = useRef(null);
   const ytPlayerRef = useRef(null);
+  const isPlayingRef = useRef(isPlaying);
+  const isFullScreenRef = useRef(isFullScreen);
 
+  // ── Funciones ─────────────────────────────────────────────
+
+  const showToast = (msg) => {
+    setToast(msg);
+    setTimeout(() => setToast(''), 3000);
+  };
+
+  const toggleAutoplay = () => {
+    const val = !autoplay;
+    setAutoplay(val);
+    localStorage.setItem('cosmos_autoplay', JSON.stringify(val));
+    showToast(val ? 'Reproducción automática activada' : 'Reproducción automática desactivada');
+  };
+
+  const handleVideoEnded = () => {
+    if (autoplay && hasNext && onNext) onNext();
+  };
+
+  const togglePlay = () => {
+    if (isYouTube(videoUrl) || isDrive(videoUrl)) {
+      setIsPlaying(p => !p);
+      return;
+    }
+    if (videoRef.current) {
+      if (isPlayingRef.current) {
+        videoRef.current.pause();
+      } else {
+        videoRef.current.play();
+      }
+      setIsPlaying(p => !p);
+    }
+  };
+
+  const handleTimeUpdate = () => {
+    if (videoRef.current) {
+      setCurrentTime(videoRef.current.currentTime);
+      setDuration(videoRef.current.duration);
+    }
+  };
+
+  const skip = (amount) => {
+    if (videoRef.current) {
+      videoRef.current.currentTime += amount;
+    }
+  };
+
+  const handleSeek = (e) => {
+    if (videoRef.current && duration > 0) {
+      const rect = e.currentTarget.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const clickedPos = x / rect.width;
+      videoRef.current.currentTime = clickedPos * duration;
+    }
+  };
+
+  const handleSpeedChange = (speed) => {
+    if (videoRef.current) {
+      videoRef.current.playbackRate = speed;
+    }
+    setShowSettings(false);
+    showToast(`Velocidad: ${speed === 1 ? 'Normal' : speed + 'x'}`);
+  };
+
+  const toggleFullScreen = () => {
+    if (!playerRef.current) return;
+    if (!document.fullscreenElement) {
+      if (playerRef.current.requestFullscreen) playerRef.current.requestFullscreen();
+      else if (playerRef.current.webkitRequestFullscreen) playerRef.current.webkitRequestFullscreen();
+      setIsFullScreen(true);
+    } else {
+      if (document.exitFullscreen) document.exitFullscreen();
+      setIsFullScreen(false);
+    }
+  };
+
+  const resetTitleTimer = () => {
+    setShowTitle(true);
+    clearTimeout(titleTimerRef.current);
+    titleTimerRef.current = setTimeout(() => setShowTitle(false), 4000);
+  };
+
+  const resetControlsTimeout = () => {
+    setShowControls(true);
+    resetTitleTimer();
+    if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
+    if (isPlayingRef.current) {
+      controlsTimeoutRef.current = setTimeout(() => setShowControls(false), 3000);
+    }
+  };
+
+  const handlePointerMove = () => resetControlsTimeout();
+
+  // ── Effects ───────────────────────────────────────────────
+
+  // Mantener refs sincronizados para usar dentro de callbacks asíncronos
+  useEffect(() => { autoplayRef.current = autoplay; }, [autoplay]);
+  useEffect(() => { onNextRef.current = onNext; hasNextRef.current = hasNext; }, [onNext, hasNext]);
+  useEffect(() => { isPlayingRef.current = isPlaying; }, [isPlaying]);
+  useEffect(() => { isFullScreenRef.current = isFullScreen; }, [isFullScreen]);
+
+  // Cargar URL desde Firebase si aplica
   useEffect(() => {
     if (initialUrl && initialUrl !== videoUrl) {
       setVideoUrl(initialUrl);
       return;
     }
-
     if (fileName && fileName !== 'External Link' && !initialUrl) {
       const videoFileRef = ref(storage, fileName);
       getDownloadURL(videoFileRef)
@@ -77,7 +179,7 @@ const VideoPlayer = ({ onBack, fileName, videoUrl: initialUrl, movieTitle = "COS
     }
   }, [fileName, initialUrl, videoUrl]);
 
-  // Sync volume and mute state with video element
+  // Sincronizar volumen y mute con el elemento video
   useEffect(() => {
     if (videoRef.current) {
       videoRef.current.volume = volume;
@@ -85,14 +187,14 @@ const VideoPlayer = ({ onBack, fileName, videoUrl: initialUrl, movieTitle = "COS
     }
   }, [volume, isMuted, videoUrl]);
 
-  // Seek to saved position when video loads
+  // Seek a posición guardada cuando carga el video
   useEffect(() => {
     if (videoUrl && videoRef.current && initialTime > 0 && !isYouTube(videoUrl) && !isDrive(videoUrl)) {
       videoRef.current.currentTime = initialTime;
     }
   }, [videoUrl]);
 
-  // Report progress every 5 seconds
+  // Reportar progreso cada 5 segundos
   useEffect(() => {
     if (!onProgress || isYouTube(videoUrl) || isDrive(videoUrl)) return;
     const interval = setInterval(() => {
@@ -124,7 +226,6 @@ const VideoPlayer = ({ onBack, fileName, videoUrl: initialUrl, movieTitle = "COS
         try { ytPlayerRef.current.destroy(); } catch {}
         ytPlayerRef.current = null;
       }
-      // Crear un div no-React para que YT.Player lo reemplace con su iframe
       ytContainerRef.current.innerHTML = '';
       const mountPoint = document.createElement('div');
       ytContainerRef.current.appendChild(mountPoint);
@@ -160,94 +261,14 @@ const VideoPlayer = ({ onBack, fileName, videoUrl: initialUrl, movieTitle = "COS
     };
   }, [videoUrl]);
 
-  const showToast = (msg) => {
-    setToast(msg);
-    setTimeout(() => setToast(''), 3000);
-  };
-
-  const toggleAutoplay = () => {
-    const val = !autoplay;
-    setAutoplay(val);
-    localStorage.setItem('cosmos_autoplay', JSON.stringify(val));
-    showToast(val ? 'Reproducción automática activada' : 'Reproducción automática desactivada');
-  };
-
-  const handleVideoEnded = () => {
-    if (autoplay && hasNext && onNext) onNext();
-  };
-
-  const togglePlay = () => {
-    if (isYouTube(videoUrl) || isDrive(videoUrl)) {
-      setIsPlaying(!isPlaying);
-      return;
-    }
-    if (videoRef.current) {
-      if (isPlaying) {
-        videoRef.current.pause();
-      } else {
-        videoRef.current.play();
-      }
-      setIsPlaying(!isPlaying);
-    }
-  };
-
-  const handleTimeUpdate = () => {
-    if (videoRef.current) {
-      setCurrentTime(videoRef.current.currentTime);
-      setDuration(videoRef.current.duration);
-    }
-  };
-
-  const skip = (amount) => {
-    if (videoRef.current) {
-      videoRef.current.currentTime += amount;
-    }
-  };
-
-
-  const handleSeek = (e) => {
-    if (videoRef.current && duration > 0) {
-      const rect = e.currentTarget.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const clickedPos = x / rect.width;
-      videoRef.current.currentTime = clickedPos * duration;
-    }
-  };
-
-
-
-  const handleSpeedChange = (speed) => {
-    if (videoRef.current) {
-      videoRef.current.playbackRate = speed;
-    }
-    setShowSettings(false);
-    showToast(`Velocidad: ${speed === 1 ? 'Normal' : speed + 'x'}`);
-  };
-
-  const toggleFullScreen = () => {
-    if (!playerRef.current) return;
-    if (!document.fullscreenElement) {
-      if (playerRef.current.requestFullscreen) playerRef.current.requestFullscreen();
-      else if (playerRef.current.webkitRequestFullscreen) playerRef.current.webkitRequestFullscreen();
-      setIsFullScreen(true);
-    } else {
-      if (document.exitFullscreen) document.exitFullscreen();
-      setIsFullScreen(false);
-    }
-  };
-
+  // Escuchar cambios de pantalla completa del navegador
   useEffect(() => {
     const handleFsChange = () => setIsFullScreen(!!document.fullscreenElement);
     document.addEventListener('fullscreenchange', handleFsChange);
     return () => document.removeEventListener('fullscreenchange', handleFsChange);
   }, []);
 
-  const resetTitleTimer = () => {
-    setShowTitle(true);
-    clearTimeout(titleTimerRef.current);
-    titleTimerRef.current = setTimeout(() => setShowTitle(false), 4000);
-  };
-
+  // Timer inicial del título
   useEffect(() => {
     resetTitleTimer();
     return () => clearTimeout(titleTimerRef.current);
@@ -263,22 +284,13 @@ const VideoPlayer = ({ onBack, fileName, videoUrl: initialUrl, movieTitle = "COS
     }
   }, [isFullScreen]);
 
-  const resetControlsTimeout = () => {
-    setShowControls(true);
-    resetTitleTimer();
-    if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current);
-    if (isPlaying) {
-      controlsTimeoutRef.current = setTimeout(() => setShowControls(false), 3000);
-    }
-  };
-
+  // Auto-ocultar controles según estado de reproducción
   useEffect(() => {
     resetControlsTimeout();
     return () => { if (controlsTimeoutRef.current) clearTimeout(controlsTimeoutRef.current); };
   }, [isPlaying]);
 
-  const handlePointerMove = () => resetControlsTimeout();
-
+  // Teclado: espacio, flechas, F, Escape
   useEffect(() => {
     const handleKey = (e) => {
       if (e.target.tagName === 'INPUT') return;
@@ -295,16 +307,15 @@ const VideoPlayer = ({ onBack, fileName, videoUrl: initialUrl, movieTitle = "COS
     return () => document.removeEventListener('keydown', handleKey);
   }, [isPlaying, videoUrl]);
 
-  const remainingTime = (isYouTube(videoUrl) || isDrive(videoUrl)) ? "--:--" : formatTime(duration - currentTime);
-  const progress = (isYouTube(videoUrl) || isDrive(videoUrl)) ? 0 : (currentTime / duration) * 100 || 0;
-
-
-
+  // ── Valores computados ────────────────────────────────────
   const isExternal = isYouTube(videoUrl) || isDrive(videoUrl);
+  const remainingTime = isExternal ? "--:--" : formatTime(duration - currentTime);
+  const progress = isExternal ? 0 : (currentTime / duration) * 100 || 0;
 
+  // ── Render ────────────────────────────────────────────────
   return (
-    <div 
-      className={`video-player ${!showControls ? 'video-player--hide-controls' : ''} ${isExternal ? 'video-player--external' : ''}`} 
+    <div
+      className={`video-player ${!showControls ? 'video-player--hide-controls' : ''} ${isExternal ? 'video-player--external' : ''}`}
       ref={playerRef}
       onMouseMove={handlePointerMove}
       onClick={handlePointerMove}
@@ -327,7 +338,6 @@ const VideoPlayer = ({ onBack, fileName, videoUrl: initialUrl, movieTitle = "COS
         )}
       </div>
 
-      {/* Título inferior izquierdo — visible unos segundos, se desvanece solo */}
       <div className={`video-player__title-overlay${showTitle ? '' : ' video-player__title-overlay--hidden'}`}>
         <span className="video-player__title-overlay-name">{movieTitle}</span>
         <span className="video-player__title-overlay-ep">{episode}</span>
@@ -389,7 +399,7 @@ const VideoPlayer = ({ onBack, fileName, videoUrl: initialUrl, movieTitle = "COS
               <button className="video-player__btn" onClick={() => skip(10)}>
                 <svg viewBox="0 0 24 24" fill="white" width="30" height="30"><path d="M13 6v12l8.5-6L13 6zM4 18l8.5-6L4 6v12z"/></svg>
               </button>
-              
+
               <div className="video-player__volume-wrapper">
                 <button className="video-player__btn" onClick={() => setIsMuted(!isMuted)}>
                   {isMuted || volume === 0 ? (
@@ -399,13 +409,13 @@ const VideoPlayer = ({ onBack, fileName, videoUrl: initialUrl, movieTitle = "COS
                   )}
                 </button>
                 <div className="video-player__volume-popup">
-                  <input 
-                    type="range" 
-                    className="video-player__volume-slider" 
-                    min="0" 
-                    max="1" 
-                    step="0.05" 
-                    value={isMuted ? 0 : volume} 
+                  <input
+                    type="range"
+                    className="video-player__volume-slider"
+                    min="0"
+                    max="1"
+                    step="0.05"
+                    value={isMuted ? 0 : volume}
                     onChange={(e) => {
                       const v = parseFloat(e.target.value);
                       setVolume(v);
@@ -423,7 +433,6 @@ const VideoPlayer = ({ onBack, fileName, videoUrl: initialUrl, movieTitle = "COS
             </div>
 
             <div className="video-player__controls-right">
-              {/* Switch reproducción automática */}
               {hasNext && (
                 <button
                   className={`video-player__btn video-player__autoplay-btn ${autoplay ? 'video-player__autoplay-btn--on' : ''}`}
@@ -464,7 +473,6 @@ const VideoPlayer = ({ onBack, fileName, videoUrl: initialUrl, movieTitle = "COS
         </div>
       )}
 
-      {/* Contenido extra (ej. MarqueeTicker) — visible también en fullscreen */}
       {children}
     </div>
   );
