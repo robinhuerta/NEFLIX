@@ -210,14 +210,15 @@
 /* ===== MARQUEE BAR ===== */
 .mt-marquee {
   position: fixed;
-  bottom: 90px; /* encima del MusicPlayer bar (72px min-height) */
+  bottom: 76px; /* justo encima del MusicPlayer bar */
   left: 0;
   right: 0;
   z-index: 8001;
-  height: 36px;
-  background: transparent;
-  border-top: none;
+  height: 44px;
+  background: linear-gradient(90deg, #0a0814 0%, #12102a 50%, #0a0814 100%);
+  border-top: 1px solid rgba(212, 175, 55, 0.5);
   border-bottom: none;
+  box-shadow: 0 -4px 20px rgba(212, 175, 55, 0.08);
   overflow: hidden;
   cursor: pointer;
   transition: opacity 0.3s ease;
