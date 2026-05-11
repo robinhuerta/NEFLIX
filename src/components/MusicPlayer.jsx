@@ -197,29 +197,9 @@ const MusicPlayer = ({
         </div>
       )}
 
-      {/* ── Mini player de YouTube ────────────────────────── */}
+      {/* Contenedor oculto para el YT.Player (necesario para el audio) */}
       {youtubeId && (
-        <div className={`music-player__yt-panel ${ytExpanded ? 'music-player__yt-panel--open' : ''}`}>
-          <div className="music-player__yt-header">
-            <span>🎵 Reproduciendo en COSMOS</span>
-          </div>
-          {/* El YT.Player crea su iframe dentro de ytContainerRef */}
-          <div className="music-player__yt-video-wrap">
-            <div className="music-player__yt-crop">
-              <div ref={ytContainerRef} className="music-player__yt-iframe" />
-              <div className="music-player__yt-blocker" />
-              <button
-                className="music-player__yt-fullscreen"
-                onClick={() => ytPlayerRef.current?.getIframe?.()?.requestFullscreen?.()}
-                title="Pantalla completa"
-              >
-                <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16">
-                  <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/>
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
+        <div ref={ytContainerRef} style={{ display: 'none' }} />
       )}
 
       <div className="music-player">

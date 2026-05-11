@@ -1,7 +1,7 @@
 /* ── Burbuja flotante ─────────────────────────────────────── */
 .chatbot-bubble {
   position: fixed;
-  bottom: 110px;
+  bottom: 150px;
   right: 24px;
   z-index: 1200;
   width: 56px;
@@ -247,6 +247,6 @@
 
   .chatbot-bubble {
     right: 12px;
-    bottom: 90px;
+    bottom: 130px;
   }
 }
