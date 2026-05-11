@@ -22,18 +22,19 @@ const MusicView = ({ tracks = [], currentTrack, isPlaying, onPlay, onAddToQueue,
     });
   }, [tracks, search, activeGenre]);
 
-  // Group by artist if available, fall back to genre
-  const groupedByArtist = useMemo(() => {
+  // Group by genre
+  const groupedByGenre = useMemo(() => {
     const groups = {};
     filtered.forEach(t => {
-      const key = t.artist || t.genre || 'Sin artista';
+      const key = t.genre?.trim() || t.category?.trim() || 'Otros';
       if (!groups[key]) groups[key] = [];
       groups[key].push(t);
     });
-    return Object.entries(groups);
+    // Sort: genres with more tracks first
+    return Object.entries(groups).sort((a, b) => b[1].length - a[1].length);
   }, [filtered]);
 
-  const showGrouped = activeGenre === 'Todos' && !search.trim() && groupedByArtist.length > 1;
+  const showGrouped = activeGenre === 'Todos' && !search.trim() && groupedByGenre.length > 0;
 
   return (
     <div className="music-view">
@@ -107,28 +108,28 @@ const MusicView = ({ tracks = [], currentTrack, isPlaying, onPlay, onAddToQueue,
             </button>
           </div>
         ) : showGrouped ? (
-          // Agrupado por artista
-          groupedByArtist.map(([artist, artistTracks]) => (
-            <div key={artist} className="music-view__group">
+          // Agrupado por género
+          groupedByGenre.map(([genre, genreTracks]) => (
+            <div key={genre} className="music-view__group">
               <div className="music-view__group-header">
-                <h2 className="music-view__group-title">{artist}</h2>
-                <span className="music-view__group-count">{artistTracks.length} {artistTracks.length === 1 ? 'canción' : 'canciones'}</span>
+                <h2 className="music-view__group-title">{genre}</h2>
+                <span className="music-view__group-count">{genreTracks.length} {genreTracks.length === 1 ? 'canción' : 'canciones'}</span>
                 <button
                   className="music-view__group-play"
-                  onClick={() => onPlay(artistTracks[0], artistTracks.slice(1))}
+                  onClick={() => onPlay(genreTracks[0], genreTracks.slice(1))}
                 >
                   <svg viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M8 5v14l11-7z"/></svg>
                   Reproducir
                 </button>
               </div>
               <div className="music-view__grid">
-                {artistTracks.map(track => (
+                {genreTracks.map(track => (
                   <MusicCard
                     key={track.id}
                     track={track}
                     isActive={currentTrack?.id === track.id}
                     isPlaying={currentTrack?.id === track.id && isPlaying}
-                    onPlay={(t) => onPlay(t, artistTracks.filter(x => x.id !== t.id))}
+                    onPlay={(t) => onPlay(t, genreTracks.filter(x => x.id !== t.id))}
                     onAddToQueue={onAddToQueue}
                     onWatch={onWatch}
                   />
