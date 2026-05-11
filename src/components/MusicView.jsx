@@ -34,7 +34,7 @@ const MusicView = ({ tracks = [], currentTrack, isPlaying, onPlay, onAddToQueue,
   const playYt = (item) => {
     const id = item.id?.videoId;
     const snip = item.snippet;
-    onPlay({
+    onWatch({
       id,
       title: snip.title,
       artist: snip.channelTitle,
