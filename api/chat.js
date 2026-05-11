@@ -2,7 +2,7 @@ import Anthropic from '@anthropic-ai/sdk';
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
-function buildSystemPrompt(movies, watchHistory, myList, currentTrack) {
+function buildSystemPrompt(movies, watchHistory, myList, currentTrack, volume, isPlaying) {
   const musicVideos = movies.filter(m => {
     const cat = (m.category || '').toLowerCase();
     return cat === 'videos musicales' || cat === 'musica' || cat === 'música';
@@ -34,7 +34,7 @@ function buildSystemPrompt(movies, watchHistory, myList, currentTrack) {
     : '  Lista vacía.';
 
   const nowPlaying = currentTrack
-    ? `\n🎵 REPRODUCIENDO AHORA: "${currentTrack.title}"${currentTrack.artist ? ' — ' + currentTrack.artist : ''}${currentTrack.genre ? ' | ' + currentTrack.genre : ''}`
+    ? `\n🎵 REPRODUCIENDO AHORA: "${currentTrack.title}"${currentTrack.artist ? ' — ' + currentTrack.artist : ''}${currentTrack.genre ? ' | ' + currentTrack.genre : ''} | Estado: ${isPlaying ? 'reproduciendo' : 'pausado'} | Volumen actual: ${Math.round((volume || 0.8) * 100)}%`
     : '';
 
   return `Eres COSMOS Assistant, el asistente oficial de COSMOS — una plataforma de streaming latinoamericana tipo Netflix, de acceso libre (sin registro, solo con el link).
@@ -98,18 +98,31 @@ Cuando recomiendes o menciones contenido del catálogo, SIEMPRE incluye al final
   [[WATCH:id]]        → abrir película/serie del catálogo en pantalla completa
   [[QUEUE:id]]        → agregar video musical del catálogo a la cola
   [[YTSEARCH:query]]  → buscar en YouTube y agregar automáticamente a la cola
+  [[PAUSE]]           → pausar la música
+  [[RESUME]]          → reanudar la música
+  [[NEXT]]            → saltar a la siguiente canción
+  [[PREV]]            → volver a la canción anterior
+  [[VOLUME:75]]       → cambiar volumen (número del 0 al 100)
+  [[GOTO:music]]      → ir a la sección Música
+  [[GOTO:dj]]         → ir a la cabina DJ
+  [[GOTO:series]]     → ir a Series
+  [[GOTO:home]]       → ir al Inicio
 
 Ejemplos:
   "Te recomiendo esta cumbia 🎵 [[PLAY:abc123]]"
   "¡Esa película está buenísima! [[WATCH:xyz789]]"
   "Ya la agregué a tu cola [[YTSEARCH:Bad Bunny Tití Me Preguntó]]"
-  "Poniendo esa canción [[YTSEARCH:Carlos Vives La Bicicleta]]"
+  "Listo, pausé la música [[PAUSE]]"
+  "¡Vamos al DJ! [[GOTO:dj]]"
+  "Bajé el volumen a la mitad [[VOLUME:50]]"
 
 Reglas para marcadores:
-- Para contenido del catálogo: usa [[PLAY:id]], [[WATCH:id]] o [[QUEUE:id]] con el ID exacto.
-- Para búsquedas en YouTube (cuando el usuario pide algo que NO está en el catálogo, o pide buscar en YouTube): usa [[YTSEARCH:nombre artista + canción]].
-- Cuando el usuario diga "ponlo en la cola", "búscalo en YouTube", "agrega X a la cola": usa [[YTSEARCH:query]].
-- Puedes incluir hasta 3 marcadores por respuesta.
+- Para contenido del catálogo: usa el ID exacto entre corchetes [ID:xxx].
+- Para búsquedas en YouTube: usa [[YTSEARCH:artista canción]].
+- Controles: usa [[PAUSE]], [[RESUME]], [[NEXT]], [[PREV]] cuando el usuario pida controlar la reproducción.
+- Volumen: [[VOLUME:N]] donde N es 0-100. Si dicen "sube" usa el actual +20, "baja" el actual -20.
+- Navegación: [[GOTO:seccion]] cuando digan "llévame a", "ve a", "abre".
+- Máximo 2 marcadores por respuesta.
 - Si el usuario pregunta qué suena ahora, responde sobre la canción en "REPRODUCIENDO AHORA".`;
 }
 
@@ -121,7 +134,7 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { messages, movies = [], watchHistory = [], myList = [], currentTrack = null } = req.body;
+  const { messages, movies = [], watchHistory = [], myList = [], currentTrack = null, volume = 0.8, isPlaying = false } = req.body;
 
   if (!messages || !Array.isArray(messages)) {
     return res.status(400).json({ error: 'messages requerido' });
@@ -131,7 +144,7 @@ export default async function handler(req, res) {
     const response = await client.messages.create({
       model: 'claude-haiku-4-5-20251001',
       max_tokens: 600,
-      system: buildSystemPrompt(movies, watchHistory, myList, currentTrack),
+      system: buildSystemPrompt(movies, watchHistory, myList, currentTrack, volume, isPlaying),
       messages,
     });
 

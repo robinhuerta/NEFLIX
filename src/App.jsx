@@ -902,9 +902,22 @@ function App() {
         myList={myList}
         currentTrack={currentTrack}
         isPlaying={isMusicPlaying}
+        volume={musicVolume}
         onPlay={(track, queue) => playTrack(track, queue || [])}
         onWatch={(track) => { setSelectedVideo(track); setShowPlayer(true); }}
         onAddToQueue={addToQueue}
+        onPause={() => setIsMusicPlaying(false)}
+        onResume={() => setIsMusicPlaying(true)}
+        onNext={handleMusicNext}
+        onPrev={handleMusicPrev}
+        onVolume={(v) => setMusicVolume(v / 100)}
+        onNavigate={(section) => {
+          const s = section.toLowerCase();
+          if (s === 'music' || s === 'musica' || s === 'música') { setShowMusic(true); setShowDJ(false); setShowSeries(false); setSearchQuery(''); }
+          else if (s === 'dj') { setShowDJ(true); setShowMusic(false); setShowSeries(false); setSearchQuery(''); }
+          else if (s === 'series') { setShowSeries(true); setShowMusic(false); setShowDJ(false); setSearchQuery(''); }
+          else if (s === 'home' || s === 'inicio') { setShowMusic(false); setShowDJ(false); setShowSeries(false); setSearchQuery(''); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+        }}
       />
 
       {/* Admin Dashboard */}

@@ -18,7 +18,7 @@ const CHIPS_PLAYING = [
 
 const GREETING = '¡Hola! Soy COSMOS Assistant 🚀\n\nPuedo ayudarte con:\n🎬 Recomendar y reproducir contenido\n🎵 Encontrar música o artistas\n🎧 Explicarte el Modo DJ\n⚙️ Cualquier función de COSMOS\n\n¿Qué necesitas?';
 
-// Extrae marcadores [[PLAY:id]], [[WATCH:id]], [[QUEUE:id]] del texto
+// Extrae marcadores de contenido: [[PLAY:id]], [[WATCH:id]], [[QUEUE:id]]
 const parseActions = (content, allMovies) => {
   const actions = [];
   const regex = /\[\[(PLAY|WATCH|QUEUE):([^\]]+)\]\]/g;
@@ -33,15 +33,41 @@ const parseActions = (content, allMovies) => {
   return { text: cleanText, actions };
 };
 
+// Extrae marcadores de control: [[PAUSE]], [[RESUME]], [[NEXT]], [[PREV]], [[VOLUME:N]], [[GOTO:section]]
+const parseControls = (content) => {
+  const controls = [];
+  if (/\[\[PAUSE\]\]/.test(content))  controls.push({ type: 'pause' });
+  if (/\[\[RESUME\]\]/.test(content)) controls.push({ type: 'resume' });
+  if (/\[\[NEXT\]\]/.test(content))   controls.push({ type: 'next' });
+  if (/\[\[PREV\]\]/.test(content))   controls.push({ type: 'prev' });
+  const volMatch = content.match(/\[\[VOLUME:(\d+)\]\]/);
+  if (volMatch) controls.push({ type: 'volume', value: parseInt(volMatch[1]) });
+  const gotoMatch = content.match(/\[\[GOTO:(\w+)\]\]/);
+  if (gotoMatch) controls.push({ type: 'goto', section: gotoMatch[1] });
+  const clean = content
+    .replace(/\[\[PAUSE\]\]|\[\[RESUME\]\]|\[\[NEXT\]\]|\[\[PREV\]\]/g, '')
+    .replace(/\[\[VOLUME:\d+\]\]/g, '')
+    .replace(/\[\[GOTO:\w+\]\]/g, '')
+    .trim();
+  return { clean, controls };
+};
+
 export default function ChatBot({
   movies = [],
   watchHistory = [],
   myList = [],
   currentTrack = null,
   isPlaying = false,
+  volume = 0.8,
   onPlay,
   onWatch,
   onAddToQueue,
+  onPause,
+  onResume,
+  onNext,
+  onPrev,
+  onVolume,
+  onNavigate,
 }) {
   const [open, setOpen]       = useState(false);
   const [messages, setMessages] = useState([{ role: 'assistant', content: GREETING, actions: [] }]);
@@ -86,17 +112,32 @@ export default function ChatBot({
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: apiMessages, movies, watchHistory, myList, currentTrack }),
+        body: JSON.stringify({ messages: apiMessages, movies, watchHistory, myList, currentTrack, volume, isPlaying }),
       });
       const data = await res.json();
       const raw = data.reply || 'Sin respuesta.';
 
-      // Handle YTSEARCH markers before parsing other actions
+      // 1. Strip YTSEARCH markers
       const ytRegex = /\[\[YTSEARCH:([^\]]+)\]\]/g;
       const ytMatches = [...raw.matchAll(ytRegex)];
-      const rawClean = raw.replace(ytRegex, '').trim();
-      const { text: cleanText, actions } = parseActions(rawClean, movies);
+      const afterYt = raw.replace(ytRegex, '').trim();
+
+      // 2. Strip control markers and collect them
+      const { clean: afterControls, controls } = parseControls(afterYt);
+
+      // 3. Strip content action markers
+      const { text: cleanText, actions } = parseActions(afterControls, movies);
       setMessages(prev => [...prev, { role: 'assistant', content: cleanText, actions }]);
+
+      // 4. Execute controls immediately
+      for (const ctrl of controls) {
+        if (ctrl.type === 'pause')   onPause?.();
+        if (ctrl.type === 'resume')  onResume?.();
+        if (ctrl.type === 'next')    onNext?.();
+        if (ctrl.type === 'prev')    onPrev?.();
+        if (ctrl.type === 'volume')  onVolume?.(ctrl.value);
+        if (ctrl.type === 'goto')    onNavigate?.(ctrl.section);
+      }
 
       // Execute YouTube searches sequentially and confirm each
       for (const match of ytMatches) {
