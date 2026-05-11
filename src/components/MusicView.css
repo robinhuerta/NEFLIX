@@ -476,6 +476,29 @@
 }
 
 
+.music-view__yt-queue-btn {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.2);
+  color: #fff;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: all 0.2s;
+}
+
+.music-view__yt-card:hover .music-view__yt-queue-btn { opacity: 1; }
+.music-view__yt-queue-btn:hover { background: rgba(255,0,0,0.4); border-color: #f00; }
+
 .music-view__yt-empty {
   margin-top: 20px;
   color: #666;

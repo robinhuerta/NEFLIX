@@ -44,6 +44,10 @@ const MusicView = ({ tracks = [], currentTrack, isPlaying, onPlay, onAddToQueue,
     };
   };
 
+  const queueYt = (item) => {
+    onAddToQueue?.(toTrack(item));
+  };
+
   const playYt = (item) => {
     const idx = ytResults.indexOf(item);
     const queue = ytResults.slice(idx + 1).map(toTrack);
@@ -252,6 +256,11 @@ const MusicView = ({ tracks = [], currentTrack, isPlaying, onPlay, onAddToQueue,
                     <p className="music-view__yt-name">{snip.title}</p>
                     <p className="music-view__yt-channel">{snip.channelTitle}</p>
                   </div>
+                  <button
+                    className="music-view__yt-queue-btn"
+                    title="Agregar a la cola"
+                    onClick={e => { e.stopPropagation(); queueYt(item); }}
+                  >+</button>
                 </div>
               );
             })}
