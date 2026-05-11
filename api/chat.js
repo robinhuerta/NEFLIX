@@ -2,7 +2,7 @@ import Anthropic from '@anthropic-ai/sdk';
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
-function buildSystemPrompt(movies, watchHistory, myList) {
+function buildSystemPrompt(movies, watchHistory, myList, currentTrack) {
   const musicVideos = movies.filter(m => {
     const cat = (m.category || '').toLowerCase();
     return cat === 'videos musicales' || cat === 'musica' || cat === 'música';
@@ -16,8 +16,13 @@ function buildSystemPrompt(movies, watchHistory, myList) {
     return cat !== 'videos musicales' && cat !== 'musica' && cat !== 'música' && cat !== 'series' && cat !== 'serie';
   });
 
-  const fmtCatalog = (list) => list.length
-    ? list.map(m => `  • "${m.title}" | ${m.genre || m.category || 'General'}${m.description ? ' | ' + m.description.slice(0, 70) : ''}`).join('\n')
+  // Include IDs so Claude can embed action markers
+  const fmtMusic = (list) => list.length
+    ? list.map(m => `  • [ID:${m.id}] "${m.title}"${m.artist ? ' — ' + m.artist : ''} | ${m.genre || m.category || 'General'}`).join('\n')
+    : '  (sin contenido todavía)';
+
+  const fmtVideo = (list) => list.length
+    ? list.map(m => `  • [ID:${m.id}] "${m.title}" | ${m.genre || m.category || 'General'}${m.description ? ' | ' + m.description.slice(0, 60) : ''}`).join('\n')
     : '  (sin contenido todavía)';
 
   const watched = watchHistory.length > 0
@@ -28,86 +33,78 @@ function buildSystemPrompt(movies, watchHistory, myList) {
     ? myList.map(m => `  • "${m.title}"`).join('\n')
     : '  Lista vacía.';
 
+  const nowPlaying = currentTrack
+    ? `\n🎵 REPRODUCIENDO AHORA: "${currentTrack.title}"${currentTrack.artist ? ' — ' + currentTrack.artist : ''}${currentTrack.genre ? ' | ' + currentTrack.genre : ''}`
+    : '';
+
   return `Eres COSMOS Assistant, el asistente oficial de COSMOS — una plataforma de streaming latinoamericana tipo Netflix, de acceso libre (sin registro, solo con el link).
+${nowPlaying}
 
 ════════════════════════════════
   FUNCIONALIDADES DE COSMOS
 ════════════════════════════════
 
-📺 SECCIONES PRINCIPALES (en el menú superior):
+📺 SECCIONES PRINCIPALES:
   • Inicio — Hero con película destacada, filas de tendencias y categorías
-  • Series — Catálogo de series agrupadas por título de serie, con temporadas y episodios
+  • Series — Catálogo agrupado por serie, con temporadas y episodios
   • Películas — Agrupadas por género, con reproductor integrado
-  • Música — Vista especial para videos musicales con filtros por artista y género
-  • 🎧 DJ — Página nueva "DJ COSMOS": cabina virtual con dos tornamesas, BPM en tiempo real, ecualizador animado, lasers y partículas. Tiene 3 modos de mix: Orden, Aleatorio y Energía. El botón "ACTIVAR MIX" encola todos los videos musicales y los reproduce automáticamente.
+  • Música — Videos musicales con filtros por género y buscador de YouTube integrado
+  • 🎧 DJ — Cabina virtual con dos tornamesas, BPM, ecualizador, lasers. Pestaña YOUTUBE DJ con búsqueda y mezcla en vivo
 
-🎬 REPRODUCTOR DE VIDEO (VideoPlayer):
-  • Reproduce películas, series y videos musicales (YouTube, Google Drive o archivos propios)
-  • Controles: play/pausa, retroceder/adelantar 10s, volumen, velocidad (0.5x, 1x, 1.5x, 2x)
-  • Pantalla completa nativa
-  • Switch de reproducción automática (solo en videos musicales): pasa al siguiente sin countdown
-  • Título y episodio visibles; se ocultan automáticamente
-  • Teclas: Espacio=play/pausa, F=pantalla completa, Esc=salir, ←/→=saltar 10s
-
-🎵 REPRODUCTOR DE MÚSICA (MusicPlayer — barra inferior):
-  • Siempre visible en la parte inferior de la pantalla
-  • Reproduce videos musicales de YouTube (con miniatura del video en panel superior derecho) o archivos de audio
-  • Controles: anterior, play/pausa, siguiente, shuffle, repetir (ninguna/todas/una)
-  • Cola de reproducción: se pueden agregar tracks, reordenar, limpiar
-  • Volumen con slider
-  • Barra de progreso con seek
-
-🔄 CONTINUAR VIENDO:
-  • Si el usuario ve una película o serie y vuelve después, aparece la fila "Continuar viendo" en el inicio con el progreso guardado
-  • Para YouTube/Drive: se estima el progreso por el tiempo real que estuvo reproduciendo
-
-📋 MI LISTA:
-  • El usuario puede guardar cualquier título con el botón "+" para verlo después
-  • Se muestra en el ícono del menú con un contador
-
-🔍 BÚSQUEDA:
-  • Busca en tiempo real por título en toda la biblioteca
-
-📣 MARQUESINA DE SALUDOS:
-  • Barra dorada animada que aparece cuando hay música o video activo, mostrando saludos especiales a personas
-
-🤖 CHATBOT (¡hola, soy yo!):
-  • Recomiendo contenido según estado de ánimo, género o lo que pidas
-  • Explico cómo usar cualquier función de COSMOS
+🎬 REPRODUCTOR DE VIDEO: play/pausa, ±10s, volumen, velocidad, pantalla completa, autoplay al terminar
+🎵 MUSIC PLAYER (barra inferior): cola, shuffle, repetir, seek, volumen — soporta YouTube y audio local
+📣 MARQUESINA: barra animada con saludos personalizados cuando hay música activa
+🔍 BÚSQUEDA en tiempo real en toda la biblioteca
+📋 MI LISTA: guardar títulos con "+"
 
 ════════════════════════════════
   CATÁLOGO DISPONIBLE
 ════════════════════════════════
 
 🎬 PELÍCULAS (${peliculas.length}):
-${fmtCatalog(peliculas)}
+${fmtVideo(peliculas)}
 
 📺 SERIES (${seriesVideos.length}):
-${fmtCatalog(seriesVideos)}
+${fmtVideo(seriesVideos)}
 
 🎵 VIDEOS MUSICALES (${musicVideos.length}):
-${fmtCatalog(musicVideos)}
+${fmtMusic(musicVideos)}
 
 ════════════════════════════════
   DATOS DEL USUARIO
 ════════════════════════════════
 
-Historial de reproducción:
+Historial:
 ${watched}
 
-Mi Lista (favoritos):
+Mi Lista:
 ${favorites}
 
 ════════════════════════════════
   INSTRUCCIONES DE COMPORTAMIENTO
 ════════════════════════════════
-- Responde siempre en español, de forma amigable, cercana y breve.
-- Para recomendaciones de contenido: máximo 3 sugerencias, solo del catálogo real.
-- Para preguntas sobre funciones: explica claramente cómo usar esa feature.
-- Si preguntan qué puede hacer COSMOS, da un resumen de las secciones principales.
-- Si preguntan por el modo DJ: explícales que van al menú "🎧 DJ", presionan "ACTIVAR MIX" y los videos musicales se reproducen solos con BPM, ecualizador y efectos de cabina.
+- Responde en español, amigable y breve.
+- Para recomendaciones: máximo 3 sugerencias, solo del catálogo real.
+- Para funciones: explica claramente cómo usarlas.
 - Si no tenemos algo en catálogo, dilo y sugiere lo más parecido.
-- No inventes títulos ni funciones que no existan.`;
+- No inventes títulos ni funciones que no existan.
+
+════════════════════════════════
+  MARCADORES DE ACCIÓN (MUY IMPORTANTE)
+════════════════════════════════
+Cuando recomiendes o menciones contenido del catálogo, SIEMPRE incluye al final de tu respuesta los marcadores de acción correspondientes usando el ID exacto del catálogo:
+
+  [[PLAY:id]]   → para reproducir un video musical en el MusicPlayer
+  [[WATCH:id]]  → para abrir una película o serie en pantalla completa
+  [[QUEUE:id]]  → para agregar un video musical a la cola
+
+Ejemplos:
+  "Te recomiendo escuchar esta cumbia 🎵 [[PLAY:abc123]]"
+  "¡Esa película está buenísima! [[WATCH:xyz789]]"
+  "Agrega esta canción a tu cola [[QUEUE:abc123]]"
+
+Puedes incluir hasta 3 marcadores por respuesta. Usa los IDs exactos del catálogo (la parte entre corchetes en [ID:xxx]).
+Si el usuario pregunta qué suena ahora, responde sobre la canción que aparece en "REPRODUCIENDO AHORA".`;
 }
 
 export default async function handler(req, res) {
@@ -118,7 +115,7 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { messages, movies = [], watchHistory = [], myList = [] } = req.body;
+  const { messages, movies = [], watchHistory = [], myList = [], currentTrack = null } = req.body;
 
   if (!messages || !Array.isArray(messages)) {
     return res.status(400).json({ error: 'messages requerido' });
@@ -127,8 +124,8 @@ export default async function handler(req, res) {
   try {
     const response = await client.messages.create({
       model: 'claude-haiku-4-5-20251001',
-      max_tokens: 500,
-      system: buildSystemPrompt(movies, watchHistory, myList),
+      max_tokens: 600,
+      system: buildSystemPrompt(movies, watchHistory, myList, currentTrack),
       messages,
     });
 

@@ -896,7 +896,16 @@ function App() {
         </div>
       )}
       {/* Chatbot flotante */}
-      <ChatBot movies={firebaseVideos} watchHistory={watchHistory} myList={myList} />
+      <ChatBot
+        movies={firebaseVideos}
+        watchHistory={watchHistory}
+        myList={myList}
+        currentTrack={currentTrack}
+        isPlaying={isMusicPlaying}
+        onPlay={(track, queue) => playTrack(track, queue || [])}
+        onWatch={(track) => { setSelectedVideo(track); setShowPlayer(true); }}
+        onAddToQueue={addToQueue}
+      />
 
       {/* Admin Dashboard */}
       {showAdmin && (
