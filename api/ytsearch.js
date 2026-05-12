@@ -7,15 +7,27 @@ export default async function handler(req, res) {
   const { q, max = '12' } = req.query;
   if (!q?.trim()) return res.status(400).json({ error: 'q requerido' });
 
-  const key = process.env.VITE_YOUTUBE_API_KEY;
-  if (!key) return res.status(500).json({ error: 'API key no configurada' });
+  const keys = [
+    process.env.VITE_YOUTUBE_API_KEY,
+    process.env.VITE_YOUTUBE_API_KEY_2,
+  ].filter(Boolean);
 
-  try {
-    const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=${max}&q=${encodeURIComponent(q)}&key=${key}`;
-    const resp = await fetch(url);
-    const data = await resp.json();
-    res.status(resp.status).json(data);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+  if (!keys.length) return res.status(500).json({ error: 'API key no configurada' });
+
+  const url = (key) =>
+    `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=${max}&q=${encodeURIComponent(q)}&key=${key}`;
+
+  for (const key of keys) {
+    try {
+      const resp = await fetch(url(key));
+      const data = await resp.json();
+      // Si esta clave tiene cuota agotada, intenta la siguiente
+      if (data.error?.errors?.[0]?.reason === 'quotaExceeded' || data.error?.errors?.[0]?.reason === 'dailyLimitExceeded') continue;
+      return res.status(resp.status).json(data);
+    } catch {
+      continue;
+    }
   }
+
+  res.status(429).json({ error: 'Cuota de YouTube agotada en todas las claves. Intenta mañana.' });
 }
