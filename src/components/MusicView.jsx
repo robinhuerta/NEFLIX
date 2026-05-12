@@ -10,23 +10,26 @@ const MusicView = ({ tracks = [], currentTrack, isPlaying, onPlay, onAddToQueue,
   const [ytQuery, setYtQuery] = useState('');
   const [ytResults, setYtResults] = useState([]);
   const [ytLoading, setYtLoading] = useState(false);
+  const [ytError, setYtError] = useState('');
   const ytTimer = useRef(null);
 
   const searchYouTube = (q) => {
-    if (!q.trim()) { setYtResults([]); return; }
+    if (!q.trim()) { setYtResults([]); setYtError(''); return; }
     setYtLoading(true);
+    setYtError('');
     fetch(`/api/ytsearch?q=${encodeURIComponent(q)}&max=12`)
       .then(r => r.json())
       .then(data => {
         if (data.error) {
-          console.error('YouTube API error:', data.error.message || data.error);
+          const msg = data.error.message || JSON.stringify(data.error);
+          setYtError(`Error API: ${msg}`);
           setYtResults([]);
         } else {
           setYtResults(data.items || []);
         }
         setYtLoading(false);
       })
-      .catch(err => { console.error('YouTube fetch error:', err); setYtLoading(false); });
+      .catch(err => { setYtError(`Error de red: ${err.message}`); setYtLoading(false); });
   };
 
   const handleYtInput = (val) => {
@@ -272,7 +275,9 @@ const MusicView = ({ tracks = [], currentTrack, isPlaying, onPlay, onAddToQueue,
         )}
 
         {!ytLoading && ytQuery && ytResults.length === 0 && (
-          <div className="music-view__yt-empty">Sin resultados para "{ytQuery}"</div>
+          <div className="music-view__yt-empty">
+            {ytError ? `⚠️ ${ytError}` : `Sin resultados para "${ytQuery}"`}
+          </div>
         )}
       </div>
 
