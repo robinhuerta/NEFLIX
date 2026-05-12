@@ -82,9 +82,7 @@ export default function ChatBot({
   }, [messages, open]);
 
   const searchAndQueue = async (query) => {
-    const key = import.meta.env.VITE_YOUTUBE_API_KEY;
-    const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&videoCategoryId=10&maxResults=1&q=${encodeURIComponent(query)}&key=${key}`;
-    const resp = await fetch(url);
+    const resp = await fetch(`/api/ytsearch?q=${encodeURIComponent(query)}&max=1`);
     const data = await resp.json();
     if (!data.items?.length) return null;
     const item = data.items[0];

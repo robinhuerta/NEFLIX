@@ -15,12 +15,11 @@ const MusicView = ({ tracks = [], currentTrack, isPlaying, onPlay, onAddToQueue,
   const searchYouTube = (q) => {
     if (!q.trim()) { setYtResults([]); return; }
     setYtLoading(true);
-    const key = import.meta.env.VITE_YOUTUBE_API_KEY;
-    fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=12&q=${encodeURIComponent(q)}&key=${key}`)
+    fetch(`/api/ytsearch?q=${encodeURIComponent(q)}&max=12`)
       .then(r => r.json())
       .then(data => {
         if (data.error) {
-          console.error('YouTube API error:', data.error.message);
+          console.error('YouTube API error:', data.error.message || data.error);
           setYtResults([]);
         } else {
           setYtResults(data.items || []);

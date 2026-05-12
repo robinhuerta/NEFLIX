@@ -1,12 +1,9 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import './DJView.css';
 
-const YT_API_KEY = import.meta.env.VITE_YOUTUBE_API_KEY;
-
 const searchYouTube = async (query) => {
-  if (!query.trim() || !YT_API_KEY) return [];
-  const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&q=${encodeURIComponent(query)}&key=${YT_API_KEY}&maxResults=8`;
-  const res = await fetch(url);
+  if (!query.trim()) return [];
+  const res = await fetch(`/api/ytsearch?q=${encodeURIComponent(query)}&max=8`);
   if (!res.ok) return [];
   const data = await res.json();
   return (data.items || []).map(item => ({
