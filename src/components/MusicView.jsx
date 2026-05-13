@@ -175,6 +175,58 @@ const MusicView = ({ tracks = [], currentTrack, isPlaying, onPlay, onAddToQueue,
         </div>
       </div>
 
+      {/* ===== YouTube Results (Priority when searching) ===== */}
+      {ytQuery && (
+        <div className="music-view__yt-section">
+          {ytLoading && (
+            <div className="music-view__yt-loading">
+              <span className="music-view__yt-spinner" />
+              Buscando en YouTube...
+            </div>
+          )}
+
+          {ytResults.length > 0 && (
+            <div className="music-view__yt-grid">
+              {ytResults.map(item => {
+                const vid = item.id?.videoId;
+                const snip = item.snippet;
+                return (
+                  <div key={vid} className="music-view__yt-card" onClick={() => playYt(item)}>
+                    <div className="music-view__yt-thumb-wrap">
+                      <img
+                        src={snip.thumbnails?.medium?.url}
+                        alt={snip.title}
+                        className="music-view__yt-thumb"
+                      />
+                      <div className="music-view__yt-play-overlay">
+                        <svg viewBox="0 0 24 24" fill="currentColor" width="32" height="32">
+                          <path d="M8 5v14l11-7z"/>
+                        </svg>
+                      </div>
+                    </div>
+                    <div className="music-view__yt-info">
+                      <p className="music-view__yt-name">{snip.title}</p>
+                      <p className="music-view__yt-channel">{snip.channelTitle}</p>
+                    </div>
+                    <button
+                      className="music-view__yt-queue-btn"
+                      title="Agregar a la cola"
+                      onClick={e => { e.stopPropagation(); queueYt(item); }}
+                    >+</button>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {!ytLoading && ytResults.length === 0 && (
+            <div className="music-view__yt-empty">
+              {ytError ? `⚠️ ${ytError}` : `Sin resultados para "${ytQuery}"`}
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Content */}
       <div className="music-view__content">
         {filtered.length === 0 ? (
@@ -235,56 +287,6 @@ const MusicView = ({ tracks = [], currentTrack, isPlaying, onPlay, onAddToQueue,
         )}
       </div>
 
-      {/* ===== YouTube Results ===== */}
-      <div className="music-view__yt-section">
-
-        {ytLoading && (
-          <div className="music-view__yt-loading">
-            <span className="music-view__yt-spinner" />
-            Buscando en YouTube...
-          </div>
-        )}
-
-        {ytResults.length > 0 && (
-          <div className="music-view__yt-grid">
-            {ytResults.map(item => {
-              const vid = item.id?.videoId;
-              const snip = item.snippet;
-              return (
-                <div key={vid} className="music-view__yt-card" onClick={() => playYt(item)}>
-                  <div className="music-view__yt-thumb-wrap">
-                    <img
-                      src={snip.thumbnails?.medium?.url}
-                      alt={snip.title}
-                      className="music-view__yt-thumb"
-                    />
-                    <div className="music-view__yt-play-overlay">
-                      <svg viewBox="0 0 24 24" fill="currentColor" width="32" height="32">
-                        <path d="M8 5v14l11-7z"/>
-                      </svg>
-                    </div>
-                  </div>
-                  <div className="music-view__yt-info">
-                    <p className="music-view__yt-name">{snip.title}</p>
-                    <p className="music-view__yt-channel">{snip.channelTitle}</p>
-                  </div>
-                  <button
-                    className="music-view__yt-queue-btn"
-                    title="Agregar a la cola"
-                    onClick={e => { e.stopPropagation(); queueYt(item); }}
-                  >+</button>
-                </div>
-              );
-            })}
-          </div>
-        )}
-
-        {!ytLoading && ytQuery && ytResults.length === 0 && (
-          <div className="music-view__yt-empty">
-            {ytError ? `⚠️ ${ytError}` : `Sin resultados para "${ytQuery}"`}
-          </div>
-        )}
-      </div>
 
       {/* Bottom spacer for player bar */}
       <div style={{ height: '90px' }} />
