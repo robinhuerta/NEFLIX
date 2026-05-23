@@ -17,6 +17,7 @@ import MusicPlayer from './components/MusicPlayer';
 import SeriesDetail from './components/SeriesDetail';
 import MarqueeTicker from './components/MarqueeTicker';
 import ChatBot from './components/ChatBot';
+import InstallPWA from './components/InstallPWA';
 
 const SKELETON_COUNT = 6;
 
@@ -932,6 +933,8 @@ function App() {
           onRefresh={handleAdminRefresh}
         />
       )}
+
+      <InstallPWA />
     </div>
   );
 }
