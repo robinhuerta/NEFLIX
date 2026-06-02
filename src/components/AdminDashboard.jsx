@@ -226,7 +226,11 @@ const AdminDashboard = ({ onClose, onRefresh }) => {
       const data = await res.json();
       const snippet = data.items?.[0]?.snippet;
       if (!snippet) return;
-      if (!currentTitle.trim()) setTitle(snippet.title || '');
+      if (!currentTitle.trim()) {
+        const rawTitle = snippet.title || '';
+        const cleanTitle = rawTitle.split(/\s*\/\/\s*|\s*\|\s*|\s*–\s*/)[0].trim();
+        setTitle(cleanTitle);
+      }
       if (!currentDesc.trim()) setDesc((snippet.description || '').slice(0, 600));
       if (snippet.categoryId === '10') setCategory('Videos Musicales');
       setYtMetaFilled(true);

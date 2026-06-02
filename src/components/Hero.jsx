@@ -116,7 +116,9 @@ const Hero = ({ movie, onPlay, onInfo }) => {
 
       <div className="hero__content-wrapper">
         <div className="hero__left">
-          <h1 className="hero__title">{movie.title.toUpperCase()}</h1>
+          <h1 className={`hero__title${movie.title.length > 50 ? ' hero__title--long' : movie.title.length > 30 ? ' hero__title--medium' : ''}`}>
+            {movie.title.toUpperCase()}
+          </h1>
           <p className="hero__description">
             {movie.description || movie.genre || "Una emocionante aventura ahora disponible en COSMOS."}
           </p>
