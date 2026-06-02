@@ -545,7 +545,7 @@ const AdminDashboard = ({ onClose, onRefresh }) => {
                     <div className="admin-dashboard__genre-wrap">
                       <label className="admin-dashboard__genre-label">🎬 Género</label>
                       <div className="admin-dashboard__genre-grid">
-                        {['Acción','Drama','Comedia','Terror','Suspenso','Romance','Aventura','Animación','Documental','Otros'].map(g => (
+                        {['Acción','Drama','Comedia','Terror','Suspenso','Romance','Aventura','Animación','Familia','Documental','Otros'].map(g => (
                           <button key={g} type="button" className={`admin-dashboard__genre-btn ${genre === g ? 'active' : ''}`} onClick={() => setGenre(genre === g ? '' : g)}>{g}</button>
                         ))}
                       </div>
@@ -657,7 +657,7 @@ const AdminDashboard = ({ onClose, onRefresh }) => {
                       <div className="admin-dashboard__genre-grid">
                         {(category === 'Videos Musicales'
                           ? ['Cumbia','Salsa','Huayno','Reggaeton','Vallenato','Tropical','Chicha','Balada','Pop','Rock','Electrónica','Merengue','Bachata','Marinera','Festejo','Otros']
-                          : ['Acción','Drama','Comedia','Terror','Suspenso','Romance','Aventura','Animación','Documental','Otros']
+                          : ['Acción','Drama','Comedia','Terror','Suspenso','Romance','Aventura','Animación','Familia','Documental','Otros']
                         ).map(g => (
                           <button
                             key={g}
