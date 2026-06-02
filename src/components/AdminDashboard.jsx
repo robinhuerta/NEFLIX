@@ -36,6 +36,8 @@ const AdminDashboard = ({ onClose, onRefresh }) => {
   const [ytEmbedStatus, setYtEmbedStatus] = useState(null); // null|'checking'|'ok'|'blocked'|'invalid'
   const [batchUrlStatuses, setBatchUrlStatuses] = useState({});
   const [showPreview, setShowPreview] = useState(false);
+  const [isFetchingYtMeta, setIsFetchingYtMeta] = useState(false);
+  const [ytMetaFilled, setYtMetaFilled] = useState(false);
 
   // Usuarios
   const [usuariosList, setUsuariosList] = useState([]);
@@ -172,6 +174,7 @@ const AdminDashboard = ({ onClose, onRefresh }) => {
       setArtist('');
       setEpisodeNumber('');
       setYtEmbedStatus(null);
+      setYtMetaFilled(false);
       setShowPreview(false);
       setProgress(0);
       if (onRefresh) onRefresh();
@@ -212,6 +215,28 @@ const AdminDashboard = ({ onClose, onRefresh }) => {
     return match ? match[1] : null;
   };
 
+  const fetchYouTubeMetadata = async (videoId, currentTitle, currentDesc) => {
+    const apiKey = import.meta.env.VITE_YOUTUBE_API_KEY;
+    if (!apiKey) return;
+    setIsFetchingYtMeta(true);
+    try {
+      const res = await fetch(
+        `https://www.googleapis.com/youtube/v3/videos?part=snippet&id=${videoId}&key=${apiKey}`
+      );
+      const data = await res.json();
+      const snippet = data.items?.[0]?.snippet;
+      if (!snippet) return;
+      if (!currentTitle.trim()) setTitle(snippet.title || '');
+      if (!currentDesc.trim()) setDesc((snippet.description || '').slice(0, 600));
+      if (snippet.categoryId === '10') setCategory('Videos Musicales');
+      setYtMetaFilled(true);
+    } catch {
+      // silent fail
+    } finally {
+      setIsFetchingYtMeta(false);
+    }
+  };
+
   const checkYouTubeEmbed = async (url, callback) => {
     const id = getYouTubeId(url);
     if (!id) { callback('invalid'); return; }
@@ -227,14 +252,23 @@ const AdminDashboard = ({ onClose, onRefresh }) => {
 
   // Auto-verificar URL en modo individual
   useEffect(() => {
-    if (!externalUrl || !isYouTube(externalUrl)) { setYtEmbedStatus(null); return; }
+    if (!externalUrl || !isYouTube(externalUrl)) { setYtEmbedStatus(null); setYtMetaFilled(false); return; }
     setYtEmbedStatus('checking');
-    setShowPreview(false); // Reset preview when URL changes
+    setYtMetaFilled(false);
+    setShowPreview(false);
     const timer = setTimeout(() => {
       checkYouTubeEmbed(externalUrl, setYtEmbedStatus);
     }, 800);
     return () => clearTimeout(timer);
   }, [externalUrl]);
+
+  // Autocompletar datos cuando el embed es válido
+  useEffect(() => {
+    if (ytEmbedStatus === 'ok') {
+      const id = getYouTubeId(externalUrl);
+      if (id) fetchYouTubeMetadata(id, title, desc);
+    }
+  }, [ytEmbedStatus]);
 
   // Verificar URL por episodio al salir del campo (onBlur)
   const handleEpisodeUrlBlur = (id, url) => {
@@ -689,6 +723,8 @@ const AdminDashboard = ({ onClose, onRefresh }) => {
                             ytEmbedStatus === 'blocked' ? 'error' : ''
                           }`}>
                             {ytEmbedStatus === 'checking' ? '⏳ Verificando si se puede reproducir en COSMOS...' :
+                             ytEmbedStatus === 'ok' && isFetchingYtMeta ? '⏳ Obteniendo datos del video...' :
+                             ytEmbedStatus === 'ok' && ytMetaFilled ? '✅ YouTube · Datos autocompletados automáticamente ✨' :
                              ytEmbedStatus === 'ok' ? '✅ YouTube · Se puede reproducir en COSMOS' :
                              ytEmbedStatus === 'blocked' ? '🚫 Embedding bloqueado — este video NO se reproducirá en COSMOS (el canal lo impide)' :
                              ytEmbedStatus === 'invalid' ? '⚠️ Video no encontrado o URL inválida' :
