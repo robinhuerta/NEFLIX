@@ -905,6 +905,7 @@ function App() {
         currentTrack={currentTrack}
         isPlaying={isMusicPlaying}
         volume={musicVolume}
+        activeSection={showPlayer ? 'player' : showMusic ? 'musica' : showDJ ? 'dj' : showSeries ? 'series' : 'home'}
         onPlay={(track, queue) => playTrack(track, queue || [])}
         onWatch={(track) => { setSelectedVideo(track); setShowPlayer(true); }}
         onAddToQueue={addToQueue}
@@ -912,7 +913,7 @@ function App() {
         onResume={() => setIsMusicPlaying(true)}
         onNext={handleMusicNext}
         onPrev={handleMusicPrev}
-        onVolume={(v) => setMusicVolume(v / 100)}
+        onVolume={(v) => setMusicVolume(v)}
         onNavigate={(section) => {
           const s = section.toLowerCase();
           if (s === 'music' || s === 'musica' || s === 'música') { setShowMusic(true); setShowDJ(false); setShowSeries(false); setSearchQuery(''); }

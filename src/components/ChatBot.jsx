@@ -59,6 +59,7 @@ export default function ChatBot({
   currentTrack = null,
   isPlaying = false,
   volume = 0.8,
+  activeSection = 'home',
   onPlay,
   onWatch,
   onAddToQueue,
@@ -94,10 +95,17 @@ export default function ChatBot({
       videoUrl: `https://www.youtube.com/watch?v=${item.id.videoId}`,
       category: 'Videos Musicales',
     };
-    if (isPlaying) {
+    if (activeSection === 'musica' || activeSection === 'home') {
+      // En música o inicio: reproducir de inmediato
+      onPlay?.(track, []);
+    } else if (activeSection === 'dj') {
+      // En DJ: agregar a la cola sin interrumpir
+      onAddToQueue?.(track);
+    } else if (activeSection === 'player') {
+      // Viendo película: no interrumpir, solo agregar a cola
       onAddToQueue?.(track);
     } else {
-      onPlay?.(track, []);
+      isPlaying ? onAddToQueue?.(track) : onPlay?.(track, []);
     }
     return track;
   };
@@ -137,7 +145,7 @@ export default function ChatBot({
         if (ctrl.type === 'resume')  onResume?.();
         if (ctrl.type === 'next')    onNext?.();
         if (ctrl.type === 'prev')    onPrev?.();
-        if (ctrl.type === 'volume')  onVolume?.(ctrl.value / 100);
+        if (ctrl.type === 'volume')  onVolume?.(ctrl.value / 100); // ctrl.value es 0-100, onVolume espera 0-1
         if (ctrl.type === 'goto')    onNavigate?.(ctrl.section);
       }
 
