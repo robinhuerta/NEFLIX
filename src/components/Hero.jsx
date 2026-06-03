@@ -1,40 +1,50 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './Hero.css';
 
+const loadYTApi = () => {
+  if (window.YT && window.YT.Player) return Promise.resolve();
+  return new Promise((resolve) => {
+    if (document.getElementById('yt-iframe-api')) {
+      window.onYouTubeIframeAPIReady = resolve;
+      return;
+    }
+    window.onYouTubeIframeAPIReady = resolve;
+    const tag = document.createElement('script');
+    tag.id = 'yt-iframe-api';
+    tag.src = 'https://www.youtube.com/iframe_api';
+    document.head.appendChild(tag);
+  });
+};
+
 const Hero = ({ movie, onPlay, onInfo }) => {
   const [showPreview, setShowPreview] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
   const videoRef = useRef(null);
-  const iframeRef = useRef(null);
+  const ytPlayerRef = useRef(null);
+  const ytContainerRef = useRef(null);
 
   const isYouTube = (url) => url && (url.includes('youtube.com') || url.includes('youtu.be'));
   const isDrive = (url) => url && (url.includes('drive.google.com') || url.includes('docs.google.com'));
 
   const getYouTubeId = (url) => {
     if (!url) return null;
-    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
-    const match = url.match(regExp);
+    const match = url.match(/^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/);
     return (match && match[2].length === 11) ? match[2] : null;
   };
 
   const getDriveId = (url) => {
     if (!url) return null;
-    const regExp = /(?:\/d\/|id=)([\w-]+)/;
-    const match = url.match(regExp);
+    const match = url.match(/(?:\/d\/|id=)([\w-]+)/);
     return match ? match[1] : null;
   };
 
+  // Timer para mostrar/ocultar preview
   useEffect(() => {
     if (!movie || !movie.videoUrl) return;
+    setShowPreview(false);
 
-    const startTimer = setTimeout(() => {
-      setShowPreview(true);
-    }, 1500);
-
-    // Timer to stop preview after 21.5s (1.5 delay + 20s play)
-    const stopTimer = setTimeout(() => {
-      setShowPreview(false);
-    }, 21500);
+    const startTimer = setTimeout(() => setShowPreview(true), 1500);
+    const stopTimer = setTimeout(() => setShowPreview(false), 21500);
 
     return () => {
       clearTimeout(startTimer);
@@ -42,26 +52,62 @@ const Hero = ({ movie, onPlay, onInfo }) => {
     };
   }, [movie]);
 
-  // Resetear a silenciado cuando el preview termina o cambia película
+  // Resetear mute cuando el preview termina
   useEffect(() => {
     if (!showPreview) setIsMuted(true);
   }, [showPreview]);
+
+  // YouTube IFrame Player API — autoplay programático y fiable
+  useEffect(() => {
+    const ytId = getYouTubeId(movie?.videoUrl);
+    if (!showPreview || !ytId) return;
+
+    let player = null;
+    let destroyed = false;
+
+    loadYTApi().then(() => {
+      if (destroyed || !ytContainerRef.current) return;
+
+      player = new window.YT.Player(ytContainerRef.current, {
+        videoId: ytId,
+        playerVars: {
+          autoplay: 1,
+          mute: 1,
+          controls: 0,
+          modestbranding: 1,
+          rel: 0,
+          iv_load_policy: 3,
+          showinfo: 0,
+          playsinline: 1,
+        },
+        events: {
+          onReady: (e) => {
+            e.target.mute();
+            e.target.playVideo();
+            ytPlayerRef.current = e.target;
+          },
+          onStateChange: (e) => {
+            if (e.data === window.YT.PlayerState.ENDED) setShowPreview(false);
+          },
+        },
+      });
+    });
+
+    return () => {
+      destroyed = true;
+      try { player?.destroy(); } catch {}
+      ytPlayerRef.current = null;
+    };
+  }, [showPreview, movie?.videoUrl]);
 
   const toggleMute = () => {
     const newMuted = !isMuted;
     setIsMuted(newMuted);
 
-    // Video nativo
-    if (videoRef.current) {
-      videoRef.current.muted = newMuted;
-    }
+    if (videoRef.current) videoRef.current.muted = newMuted;
 
-    // YouTube iframe vía postMessage (sin recargar)
-    if (iframeRef.current) {
-      const cmd = newMuted ? 'mute' : 'unMute';
-      iframeRef.current.contentWindow.postMessage(
-        JSON.stringify({ event: 'command', func: cmd, args: [] }), '*'
-      );
+    if (ytPlayerRef.current) {
+      newMuted ? ytPlayerRef.current.mute() : ytPlayerRef.current.unMute();
     }
   };
 
@@ -83,13 +129,7 @@ const Hero = ({ movie, onPlay, onInfo }) => {
         {showPreview && movie.videoUrl && (
           <div className="hero__video-container">
             {isYouTube(movie.videoUrl) ? (
-              <iframe
-                ref={iframeRef}
-                src={`https://www.youtube.com/embed/${ytId}?autoplay=1&mute=1&controls=0&modestbranding=1&rel=0&iv_load_policy=3&showinfo=0&enablejsapi=1`}
-                title="Hero Preview"
-                frameBorder="0"
-                allow="autoplay; encrypted-media"
-              />
+              <div ref={ytContainerRef} className="hero__yt-player" />
             ) : isDrive(movie.videoUrl) ? (
               <iframe
                 src={`https://drive.google.com/file/d/${drId}/preview`}
@@ -135,7 +175,6 @@ const Hero = ({ movie, onPlay, onInfo }) => {
         </div>
       </div>
 
-      {/* Botón mute/unmute — solo visible durante el preview */}
       {canToggleAudio && (
         <button className="hero__mute-btn" onClick={toggleMute} title={isMuted ? 'Activar sonido' : 'Silenciar'}>
           {isMuted ? (

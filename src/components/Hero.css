@@ -41,11 +41,19 @@
 }
 
 .hero__video-container iframe,
-.hero__video-container video {
+.hero__video-container video,
+.hero__yt-player,
+.hero__yt-player iframe {
   width: 100%;
   height: 100%;
   object-fit: cover;
   pointer-events: none;
+}
+
+.hero__yt-player {
+  position: absolute;
+  top: 0;
+  left: 0;
 }
 
 @keyframes fade-in-video {
