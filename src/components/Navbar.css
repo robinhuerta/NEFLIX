@@ -370,16 +370,13 @@
 @media (max-width: 1024px) {
   .navbar { height: 65px; }
   .navbar__logo { margin-right: 20px; }
-  .navbar__link:nth-child(n+3) {
-    display: none;
-  }
+  .navbar__hamburger { display: flex; }
+  .navbar__links { display: none; }
 }
 
 @media (max-width: 768px) {
   .navbar__logo { font-size: 1.5rem; }
-  .navbar__hamburger { display: flex; }
   .navbar { padding: 0 15px; height: 60px; }
-  .navbar__links { display: none; }
 }
 
 @media (max-width: 480px) {
