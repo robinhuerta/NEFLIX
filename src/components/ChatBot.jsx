@@ -94,7 +94,11 @@ export default function ChatBot({
       videoUrl: `https://www.youtube.com/watch?v=${item.id.videoId}`,
       category: 'Videos Musicales',
     };
-    onAddToQueue?.(track);
+    if (isPlaying) {
+      onAddToQueue?.(track);
+    } else {
+      onPlay?.(track, []);
+    }
     return track;
   };
 
