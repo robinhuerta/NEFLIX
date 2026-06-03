@@ -65,6 +65,7 @@ const finalVol = (deckVol, cfVol) => Math.round(deckVol * cfVol / 100);
 export default function DJView({ tracks = [], currentTrack, isPlaying, onPlay, onAddToQueue, queue = [], onDJPlay, loadDeckA = null, loadDeckB = null }) {
   // ── Tab ──────────────────────────────────────────────────────────────────
   const [activeTab, setActiveTab] = useState('cabina'); // 'cabina' | 'youtube'
+  const [mobileDeck, setMobileDeck] = useState('A'); // 'A' | 'B' — solo en móvil
 
   // ── COSMOS setlist state ──────────────────────────────────────────────────
   const [mixMode, setMixMode]         = useState('shuffle');
@@ -374,21 +375,26 @@ export default function DJView({ tracks = [], currentTrack, isPlaying, onPlay, o
 
   const handleEqDrag = (deck, band, e) => {
     e.preventDefault();
-    const startY   = e.clientY;
+    const isTouch  = e.type === 'touchstart';
+    const startY   = isTouch ? e.touches[0].clientY : e.clientY;
     const setEq    = deck === 'A' ? setEqA : setEqB;
     const eq       = deck === 'A' ? eqA : eqB;
     const startVal = eq[band];
     const onMove   = (me) => {
-      const delta = Math.round((startY - me.clientY) * 1.5);
-      const clamped = Math.max(-150, Math.min(150, startVal + delta));
-      setEq(prev => ({ ...prev, [band]: clamped }));
+      const clientY = me.touches ? me.touches[0].clientY : me.clientY;
+      const delta = Math.round((startY - clientY) * 1.5);
+      setEq(prev => ({ ...prev, [band]: Math.max(-150, Math.min(150, startVal + delta)) }));
     };
     const onUp = () => {
       window.removeEventListener('mousemove', onMove);
       window.removeEventListener('mouseup', onUp);
+      window.removeEventListener('touchmove', onMove);
+      window.removeEventListener('touchend', onUp);
     };
     window.addEventListener('mousemove', onMove);
     window.addEventListener('mouseup', onUp);
+    window.addEventListener('touchmove', onMove, { passive: false });
+    window.addEventListener('touchend', onUp);
   };
 
   const handlePlatterDown = (deck, e) => {
@@ -557,6 +563,7 @@ export default function DJView({ tracks = [], currentTrack, isPlaying, onPlay, o
                   className="dj-view__yt-knob"
                   style={{ '--rot': `${eq[band]}deg` }}
                   onMouseDown={(e) => handleEqDrag(deck, band, e)}
+                  onTouchStart={(e) => handleEqDrag(deck, band, e)}
                   title={`EQ ${band.toUpperCase()} — arrastrar`}
                 >
                   <div className="dj-view__yt-knob-dot" />
@@ -627,7 +634,19 @@ export default function DJView({ tracks = [], currentTrack, isPlaying, onPlay, o
 
       {/* ── YouTube DJ Panel ── */}
       {activeTab === 'youtube' && <section className="dj-view__yt-section">
+        {/* Tabs A/B solo en móvil */}
+        <div className="dj-view__mobile-deck-tabs">
+          <button className={`dj-view__mobile-deck-tab ${mobileDeck === 'A' ? 'active' : ''}`} onClick={() => setMobileDeck('A')}>
+            {deckAPlaying && <span className="dj-view__mobile-live" />} Plato A
+          </button>
+          <button className={`dj-view__mobile-deck-tab ${mobileDeck === 'B' ? 'active' : ''}`} onClick={() => setMobileDeck('B')}>
+            {deckBPlaying && <span className="dj-view__mobile-live dj-view__mobile-live--b" />} Plato B
+          </button>
+        </div>
+
+        <div className={`dj-view__mobile-deck-panel ${mobileDeck === 'A' ? 'dj-view__mobile-deck-panel--visible' : ''}`}>
         {renderDeck('A')}
+        </div>
 
         {/* Crossfader center */}
         <div className="dj-view__yt-cf">
@@ -653,7 +672,9 @@ export default function DJView({ tracks = [], currentTrack, isPlaying, onPlay, o
           </div>
         </div>
 
+        <div className={`dj-view__mobile-deck-panel ${mobileDeck === 'B' ? 'dj-view__mobile-deck-panel--visible' : ''}`}>
         {renderDeck('B')}
+        </div>
 
         {/* Buscador compartido */}
         <div className="dj-view__shared-search">

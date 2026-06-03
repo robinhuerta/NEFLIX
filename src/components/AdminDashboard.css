@@ -151,6 +151,37 @@
   .admin-dashboard__login input { max-width: 100%; font-size: 1rem; }
 }
 
+@media (max-width: 480px) {
+  .admin-dashboard { padding: 6px; }
+  .admin-dashboard__content { padding: 14px; border-radius: 12px; max-height: 95dvh; }
+  .admin-dashboard__header { margin-bottom: 12px; }
+  .admin-dashboard__header h2 { font-size: 1rem; }
+  .admin-dashboard__tabs { gap: 4px; margin-bottom: 14px; }
+  .admin-dashboard__tab { padding: 8px 10px; font-size: 12px; }
+
+  .admin-dashboard__form input,
+  .admin-dashboard__form textarea,
+  .admin-dashboard__form select { padding: 10px 12px; font-size: 14px; margin-bottom: 10px; }
+
+  .admin-dashboard__genre-btn { padding: 6px 10px; font-size: 12px; }
+  .admin-dashboard__submit { min-height: 48px; font-size: 15px; }
+
+  .admin-dashboard__movie-list { max-height: calc(50dvh - 60px); }
+  .admin-dashboard__movie-item img { width: 60px; height: 38px; }
+  .admin-dashboard__movie-info h4 { font-size: 13px; }
+
+  .admin-dashboard__row { flex-direction: column; gap: 0; }
+  .admin-dashboard__row input,
+  .admin-dashboard__row select { width: 100%; }
+
+  /* Episodios en modo serie */
+  .admin-dashboard__episode-row {
+    grid-template-columns: 32px 1fr;
+    grid-template-rows: auto auto;
+  }
+  .admin-dashboard__ep-url-wrap { grid-column: 1 / -1; }
+}
+
 .admin-dashboard__section h3 {
   color: white;
   font-size: 1.1rem;

@@ -325,16 +325,40 @@
 }
 
 @media (max-width: 480px) {
+  /* Ventana full-screen en móvil */
   .chatbot-window {
-    right: 8px;
-    width: calc(100vw - 16px);
-    bottom: 160px;
+    position: fixed;
+    inset: 0;
+    right: 0;
+    left: 0;
+    bottom: 0;
+    top: 0;
+    width: 100%;
+    max-height: 100dvh;
+    border-radius: 0;
+    z-index: 10000;
   }
 
+  .chatbot-messages {
+    flex: 1;
+    max-height: none;
+  }
+
+  /* Burbujas más anchas */
+  .chatbot-msg { max-width: 90%; }
+
+  /* Botones de acción con altura mínima */
+  .chatbot-action { min-height: 40px; padding: 10px 14px; }
+
+  /* Burbuja del chat fuera de la ventana */
   .chatbot-bubble {
     right: 12px;
-    bottom: 130px;
+    bottom: max(100px, env(safe-area-inset-bottom, 0px) + 90px);
   }
+
+  /* Input más alto para dedos */
+  .chatbot-input input { font-size: 16px; padding: 12px; }
+  .chatbot-input button { width: 44px; height: 44px; }
 }
 
 @media (min-width: 1920px) {
