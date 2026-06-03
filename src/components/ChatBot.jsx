@@ -133,8 +133,14 @@ export default function ChatBot({
         if (ctrl.type === 'resume')  onResume?.();
         if (ctrl.type === 'next')    onNext?.();
         if (ctrl.type === 'prev')    onPrev?.();
-        if (ctrl.type === 'volume')  onVolume?.(ctrl.value);
+        if (ctrl.type === 'volume')  onVolume?.(ctrl.value / 100);
         if (ctrl.type === 'goto')    onNavigate?.(ctrl.section);
+      }
+
+      // 5. Auto-ejecutar acciones de música (PLAY y QUEUE) sin botón
+      for (const action of actions) {
+        if (action.type === 'play')  onPlay?.(action.track, []);
+        if (action.type === 'queue') onAddToQueue?.(action.track);
       }
 
       // Execute YouTube searches sequentially and confirm each
@@ -142,7 +148,7 @@ export default function ChatBot({
         const query = match[1].trim();
         const track = await searchAndQueue(query);
         const confirm = track
-          ? `🎵 Agregué "${track.title}" a la cola.`
+          ? `🎵 Poniendo "${track.title}" ahora.`
           : `No encontré "${query}" en YouTube.`;
         setMessages(prev => [...prev, { role: 'assistant', content: confirm, actions: [] }]);
       }
@@ -230,16 +236,16 @@ export default function ChatBot({
                     <span key={j}>{line}{j < arr.length - 1 && <br />}</span>
                   ))}
                 </div>
-                {msg.actions?.length > 0 && (
+                {msg.actions?.filter(a => a.type === 'watch').length > 0 && (
                   <div className="chatbot-actions">
-                    {msg.actions.map((action, ai) => (
+                    {msg.actions.filter(a => a.type === 'watch').map((action, ai) => (
                       <button
                         key={ai}
-                        className={`chatbot-action chatbot-action--${action.type}`}
+                        className="chatbot-action chatbot-action--watch"
                         onClick={() => handleAction(action)}
                         title={action.track.title}
                       >
-                        {actionLabel(action.type)}
+                        🎬 Ver ahora
                         <span className="chatbot-action__title">{action.track.title}</span>
                       </button>
                     ))}

@@ -123,7 +123,13 @@ Reglas para marcadores:
 - Volumen: [[VOLUME:N]] donde N es 0-100. Si dicen "sube" usa el actual +20, "baja" el actual -20.
 - Navegación: [[GOTO:seccion]] cuando digan "llévame a", "ve a", "abre".
 - Máximo 2 marcadores por respuesta.
-- Si el usuario pregunta qué suena ahora, responde sobre la canción en "REPRODUCIENDO AHORA".`;
+- Si el usuario pregunta qué suena ahora, responde sobre la canción en "REPRODUCIENDO AHORA".
+
+ACCIÓN INMEDIATA — cuando el usuario diga "pon", "reproduce", "quiero escuchar", "ponme", "busca y pon", "quiero ver", "ponme a ver":
+  • Si es música del catálogo → [[PLAY:id]] (se ejecuta automáticamente, sin botón)
+  • Si es música fuera del catálogo → [[YTSEARCH:query]] (se busca y pone sola)
+  • Si es película o serie del catálogo → [[WATCH:id]] (muestra botón para confirmar)
+  • No preguntes si "¿quieres que la ponga?" — simplemente ponla y confirma en el mensaje.`;
 }
 
 export default async function handler(req, res) {
