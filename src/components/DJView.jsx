@@ -111,14 +111,9 @@ export default function DJView({ tracks = [], currentTrack, isPlaying, onPlay, o
   const [eqB, setEqB] = useState({ hi: 0, mid: 0, lo: 0 });
 
   // ── Search ────────────────────────────────────────────────────────────────
-  const [queryA, setQueryA]     = useState('');
-  const [queryB, setQueryB]     = useState('');
-  const [resultsA, setResultsA] = useState([]);
-  const [resultsB, setResultsB] = useState([]);
-  const [loadingA, setLoadingA] = useState(false);
-  const [loadingB, setLoadingB] = useState(false);
-  const [showResA, setShowResA] = useState(false);
-  const [showResB, setShowResB] = useState(false);
+  const [sharedQuery,   setSharedQuery]   = useState('');
+  const [sharedResults, setSharedResults] = useState([]);
+  const [sharedLoading, setSharedLoading] = useState(false);
 
   // ── Refs ──────────────────────────────────────────────────────────────────
   const ytContainerA  = useRef(null);
@@ -129,7 +124,6 @@ export default function DJView({ tracks = [], currentTrack, isPlaying, onPlay, o
   const volARef       = useRef(volA);
   const volBRef       = useRef(volB);
   const searchTimerA  = useRef(null);
-  const searchTimerB  = useRef(null);
   const posTimerA     = useRef(null);
   const posTimerB     = useRef(null);
   const autoFadeTimer = useRef(null);
@@ -421,32 +415,28 @@ export default function DJView({ tracks = [], currentTrack, isPlaying, onPlay, o
     return () => { window.removeEventListener('mousemove', onMove); window.removeEventListener('mouseup', onUp); };
   }, [speedA, speedB]);
 
-  const handleSearch = (deck, value) => {
-    if (deck === 'A') { setQueryA(value); setShowResA(true); }
-    else              { setQueryB(value); setShowResB(true); }
-    const timer      = deck === 'A' ? searchTimerA : searchTimerB;
-    const setLoading = deck === 'A' ? setLoadingA : setLoadingB;
-    const setResults = deck === 'A' ? setResultsA : setResultsB;
-    clearTimeout(timer.current);
-    if (!value.trim()) { setResults([]); return; }
-    setLoading(true);
-    timer.current = setTimeout(async () => {
-      setResults(await searchYouTube(value));
-      setLoading(false);
+  const handleSharedSearch = (value) => {
+    setSharedQuery(value);
+    clearTimeout(searchTimerA.current);
+    if (!value.trim()) { setSharedResults([]); return; }
+    setSharedLoading(true);
+    searchTimerA.current = setTimeout(async () => {
+      setSharedResults(await searchYouTube(value));
+      setSharedLoading(false);
     }, 500);
   };
 
   const pickResult = (deck, result) => {
-    if (deck === 'A') { setDeckAId(result.id); setDeckATitle(result.title); setQueryA(''); setResultsA([]); setShowResA(false); }
-    else              { setDeckBId(result.id); setDeckBTitle(result.title); setQueryB(''); setResultsB([]); setShowResB(false); }
+    if (deck === 'A') { setDeckAId(result.id); setDeckATitle(result.title); }
+    else              { setDeckBId(result.id); setDeckBTitle(result.title); }
+    setSharedQuery(''); setSharedResults([]);
   };
 
   const loadDeckUrl = (deck) => {
-    const query = deck === 'A' ? queryA : queryB;
-    const id = getYtId(query);
+    const id = getYtId(sharedQuery);
     if (!id) return;
-    if (deck === 'A') { setDeckAId(id); setDeckATitle(query); setQueryA(''); setShowResA(false); }
-    else              { setDeckBId(id); setDeckBTitle(query); setQueryB(''); setShowResB(false); }
+    if (deck === 'A') { setDeckAId(id); setDeckATitle(sharedQuery); }
+    else              { setDeckBId(id); setDeckBTitle(sharedQuery); }
   };
 
   const handleActivateMix = () => {
@@ -484,10 +474,6 @@ export default function DJView({ tracks = [], currentTrack, isPlaying, onPlay, o
     const eq       = isA ? eqA        : eqB;
     const vol      = isA ? volA       : volB;
     const setVol   = isA ? setVolA    : setVolB;
-    const query    = isA ? queryA     : queryB;
-    const results  = isA ? resultsA   : resultsB;
-    const loading  = isA ? loadingA   : loadingB;
-    const showRes  = isA ? showResA   : showResB;
     const container = isA ? ytContainerA : ytContainerB;
 
     const pct = pos.dur > 0 ? (pos.cur / pos.dur) * 100 : 0;
@@ -603,32 +589,6 @@ export default function DJView({ tracks = [], currentTrack, isPlaying, onPlay, o
           </div>
         )}
 
-        {/* Search */}
-        <div className="dj-view__yt-search-wrap">
-          <input
-            className="dj-view__yt-input"
-            placeholder="Buscar en YouTube..."
-            value={query}
-            onChange={e => handleSearch(deck, e.target.value)}
-            onFocus={() => deck === 'A' ? setShowResA(true) : setShowResB(true)}
-            onBlur={() => setTimeout(() => deck === 'A' ? setShowResA(false) : setShowResB(false), 200)}
-            onKeyDown={e => e.key === 'Enter' && loadDeckUrl(deck)}
-          />
-          {loading && <span className="dj-view__yt-spinner" />}
-          {showRes && results.length > 0 && (
-            <div className="dj-view__yt-results">
-              {results.map(r => (
-                <div key={r.id} className="dj-view__yt-result" onMouseDown={() => pickResult(deck, r)}>
-                  <img src={r.thumb} alt="" className="dj-view__yt-result-thumb" />
-                  <div className="dj-view__yt-result-info">
-                    <span className="dj-view__yt-result-title">{r.title}</span>
-                    <span className="dj-view__yt-result-ch">{r.channel}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
       </div>
     );
   };
@@ -694,6 +654,39 @@ export default function DJView({ tracks = [], currentTrack, isPlaying, onPlay, o
         </div>
 
         {renderDeck('B')}
+
+        {/* Buscador compartido */}
+        <div className="dj-view__shared-search">
+          <div className="dj-view__shared-search-bar">
+            <span className="dj-view__shared-search-icon">🔍</span>
+            <input
+              className="dj-view__shared-input"
+              placeholder="Buscar canción en YouTube..."
+              value={sharedQuery}
+              onChange={e => handleSharedSearch(e.target.value)}
+              onKeyDown={e => e.key === 'Escape' && setSharedResults([])}
+            />
+            {sharedLoading && <span className="dj-view__yt-spinner" />}
+            {sharedQuery && <button className="dj-view__shared-clear" onClick={() => { setSharedQuery(''); setSharedResults([]); }}>✕</button>}
+          </div>
+          {sharedResults.length > 0 && (
+            <div className="dj-view__shared-results">
+              {sharedResults.map(r => (
+                <div key={r.id} className="dj-view__shared-result">
+                  <img src={r.thumb} alt="" className="dj-view__shared-thumb" />
+                  <div className="dj-view__shared-info">
+                    <span className="dj-view__shared-title">{r.title}</span>
+                    <span className="dj-view__shared-ch">{r.channel}</span>
+                  </div>
+                  <div className="dj-view__shared-btns">
+                    <button className="dj-view__shared-btn dj-view__shared-btn--a" onMouseDown={() => pickResult('A', r)}>→ A</button>
+                    <button className="dj-view__shared-btn dj-view__shared-btn--b" onMouseDown={() => pickResult('B', r)}>→ B</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </section>}
 
       {/* ── Vinyl stage + setlist (tab CABINA) ── */}
