@@ -266,9 +266,9 @@ const AdminDashboard = ({ onClose, onRefresh }) => {
     return () => clearTimeout(timer);
   }, [externalUrl]);
 
-  // Autocompletar datos cuando el embed es válido
+  // Autocompletar datos cuando el embed es válido — solo una vez por URL
   useEffect(() => {
-    if (ytEmbedStatus === 'ok') {
+    if (ytEmbedStatus === 'ok' && !ytMetaFilled && !isFetchingYtMeta) {
       const id = getYouTubeId(externalUrl);
       if (id) fetchYouTubeMetadata(id, title, desc);
     }

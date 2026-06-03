@@ -40,17 +40,17 @@ const Hero = ({ movie, onPlay, onInfo }) => {
 
   // Timer para mostrar/ocultar preview
   useEffect(() => {
-    if (!movie || !movie.videoUrl) return;
     setShowPreview(false);
+    if (!movie?.videoUrl || !isYouTube(movie.videoUrl)) return;
 
     const startTimer = setTimeout(() => setShowPreview(true), 1500);
-    const stopTimer = setTimeout(() => setShowPreview(false), 21500);
+    const stopTimer  = setTimeout(() => setShowPreview(false), 21500);
 
     return () => {
       clearTimeout(startTimer);
       clearTimeout(stopTimer);
     };
-  }, [movie]);
+  }, [movie?.videoUrl]);
 
   // Resetear mute cuando el preview termina
   useEffect(() => {

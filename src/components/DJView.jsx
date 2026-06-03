@@ -231,7 +231,7 @@ export default function DJView({ tracks = [], currentTrack, isPlaying, onPlay, o
   const startPosPollerA = () => {
     clearInterval(posTimerA.current);
     posTimerA.current = setInterval(() => {
-      if (!ytPlayerA.current) return;
+      if (!ytPlayerA.current || !deckAPlaying) return;
       try {
         const cur = ytPlayerA.current.getCurrentTime?.() || 0;
         const dur = ytPlayerA.current.getDuration?.() || 0;
@@ -241,12 +241,12 @@ export default function DJView({ tracks = [], currentTrack, isPlaying, onPlay, o
           if (cur >= loopEnd) ytPlayerA.current.seekTo?.(loopARef.current.start, true);
         }
       } catch {}
-    }, 250);
+    }, 500);
   };
   const startPosPollerB = () => {
     clearInterval(posTimerB.current);
     posTimerB.current = setInterval(() => {
-      if (!ytPlayerB.current) return;
+      if (!ytPlayerB.current || !deckBPlaying) return;
       try {
         const cur = ytPlayerB.current.getCurrentTime?.() || 0;
         const dur = ytPlayerB.current.getDuration?.() || 0;
