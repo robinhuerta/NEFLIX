@@ -37,6 +37,8 @@ function App() {
   const [showAdmin, setShowAdmin] = useState(false);
   const [showMusic, setShowMusic] = useState(false);
   const [showDJ, setShowDJ] = useState(false);
+  const [djLoadA, setDjLoadA] = useState(null);
+  const [djLoadB, setDjLoadB] = useState(null);
   const [showSeries, setShowSeries] = useState(false);
   const [selectedSeries, setSelectedSeries] = useState(null);
   const [seriesPlayQueue, setSeriesPlayQueue] = useState([]);
@@ -652,6 +654,8 @@ function App() {
           onAddToQueue={addToQueue}
           queue={musicQueue}
           onDJPlay={() => setIsMusicPlaying(false)}
+          loadDeckA={djLoadA}
+          loadDeckB={djLoadB}
         />
       )}
 
@@ -906,6 +910,8 @@ function App() {
         isPlaying={isMusicPlaying}
         volume={musicVolume}
         activeSection={showPlayer ? 'player' : showMusic ? 'musica' : showDJ ? 'dj' : showSeries ? 'series' : 'home'}
+        onLoadDeckA={(track) => setDjLoadA({ ...track, _ts: Date.now() })}
+        onLoadDeckB={(track) => setDjLoadB({ ...track, _ts: Date.now() })}
         onPlay={(track, queue) => playTrack(track, queue || [])}
         onWatch={(track) => { setSelectedVideo(track); setShowPlayer(true); }}
         onAddToQueue={addToQueue}

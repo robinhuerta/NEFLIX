@@ -2,7 +2,7 @@ import Anthropic from '@anthropic-ai/sdk';
 
 const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
-function buildSystemPrompt(movies, watchHistory, myList, currentTrack, volume, isPlaying) {
+function buildSystemPrompt(movies, watchHistory, myList, currentTrack, volume, isPlaying, activeSection) {
   const musicVideos = movies.filter(m => {
     const cat = (m.category || '').toLowerCase();
     return cat === 'videos musicales' || cat === 'musica' || cat === 'música';
@@ -37,8 +37,15 @@ function buildSystemPrompt(movies, watchHistory, myList, currentTrack, volume, i
     ? `\n🎵 REPRODUCIENDO AHORA: "${currentTrack.title}"${currentTrack.artist ? ' — ' + currentTrack.artist : ''}${currentTrack.genre ? ' | ' + currentTrack.genre : ''} | Estado: ${isPlaying ? 'reproduciendo' : 'pausado'} | Volumen actual: ${Math.round((volume || 0.8) * 100)}%`
     : '';
 
+  const sectionCtx = activeSection === 'dj'
+    ? '\n🎧 SECCIÓN ACTIVA: Modo DJ — el usuario está en la cabina DJ con platos A y B.'
+    : activeSection === 'musica' ? '\n🎵 SECCIÓN ACTIVA: Música'
+    : activeSection === 'player' ? '\n🎬 SECCIÓN ACTIVA: Reproduciendo una película'
+    : activeSection === 'series' ? '\n📺 SECCIÓN ACTIVA: Series'
+    : '';
+
   return `Eres COSMOS Assistant, el asistente oficial de COSMOS — una plataforma de streaming latinoamericana tipo Netflix, de acceso libre (sin registro, solo con el link).
-${nowPlaying}
+${nowPlaying}${sectionCtx}
 
 ════════════════════════════════
   FUNCIONALIDADES DE COSMOS
@@ -107,6 +114,8 @@ Cuando recomiendes o menciones contenido del catálogo, SIEMPRE incluye al final
   [[GOTO:dj]]         → ir a la cabina DJ
   [[GOTO:series]]     → ir a Series
   [[GOTO:home]]       → ir al Inicio
+  [[DJDECK_A:query]]  → buscar en YouTube y cargar en Plato A del DJ
+  [[DJDECK_B:query]]  → buscar en YouTube y cargar en Plato B del DJ
 
 Ejemplos:
   "Te recomiendo esta cumbia 🎵 [[PLAY:abc123]]"
@@ -114,6 +123,8 @@ Ejemplos:
   "Ya la agregué a tu cola [[YTSEARCH:Bad Bunny Tití Me Preguntó]]"
   "Listo, pausé la música [[PAUSE]]"
   "¡Vamos al DJ! [[GOTO:dj]]"
+  "Cargué Bad Bunny en el Plato A [[DJDECK_A:Bad Bunny Moscow Mule]]"
+  "Lista, Plato B con cumbia [[DJDECK_B:mix cumbia bailables]]"
   "Bajé el volumen a la mitad [[VOLUME:50]]"
 
 Reglas para marcadores:
@@ -122,6 +133,7 @@ Reglas para marcadores:
 - Controles: usa [[PAUSE]], [[RESUME]], [[NEXT]], [[PREV]] cuando el usuario pida controlar la reproducción.
 - Volumen: [[VOLUME:N]] donde N es 0-100. Si dicen "sube" usa el actual +20, "baja" el actual -20.
 - Navegación: [[GOTO:seccion]] cuando digan "llévame a", "ve a", "abre".
+- DJ: [[DJDECK_A:query]] y [[DJDECK_B:query]] SOLO cuando la sección activa sea DJ. Cuando el usuario diga "pon X en plato A/B" o "carga X en el plato A/B", usa estos marcadores.
 - Máximo 2 marcadores por respuesta.
 - Si el usuario pregunta qué suena ahora, responde sobre la canción en "REPRODUCIENDO AHORA".
 
@@ -140,7 +152,7 @@ export default async function handler(req, res) {
   if (req.method === 'OPTIONS') return res.status(200).end();
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { messages, movies = [], watchHistory = [], myList = [], currentTrack = null, volume = 0.8, isPlaying = false } = req.body;
+  const { messages, movies = [], watchHistory = [], myList = [], currentTrack = null, volume = 0.8, isPlaying = false, activeSection = 'home' } = req.body;
 
   if (!messages || !Array.isArray(messages)) {
     return res.status(400).json({ error: 'messages requerido' });
@@ -150,7 +162,7 @@ export default async function handler(req, res) {
     const response = await client.messages.create({
       model: 'claude-haiku-4-5-20251001',
       max_tokens: 600,
-      system: buildSystemPrompt(movies, watchHistory, myList, currentTrack, volume, isPlaying),
+      system: buildSystemPrompt(movies, watchHistory, myList, currentTrack, volume, isPlaying, activeSection),
       messages,
     });
 

@@ -69,6 +69,8 @@ export default function ChatBot({
   onPrev,
   onVolume,
   onNavigate,
+  onLoadDeckA,
+  onLoadDeckB,
 }) {
   const [open, setOpen]       = useState(false);
   const [messages, setMessages] = useState([{ role: 'assistant', content: GREETING, actions: [] }]);
@@ -115,15 +117,20 @@ export default function ChatBot({
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: apiMessages, movies, watchHistory, myList, currentTrack, volume, isPlaying }),
+        body: JSON.stringify({ messages: apiMessages, movies, watchHistory, myList, currentTrack, volume, isPlaying, activeSection }),
       });
       const data = await res.json();
       const raw = data.reply || 'Sin respuesta.';
 
-      // 1. Strip YTSEARCH markers
+      // 1. Strip DJ deck markers
+      const djRegex = /\[\[DJDECK_([AB]):([^\]]+)\]\]/g;
+      const djMatches = [...raw.matchAll(djRegex)];
+      const afterDj = raw.replace(djRegex, '').trim();
+
+      // 1b. Strip YTSEARCH markers
       const ytRegex = /\[\[YTSEARCH:([^\]]+)\]\]/g;
       const ytMatches = [...raw.matchAll(ytRegex)];
-      const afterYt = raw.replace(ytRegex, '').trim();
+      const afterYt = afterDj.replace(ytRegex, '').trim();
 
       // 2. Strip control markers and collect them
       const { clean: afterControls, controls } = parseControls(afterYt);
@@ -150,6 +157,24 @@ export default function ChatBot({
             content: `🎵 Encontré "${action.track.title}". ¿Qué hago?`,
             actions: musicActions(action.track),
           }]);
+        }
+      }
+
+      // 6b. DJDECK → buscar en YouTube y cargar en plato A o B
+      for (const match of djMatches) {
+        const deck = match[1]; // 'A' o 'B'
+        const query = match[2].trim();
+        const track = await searchYT(query);
+        if (track) {
+          if (deck === 'A') onLoadDeckA?.({ id: track.id, title: track.title });
+          else              onLoadDeckB?.({ id: track.id, title: track.title });
+          setMessages(prev => [...prev, {
+            role: 'assistant',
+            content: `🎧 "${track.title}" cargado en Plato ${deck}. ¡Dale play cuando quieras!`,
+            actions: [],
+          }]);
+        } else {
+          setMessages(prev => [...prev, { role: 'assistant', content: `No encontré "${query}" en YouTube.`, actions: [] }]);
         }
       }
 

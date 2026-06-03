@@ -62,7 +62,7 @@ const cfVolA = (cf) => cf <= 50 ? 100 : Math.round((100 - cf) * 2);
 const cfVolB = (cf) => cf >= 50 ? 100 : Math.round(cf * 2);
 const finalVol = (deckVol, cfVol) => Math.round(deckVol * cfVol / 100);
 
-export default function DJView({ tracks = [], currentTrack, isPlaying, onPlay, onAddToQueue, queue = [], onDJPlay }) {
+export default function DJView({ tracks = [], currentTrack, isPlaying, onPlay, onAddToQueue, queue = [], onDJPlay, loadDeckA = null, loadDeckB = null }) {
   // ── Tab ──────────────────────────────────────────────────────────────────
   const [activeTab, setActiveTab] = useState('cabina'); // 'cabina' | 'youtube'
 
@@ -150,6 +150,14 @@ export default function DJView({ tracks = [], currentTrack, isPlaying, onPlay, o
   useEffect(() => { loopBRef.current   = loopB; },       [loopB]);
   useEffect(() => { deckAIdRef.current = deckAId; },     [deckAId]);
   useEffect(() => { deckBIdRef.current = deckBId; },     [deckBId]);
+
+  // Carga desde ChatBot
+  useEffect(() => {
+    if (loadDeckA?.id) { setDeckAId(loadDeckA.id); setDeckATitle(loadDeckA.title); }
+  }, [loadDeckA]);
+  useEffect(() => {
+    if (loadDeckB?.id) { setDeckBId(loadDeckB.id); setDeckBTitle(loadDeckB.title); }
+  }, [loadDeckB]);
 
   // ── Volume update helper ──────────────────────────────────────────────────
   const applyVolumes = (cf, vA, vB) => {
