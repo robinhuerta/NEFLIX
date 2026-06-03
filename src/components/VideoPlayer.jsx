@@ -61,6 +61,36 @@ const VideoPlayer = ({ onBack, fileName, videoUrl: initialUrl, movieTitle = "COS
   const ytPlayerRef = useRef(null);
   const isPlayingRef = useRef(isPlaying);
   const isFullScreenRef = useRef(isFullScreen);
+  const audioCtxRef = useRef(null);
+
+  // ── Normalización de audio (solo videos locales) ──────────
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || isYouTube(videoUrl) || isDrive(videoUrl) || !videoUrl) return;
+    if (audioCtxRef.current) return;
+
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const source = ctx.createMediaElementSource(video);
+    const compressor = ctx.createDynamicsCompressor();
+    compressor.threshold.value = -24;
+    compressor.knee.value = 30;
+    compressor.ratio.value = 12;
+    compressor.attack.value = 0.003;
+    compressor.release.value = 0.25;
+    const gain = ctx.createGain();
+    gain.gain.value = 1.2;
+
+    source.connect(compressor);
+    compressor.connect(gain);
+    gain.connect(ctx.destination);
+    audioCtxRef.current = ctx;
+
+    const resume = () => ctx.state === 'suspended' && ctx.resume();
+    video.addEventListener('play', resume);
+    return () => video.removeEventListener('play', resume);
+  }, [videoUrl]);
+
+  useEffect(() => () => { audioCtxRef.current?.close(); }, []);
 
   // ── Funciones ─────────────────────────────────────────────
 
