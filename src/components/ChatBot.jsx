@@ -82,12 +82,12 @@ export default function ChatBot({
     if (open) bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, open]);
 
-  const searchAndQueue = async (query) => {
+  const searchYT = async (query) => {
     const resp = await fetch(`/api/ytsearch?q=${encodeURIComponent(query)}&max=1`);
     const data = await resp.json();
     if (!data.items?.length) return null;
     const item = data.items[0];
-    const track = {
+    return {
       id: item.id.videoId,
       title: item.snippet.title,
       artist: item.snippet.channelTitle,
@@ -95,20 +95,13 @@ export default function ChatBot({
       videoUrl: `https://www.youtube.com/watch?v=${item.id.videoId}`,
       category: 'Videos Musicales',
     };
-    if (activeSection === 'musica' || activeSection === 'home') {
-      // En música o inicio: reproducir de inmediato
-      onPlay?.(track, []);
-    } else if (activeSection === 'dj') {
-      // En DJ: agregar a la cola sin interrumpir
-      onAddToQueue?.(track);
-    } else if (activeSection === 'player') {
-      // Viendo película: no interrumpir, solo agregar a cola
-      onAddToQueue?.(track);
-    } else {
-      isPlaying ? onAddToQueue?.(track) : onPlay?.(track, []);
-    }
-    return track;
   };
+
+  const musicActions = (track) => [
+    { type: 'play',  track },
+    { type: 'queue', track },
+    { type: 'watch', track },
+  ];
 
   const sendText = async (text) => {
     if (!text || loading) return;
@@ -149,20 +142,30 @@ export default function ChatBot({
         if (ctrl.type === 'goto')    onNavigate?.(ctrl.section);
       }
 
-      // 5. Auto-ejecutar acciones de música (PLAY y QUEUE) sin botón
+      // 5. Música del catálogo → mostrar 3 opciones
       for (const action of actions) {
-        if (action.type === 'play')  onPlay?.(action.track, []);
-        if (action.type === 'queue') onAddToQueue?.(action.track);
+        if (action.type === 'play' || action.type === 'queue') {
+          setMessages(prev => [...prev, {
+            role: 'assistant',
+            content: `🎵 Encontré "${action.track.title}". ¿Qué hago?`,
+            actions: musicActions(action.track),
+          }]);
+        }
       }
 
-      // Execute YouTube searches sequentially and confirm each
+      // 6. YTSEARCH → buscar y mostrar 3 opciones
       for (const match of ytMatches) {
         const query = match[1].trim();
-        const track = await searchAndQueue(query);
-        const confirm = track
-          ? `🎵 Poniendo "${track.title}" ahora.`
-          : `No encontré "${query}" en YouTube.`;
-        setMessages(prev => [...prev, { role: 'assistant', content: confirm, actions: [] }]);
+        const track = await searchYT(query);
+        if (track) {
+          setMessages(prev => [...prev, {
+            role: 'assistant',
+            content: `🎵 Encontré "${track.title}". ¿Qué hago?`,
+            actions: musicActions(track),
+          }]);
+        } else {
+          setMessages(prev => [...prev, { role: 'assistant', content: `No encontré "${query}" en YouTube.`, actions: [] }]);
+        }
       }
     } catch {
       setMessages(prev => [...prev, { role: 'assistant', content: 'Error de conexión.', actions: [] }]);
@@ -203,9 +206,9 @@ export default function ChatBot({
   };
 
   const actionLabel = (type) => {
-    if (type === 'play')  return '▶ Reproducir';
-    if (type === 'watch') return '🎬 Ver ahora';
-    if (type === 'queue') return '+ Agregar a cola';
+    if (type === 'play')  return '▶ Reproducir ahora';
+    if (type === 'watch') return '🎬 Ver en video';
+    if (type === 'queue') return '+ Poner en cola';
     return '';
   };
 
@@ -248,17 +251,16 @@ export default function ChatBot({
                     <span key={j}>{line}{j < arr.length - 1 && <br />}</span>
                   ))}
                 </div>
-                {msg.actions?.filter(a => a.type === 'watch').length > 0 && (
+                {msg.actions?.length > 0 && (
                   <div className="chatbot-actions">
-                    {msg.actions.filter(a => a.type === 'watch').map((action, ai) => (
+                    {msg.actions.map((action, ai) => (
                       <button
                         key={ai}
-                        className="chatbot-action chatbot-action--watch"
+                        className={`chatbot-action chatbot-action--${action.type}`}
                         onClick={() => handleAction(action)}
                         title={action.track.title}
                       >
-                        🎬 Ver ahora
-                        <span className="chatbot-action__title">{action.track.title}</span>
+                        {actionLabel(action.type)}
                       </button>
                     ))}
                   </div>
