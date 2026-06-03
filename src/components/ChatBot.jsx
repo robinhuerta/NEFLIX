@@ -122,24 +122,25 @@ export default function ChatBot({
       const data = await res.json();
       const raw = data.reply || 'Sin respuesta.';
 
-      // 1. Strip DJ deck markers
-      const djRegex = /\[\[DJDECK_([AB]):([^\]]+)\]\]/g;
-      const djMatches = [...raw.matchAll(djRegex)];
-      const afterDj = raw.replace(djRegex, '').trim();
+      // 1. Extraer todos los marcadores usando regex independientes
+      const djMatches  = [...raw.matchAll(/\[\[DJDECK_([AB]):([^\]]+)\]\]/g)];
+      const ytMatches  = [...raw.matchAll(/\[\[YTSEARCH:([^\]]+)\]\]/g)];
 
-      // 1b. Strip YTSEARCH markers
-      const ytRegex = /\[\[YTSEARCH:([^\]]+)\]\]/g;
-      const ytMatches = [...raw.matchAll(ytRegex)];
-      const afterYt = afterDj.replace(ytRegex, '').trim();
+      // 2. Limpiar el texto de TODOS los marcadores en un solo paso
+      const stripped = raw
+        .replace(/\[\[DJDECK_([AB]):([^\]]+)\]\]/g, '')
+        .replace(/\[\[YTSEARCH:([^\]]+)\]\]/g, '')
+        .replace(/\[\[[^\]]*\]\]/g, '')   // limpia cualquier marcador residual
+        .trim();
 
-      // 2. Strip control markers and collect them
-      const { clean: afterControls, controls } = parseControls(afterYt);
+      // 3. Strip control markers and collect them
+      const { clean: afterControls, controls } = parseControls(stripped);
 
-      // 3. Strip content action markers
+      // 4. Strip content action markers
       const { text: cleanText, actions } = parseActions(afterControls, movies);
       setMessages(prev => [...prev, { role: 'assistant', content: cleanText, actions }]);
 
-      // 4. Execute controls immediately
+      // 5. Execute controls immediately
       for (const ctrl of controls) {
         if (ctrl.type === 'pause')   onPause?.();
         if (ctrl.type === 'resume')  onResume?.();
